@@ -1,93 +1,6 @@
 // ===============================
 // HISTORY + DASHBOARD STATS
 // ===============================
-
-// async function loadHistory() {
-//     try {
-//         const user = AppState.currentUser;
-//         if (!user) return;
-
-//         const data = await ApiService.call({
-//             action: "get_riwayat",
-//             role: user.role,
-//             username: user.username
-//         });
-
-//         AppState.riwayat = data;
-
-//         const role = String(user.role || "").trim().toLowerCase();
-
-//         if (role === "siswa" || role === "peserta") {
-//             initStudentHistoryFilter();
-//             renderStudentHistoryCards(data);
-//             return;
-//         }
-
-//         renderHistoryTable(data);
-
-//     } catch (error) {
-//         console.error("Load history error:", error);
-//         showToast("Gagal memuat riwayat", true);
-//     }
-// }
-
-// async function loadHistory() {
-
-//     showLoader("Memuat riwayat...");
-
-//     try {
-//         const user = AppState.currentUser;
-//         if (!user) return;
-
-//         const role = String(user.role || "").trim().toLowerCase();
-
-//         const monthEl = document.getElementById("student-history-month");
-//         const yearEl = document.getElementById("student-history-year");
-
-//         const bulan = Number(monthEl.value);
-//         const tahun = Number(yearEl.value);
-
-//         const data = await ApiService.call({
-//             action: "get_riwayat",
-//             role: user.role,
-//             username: user.username,
-//             bulan,
-//             tahun
-//         });
-
-//         AppState.riwayat = data;
-
-//         if (role === "siswa" || role === "peserta") {
-//             initStudentHistoryFilter();
-
-//             const monthEl = document.getElementById("student-history-month");
-//             const yearEl = document.getElementById("student-history-year");
-//             console.log("Before:", monthEl.value);
-//             const bulan = Number(monthEl?.value || (new Date().getMonth() + 1));
-//             const tahun = Number(yearEl?.value || new Date().getFullYear());
-//             console.log("After:", monthEl.value);
-
-//             const statusData = await ApiService.call({
-//                 action: "get_status_history_month",
-//                 username: user.username,
-//                 bulan,
-//                 tahun
-//             });
-
-//             renderStudentHistoryCards(data, statusData);
-//             return;
-//         }
-
-//         renderHistoryTable(data);
-
-//     } catch (error) {
-//         console.error("Load history error:", error);
-//         showToast("Gagal memuat riwayat", true);
-//     } finally {
-//         hideLoader();
-//     }    
-// }
-
 async function loadHistory(resetFilter = false) {
 
     showLoader("Memuat riwayat...");
@@ -95,64 +8,248 @@ async function loadHistory(resetFilter = false) {
     try {
 
         const user = AppState.currentUser;
+
         if (!user) return;
 
-        const role = String(user.role || "").trim().toLowerCase();
+        const role =
+            String(user.role || "")
+                .trim()
+                .toLowerCase();
 
         // ===============================
-        // Reset filter hanya saat buka halaman
+        // RESET FILTER
         // ===============================
 
         if (resetFilter) {
             initStudentHistoryFilter();
         }
 
-        const monthEl = document.getElementById("student-history-month");
-        const yearEl = document.getElementById("student-history-year");
-
-        const bulan = Number(monthEl.value);
-        const tahun = Number(yearEl.value);
-
-        // ===============================
-        // Ambil Riwayat
-        // ===============================
-
-        const data = await ApiService.call({
-            action: "get_riwayat",
-            role: user.role,
-            username: user.username,
-            bulan,
-            tahun
-        });
-
-        AppState.riwayat = data || [];
-
-        if (role === "siswa" || role === "peserta") {
-
-            const statusData = await ApiService.call({
-                action: "get_status_history_month",
-                username: user.username,
-                bulan,
-                tahun
-            });
-
-            renderStudentHistoryCards(
-                AppState.riwayat,
-                statusData || []
+        const monthEl =
+            document.getElementById(
+                "student-history-month"
             );
 
-        } else {
+        const yearEl =
+            document.getElementById(
+                "student-history-year"
+            );
 
-            renderHistoryTable(AppState.riwayat);
+        const bulan =
+            Number(monthEl?.value);
+
+        const tahun =
+            Number(yearEl?.value);
+
+        // ===============================
+        // RANGE TANGGAL
+        // ===============================
+
+        const lastDay = new Date(
+    tahun,
+    bulan,
+    0
+).getDate();
+
+const startDate =
+    `${tahun}-${String(bulan).padStart(2,"0")}-01`;
+
+const endDate =
+    `${tahun}-${String(bulan).padStart(2,"0")}-${String(lastDay).padStart(2,"0")}`;
+
+        // ===============================
+        // RIWAYAT ABSENSI
+        // ===============================
+
+        let query =
+            window.supabaseClient
+                .from("absensi")
+                .select("*")
+                .gte("waktu", startDate)
+                .lte("waktu", endDate)
+                .order("waktu", {
+                    ascending: false
+                });
+
+        // siswa hanya lihat miliknya
+
+        if (
+            role === "siswa" ||
+            role === "peserta"
+        ) {
+
+            query =
+                query.eq(
+                    "username",
+                    user.username
+                );
 
         }
 
-    } catch (error) {
+        const {
+            data: absensi,
+            error: absenError
+        } = await query;
 
-        console.error("Load history error:", error);
-        showToast("Gagal memuat riwayat", true);
+        if (absenError) {
+            throw absenError;
+        }
 
-    } finally {
+        // ===============================
+        // FORMAT AGAR COCOK
+        // DENGAN UI LAMA
+        // ===============================
+
+        AppState.riwayat =
+            (absensi || []).map(row => {
+
+                const dt =
+                    new Date(row.waktu);
+
+                return {
+
+                    id:
+                        row.id,
+
+                    nama:
+                        row.nama_lengkap,
+
+                    kategori:
+                        row.kategori,
+
+                    tipe:
+                        row.tipe,
+
+                    timestamp:
+                        dt.toLocaleDateString(
+                            "id-ID"
+                        ) +
+                        " " +
+                        dt.toLocaleTimeString(
+                            "id-ID",
+                            {
+                                hour12: false
+                            }
+                        ),
+
+                    fotoUrl:
+                        row.foto_url,
+
+                    namaIndustri:
+                        row.nama_industri,
+
+                    maps:
+                        row.maps_url,
+
+                    lat:
+                        row.latitude,
+
+                    lng:
+                        row.longitude,
+
+                    jarak:
+                        Number(
+                            row.jarak || 0
+                        )
+
+                };
+
+            });
+
+        // ===============================
+        // KHUSUS SISWA
+        // AMBIL STATUS HARIAN
+        // ===============================
+
+        if (
+            role === "siswa" ||
+            role === "peserta"
+        ) {
+
+            const {
+                data: statusData,
+                error: statusError
+            } = await window.supabaseClient
+                .from("status_harian")
+                .select("*")
+                .eq(
+                    "username",
+                    user.username
+                )
+                .gte(
+                    "tanggal",
+                    startDate
+                )
+                .lte(
+                    "tanggal",
+                    endDate
+                )
+                .order(
+                    "tanggal",
+                    {
+                        ascending: false
+                    }
+                );
+
+            if (statusError) {
+                throw statusError;
+            }
+
+            const formattedStatus =
+                (statusData || []).map(
+                    row => ({
+
+                        id:
+                            row.id,
+
+                        tanggal:
+                            new Date(
+                                row.tanggal
+                            )
+                            .toLocaleDateString(
+                                "id-ID"
+                            ),
+
+                        status:
+                            row.status,
+
+                        approval:
+                            row.approval,
+
+                        keterangan:
+                            row.keterangan
+
+                    })
+                );
+
+            renderStudentHistoryCards(
+                AppState.riwayat,
+                formattedStatus
+            );
+
+        }
+        else {
+
+            renderHistoryTable(
+                AppState.riwayat
+            );
+
+        }
+
+    }
+    catch (error) {
+
+        console.error(
+            "Load history error:",
+            error
+        );
+
+        showToast(
+            "Gagal memuat riwayat",
+            true
+        );
+
+    }
+    finally {
 
         hideLoader();
 
@@ -422,102 +519,215 @@ function setHistoryMode(mode) {
 }
 
 async function loadStatusHistory(useLoader = false) {
+
     try {
+
         const user = AppState.currentUser;
+
         if (!user) return;
 
         if (useLoader) {
             showLoader("Memuat riwayat status...");
         }
 
-        const data = await ApiService.call({
-            action: "get_status_history",
-            username: user.username
-        });
+        // =========================
+        // AMBIL DATA STATUS HARIAN
+        // =========================
 
-        const list = document.getElementById("status-history-list");
+        const {
+            data,
+            error
+        } = await window.supabaseClient
+            .from("status_harian")
+            .select("*")
+            .eq(
+                "username",
+                user.username
+            )
+            .order(
+                "tanggal",
+                {
+                    ascending: false
+                }
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        const list =
+            document.getElementById(
+                "status-history-list"
+            );
+
         if (!list) return;
 
-        if (!data.length) {
+        if (!data || !data.length) {
+
             list.innerHTML = `
                 <div class="bg-white rounded-2xl p-4 shadow text-center text-slate-500">
                     Belum ada riwayat pengajuan status.
                 </div>
             `;
+
             return;
         }
 
-        list.innerHTML = data.map(item => `
-            <div class="bg-white rounded-2xl p-4 shadow border border-slate-100">
+        list.innerHTML = await Promise.all(
+            data.map(async item => {
 
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <div class="font-bold text-slate-800">
-                            ${item.tanggal || "-"}
-                        </div>
+                // =========================
+                // NAMA APPROVER
+                // =========================
 
-                        <div class="text-xs text-slate-500 mt-1">
-                            Diajukan: ${item.timestamp || "-"}
-                        </div>
-                    </div>
+                let approvedByNama = "";
 
-                    <span class="px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(item.status)}">
-                        ${item.status || "-"}
-                    </span>
-                </div>
+                if (item.approved_by) {
 
-                ${
-                    item.keterangan
-                        ? `<div class="mt-3 text-sm text-slate-600 bg-slate-50 rounded-xl p-3">
-                            ${item.keterangan}
-                           </div>`
-                        : ""
+                    const {
+                        data: approver
+                    } = await window.supabaseClient
+                        .from("users")
+                        .select("nama_lengkap")
+                        .eq(
+                            "username",
+                            item.approved_by
+                        )
+                        .maybeSingle();
+
+                    approvedByNama =
+                        approver?.nama_lengkap || "";
                 }
 
-                <div class="mt-3 flex items-center justify-between">
-                    <span class="text-xs text-slate-500">
-                        Status
-                    </span>
+                const createdAt =
+                    item.created_at
+                        ? new Date(
+                            item.created_at
+                          ).toLocaleString("id-ID")
+                        : "-";
 
-                    <span class="px-2 py-1 rounded-full text-xs font-semibold ${getApprovalBadgeClass(item.approval)}">
-                        ${item.approval || "Pending"}
-                    </span>
-                </div>
+                return `
 
-                ${
-                    item.approval === "Pending"
+                <div class="bg-white rounded-2xl p-4 shadow border border-slate-100">
+
+                    <div class="flex items-start justify-between gap-3">
+
+                        <div>
+
+                            <div class="font-bold text-slate-800">
+                                ${item.tanggal || "-"}
+                            </div>
+
+                            <div class="text-xs text-slate-500 mt-1">
+                                Diajukan: ${createdAt}
+                            </div>
+
+                        </div>
+
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(item.status)}">
+                            ${item.status || "-"}
+                        </span>
+
+                    </div>
+
+                    ${
+                        item.keterangan
+                        ? `
+                            <div class="mt-3 text-sm text-slate-600 bg-slate-50 rounded-xl p-3">
+                                ${item.keterangan}
+                            </div>
+                          `
+                        : ""
+                    }
+
+                    ${
+                        item.foto_bukti
+                        ? `
+                            <a
+                                href="${item.foto_bukti}"
+                                target="_blank"
+                                class="mt-3 inline-flex items-center gap-2 text-indigo-600 text-sm">
+
+                                <i class="fa-solid fa-image"></i>
+                                Lihat Bukti
+
+                            </a>
+                          `
+                        : ""
+                    }
+
+                    <div class="mt-3 flex items-center justify-between">
+
+                        <span class="text-xs text-slate-500">
+                            Status Approval
+                        </span>
+
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold ${getApprovalBadgeClass(item.approval)}">
+                            ${item.approval || "Pending"}
+                        </span>
+
+                    </div>
+
+                    ${
+                        item.approval === "Pending"
                         ? `
                             <button
                                 onclick="cancelStatusRequest('${item.id}')"
-                                class="mt-3 w-full px-3 py-2 rounded-xl border border-red-200 bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100 transition">
+                                class="mt-3 w-full px-3 py-2 rounded-xl border border-red-200 bg-red-50 text-red-600 text-sm font-medium">
 
                                 <i class="fa-solid fa-xmark mr-1"></i>
                                 Batalkan Pengajuan
 
                             </button>
-                        `
+                          `
                         : ""
-                }
+                    }
 
-                ${item.approvedByNama
-                ? `<div class="mt-2 text-[11px] text-slate-400">
-                    Diproses oleh :
-                    <span class="font-medium text-slate-600">
-                        ${item.approvedByNama}
-                    </span>
-                    </div>`
-                : ""}
+                    ${
+                        approvedByNama
+                        ? `
+                            <div class="mt-2 text-[11px] text-slate-400">
 
-            </div>
-        `).join("");
+                                Diproses oleh :
 
-    } catch (error) {
-        console.error("Status history error:", error);
-        showToast("Gagal memuat riwayat status", true);
+                                <span class="font-medium text-slate-600">
+                                    ${approvedByNama}
+                                </span>
 
-    } finally {
-        hideLoader();
+                            </div>
+                          `
+                        : ""
+                    }
+
+                </div>
+
+                `;
+
+            })
+        ).then(html =>
+            html.join("")
+        );
+
     }
+    catch (error) {
+
+        console.error(
+            "Status history error:",
+            error
+        );
+
+        showToast(
+            "Gagal memuat riwayat status",
+            true
+        );
+
+    }
+    finally {
+
+        hideLoader();
+
+    }
+
 }
 
 //RIWAYAT SISWA
@@ -625,103 +835,38 @@ function renderStudentHistoryCards(riwayat, statusData = []) {
     container.innerHTML = html;
 }
 
-// function renderNormalHistoryBlock(masuk, pulang, statusHari) {
-//     return `
-//         <div class="history-action">
-//             <div class="history-badge in">Scan In</div>
-
-//             <div class="history-time">
-//                 ${masuk ? masuk.timestamp.split(" ")[1] : "00:00:00"}
-//             </div>
-
-//             <div class="history-note">
-//                 ${masuk ? `${Math.round(masuk.jarak || 0)} meter` : "Belum absen"}
-//             </div>
-//         </div>
-
-//         <div class="history-action">
-//             <div class="history-badge out">Scan Out</div>
-
-//             ${
-//                 pulang
-//                 ? `
-//                     <div class="history-time">
-//                         ${pulang.timestamp.split(" ")[1]}
-//                     </div>
-
-//                     <div class="history-note">
-//                         ${Math.round(pulang.jarak || 0)} meter
-//                     </div>
-//                 `
-//                 : (
-//                     statusHari &&
-//                     String(statusHari.approval).toLowerCase() === "approved" &&
-//                     String(statusHari.status).toLowerCase() === "lupa absen"
-//                 )
-//                 ? `
-//                     <div class="history-time text-blue-600 font-semibold">
-//                         Lupa Absen
-//                     </div>
-
-//                     <div class="history-note">
-//                         ${statusHari.keterangan || ""}
-//                     </div>
-//                 `
-//                 : `
-//                     <div class="history-time">
-//                         00:00:00
-//                     </div>
-
-//                     <div class="history-note">
-//                         Belum absen
-//                     </div>
-//                 `
-//             }
-//         </div>
-//     `;
-// }
-
 function convertDriveUrl(url) {
 
     if (!url) return "";
 
+    // jika URL Supabase langsung return
+    if (url.includes("supabase.co/storage")) {
+        return url;
+    }
+
     try {
 
-        // format:
-        // https://drive.google.com/file/d/FILE_ID/view
-
-        let match =
-            url.match(/\/d\/([^\/]+)/);
+        let match = url.match(/\/d\/([^\/]+)/);
 
         if (match && match[1]) {
-
             return `https://lh3.googleusercontent.com/d/${match[1]}`;
-
         }
 
-        // format:
-        // https://drive.google.com/uc?export=view&id=FILE_ID
-
-        match =
-            url.match(/[?&]id=([^&]+)/);
+        match = url.match(/[?&]id=([^&]+)/);
 
         if (match && match[1]) {
-
             return `https://lh3.googleusercontent.com/d/${match[1]}`;
-
         }
 
         return url;
 
-    }
-    catch(err){
+    } catch (err) {
 
         console.error(err);
 
         return url;
 
     }
-
 }
 
 function previewFoto({
@@ -888,61 +1033,6 @@ function previewFoto({
 
 }
 
-// function renderNormalHistoryBlock(masuk, pulang, statusHari) {
-//     return `
-//         <div class="history-action">
-//             <div class="history-badge in">Scan In</div>
-
-//             <div class="history-time">
-//                 ${masuk ? masuk.timestamp.split(" ")[1] : "00:00:00"}
-//             </div>
-
-//             <div class="history-note">
-//                 ${masuk ? `${Math.round(masuk.jarak || 0)} meter` : "Belum absen"}
-//             </div>
-//         </div>
-
-//         <div class="history-action">
-//             <div class="history-badge out">Scan Out</div>
-
-//             ${
-//                 pulang
-//                 ? `
-//                     <div class="history-time">
-//                         ${pulang.timestamp.split(" ")[1]}
-//                     </div>
-
-//                     <div class="history-note">
-//                         ${Math.round(pulang.jarak || 0)} meter
-//                     </div>
-//                 `
-//                 : (
-//                     statusHari &&
-//                     String(statusHari.approval).toLowerCase() === "approved" &&
-//                     String(statusHari.status).toLowerCase() === "lupa absen"
-//                 )
-//                 ? `
-//                     <div class="history-time text-blue-600 font-semibold">
-//                         Lupa Absen
-//                     </div>
-
-//                     <div class="history-note">
-//                         ${statusHari.keterangan || ""}
-//                     </div>
-//                 `
-//                 : `
-//                     <div class="history-time">
-//                         00:00:00
-//                     </div>
-
-//                     <div class="history-note">
-//                         Belum absen
-//                     </div>
-//                 `
-//             }
-//         </div>
-//     `;
-// }
 function renderNormalHistoryBlock(
     masuk,
     pulang,
@@ -1138,46 +1228,138 @@ async function cancelStatusRequest(id) {
 
         const user = AppState.currentUser;
 
-        const response = await ApiService.call({
-            action: "cancel_status_harian",
-            id,
-            username: user.username
-        });
-
-        if (response.success) {
-
-            await Swal.fire({
-                title: "Berhasil",
-                text: response.message || "Pengajuan berhasil dibatalkan.",
-                icon: "success",
-                timer: 1800,
-                showConfirmButton: false
-            });
-
-            loadStatusHistory();
-
-        } else {
-
-            Swal.fire({
-                title: "Gagal",
-                text: response.message || "Pengajuan tidak dapat dibatalkan.",
-                icon: "error"
-            });
+        if (!user) {
+            throw new Error("User tidak ditemukan");
         }
 
-    } catch (error) {
+        // =========================
+        // CEK DATA
+        // =========================
 
-        console.error("Cancel status error:", error);
+        const {
+            data: statusData,
+            error: cekError
+        } = await window.supabaseClient
+            .from("status_harian")
+            .select("id,approval,username")
+            .eq("id", id)
+            .single();
+
+        if (cekError) {
+            throw cekError;
+        }
+
+        if (!statusData) {
+            throw new Error("Data tidak ditemukan");
+        }
+
+        if (statusData.username !== user.username) {
+            throw new Error(
+                "Anda tidak memiliki akses membatalkan data ini"
+            );
+        }
+
+        if (statusData.approval !== "Pending") {
+
+            Swal.fire({
+                title: "Tidak Bisa Dibatalkan",
+                text: "Pengajuan sudah diproses.",
+                icon: "warning"
+            });
+
+            return;
+        }
+
+        // =========================
+        // HAPUS FOTO JIKA ADA
+        // =========================
+
+        const {
+            data: fotoData
+        } = await window.supabaseClient
+            .from("status_harian")
+            .select("foto_bukti")
+            .eq("id", id)
+            .single();
+
+        if (fotoData?.foto_bukti) {
+
+            try {
+
+                const url =
+                    fotoData.foto_bukti;
+
+                const filePath =
+                    decodeURIComponent(
+                        url.split("/status-bukti/")[1] || ""
+                    );
+
+                if (filePath) {
+
+                    await window.supabaseClient
+                        .storage
+                        .from("status-bukti")
+                        .remove([filePath]);
+
+                }
+
+            } catch (e) {
+
+                console.warn(
+                    "Gagal menghapus foto:",
+                    e
+                );
+
+            }
+        }
+
+        // =========================
+        // HAPUS DATA
+        // =========================
+
+        const {
+            error: deleteError
+        } = await window.supabaseClient
+            .from("status_harian")
+            .delete()
+            .eq("id", id)
+            .eq("username", user.username);
+
+        if (deleteError) {
+            throw deleteError;
+        }
+
+        await Swal.fire({
+            title: "Berhasil",
+            text: "Pengajuan berhasil dibatalkan.",
+            icon: "success",
+            timer: 1800,
+            showConfirmButton: false
+        });
+
+        await loadStatusHistory();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Cancel status error:",
+            error
+        );
 
         Swal.fire({
-            title: "Terjadi Kesalahan",
-            text: "Gagal membatalkan pengajuan.",
+            title: "Gagal",
+            text:
+                error.message ||
+                "Pengajuan tidak dapat dibatalkan.",
             icon: "error"
         });
 
-    } finally {
+    }
+    finally {
 
         hideLoader();
+
     }
 }
 

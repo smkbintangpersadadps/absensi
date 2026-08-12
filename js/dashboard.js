@@ -5,56 +5,6 @@ let kepsekMap = null;
 let kepsekMarkers = [];
 let kepsekLokasiSelect = null;
 
-// async function loadKepsekDashboard(useLoader = false) {
-//     try {
-//         const user = AppState.currentUser;
-//         if (!user) return;
-
-//         if (useLoader) {
-//             showLoader("Memuat dashboard kepala sekolah...");
-//         }
-
-//         const lokasiId =
-//             document.getElementById("kepsek-filter-lokasi")?.value || "ALL";
-
-//         const tanggalEl = document.getElementById("kepsek-filter-tanggal");
-
-//         if (tanggalEl && !tanggalEl.value) {
-//             const now = new Date();
-
-//             tanggalEl.value =
-//                 now.getFullYear() + "-" +
-//                 String(now.getMonth() + 1).padStart(2, "0") + "-" +
-//                 String(now.getDate()).padStart(2, "0");
-//         }
-
-//         const tanggal = tanggalEl?.value || "";
-
-//         const data = await ApiService.call({
-//             action: "get_kepsek_dashboard",
-//             lokasiId,
-//             tanggal
-//         });
-
-//         const summary = data.summary || {};
-//         const lokasiList = data.lokasiList || [];
-//         const siswa = data.siswa || [];
-//         const rekapIndustri = data.rekapIndustri || [];
-
-//         renderKepsekFilter(lokasiList, lokasiId);
-//         renderKepsekSummary(summary);
-//         renderKepsekRekapIndustri(rekapIndustri, lokasiId);
-//         renderKepsekTable(siswa);
-//         renderKepsekMap(rekapIndustri, lokasiId);
-
-//     } catch (error) {
-//         console.error("Kepsek dashboard error:", error);
-//         showToast("Gagal memuat dashboard kepala sekolah", true);
-
-//     } finally {
-//         hideLoader();
-//     }
-// }
 async function loadKepsekDashboard(useLoader = false) {
     try {
 
@@ -1362,129 +1312,344 @@ function setApprovalMode(mode) {
 }
 
 async function loadStatusApproval(useLoader = false) {
+
     try {
-        const user = AppState.currentUser;
+
+        const user =
+            AppState.currentUser;
+
         if (!user) return;
 
         if (useLoader) {
-            showLoader("Memuat data approval...");
+            showLoader(
+                "Memuat data approval..."
+            );
         }
 
-        const data = await ApiService.call({
-            action: "get_status_pending",
-            mode: AppState.approvalMode,
-            username: user.username,
-            kategori: user.kategori
-        });
+        let data = [];
 
-        const list = document.getElementById("approval-list");
+        // =========================
+        // MODE WALI
+        // =========================
+
+        if (
+            AppState.approvalMode === "wali"
+        ) {
+
+            const {
+                data: rows,
+                error
+            } = await window.supabaseClient
+                .from("status_harian")
+                .select("*")
+                .eq(
+                    "approval",
+                    "Pending"
+                )
+                .eq(
+                    "kategori",
+                    user.kategori
+                )
+                .order(
+                    "tanggal",
+                    {
+                        ascending: false
+                    }
+                );
+
+            if (error) {
+                throw error;
+            }
+
+            data = rows || [];
+        }
+
+        // =========================
+        // MODE PEMBIMBING
+        // =========================
+
+        else {
+
+            const {
+                data: siswa,
+                error: siswaError
+            } = await window.supabaseClient
+                .from("users")
+                .select("username")
+                .eq(
+                    "p_id",
+                    user.pId
+                );
+
+            if (siswaError) {
+                throw siswaError;
+            }
+
+            const usernames =
+                (siswa || [])
+                    .map(
+                        s => s.username
+                    );
+
+            if (
+                usernames.length > 0
+            ) {
+
+                const {
+                    data: rows,
+                    error
+                } = await window.supabaseClient
+                    .from("status_harian")
+                    .select("*")
+                    .eq(
+                        "approval",
+                        "Pending"
+                    )
+                    .in(
+                        "username",
+                        usernames
+                    )
+                    .order(
+                        "tanggal",
+                        {
+                            ascending: false
+                        }
+                    );
+
+                if (error) {
+                    throw error;
+                }
+
+                data = rows || [];
+            }
+        }
+
+        const list =
+            document.getElementById(
+                "approval-list"
+            );
+
         if (!list) return;
 
         if (!data.length) {
+
             list.innerHTML = `
                 <div class="bg-white rounded-2xl p-4 shadow text-center text-slate-500">
                     Tidak ada pengajuan pending.
                 </div>
             `;
+
             return;
         }
 
-        list.innerHTML = data.map(item => `
-            <div class="bg-white rounded-2xl p-4 shadow border border-slate-100">
+        list.innerHTML =
+            data.map(item => `
 
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <div class="font-bold text-slate-800">
-                            ${item.nama || "-"}
+                <div class="bg-white rounded-2xl p-4 shadow border border-slate-100">
+
+                    <div class="flex items-start justify-between gap-3">
+
+                        <div>
+
+                            <div class="font-bold text-slate-800">
+                                ${item.nama_lengkap || "-"}
+                            </div>
+
+                            <div class="text-xs text-slate-500 mt-1">
+                                ${item.kategori || "-"} • ${item.tanggal || "-"}
+                            </div>
+
                         </div>
 
-                        <div class="text-xs text-slate-500 mt-1">
-                            ${item.kategori || "-"} • ${item.tanggal || "-"}
-                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(item.status)}">
+                            ${item.status || "-"}
+                        </span>
+
                     </div>
 
-                    <span class="px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(item.status)}">
-                        ${item.status || "-"}
-                    </span>
-                </div>
-
-                ${
-                    item.keterangan
-                        ? `<div class="mt-3 text-sm text-slate-600 bg-slate-50 rounded-xl p-3">
-                            ${item.keterangan}
-                           </div>`
+                    ${
+                        item.keterangan
+                        ? `
+                            <div class="mt-3 text-sm text-slate-600 bg-slate-50 rounded-xl p-3">
+                                ${item.keterangan}
+                            </div>
+                          `
                         : ""
-                }
+                    }
 
-                <div class="mt-4 flex gap-2">
-                    <button onclick="updateApproval(${item.rowIndex}, 'Approved')"
-                        class="flex-1 bg-green-600 text-white py-2 rounded-xl text-sm font-semibold">
-                        Setujui
-                    </button>
+                    <div class="mt-4 flex gap-2">
 
-                    <button onclick="updateApproval(${item.rowIndex}, 'Rejected')"
-                        class="flex-1 bg-red-600 text-white py-2 rounded-xl text-sm font-semibold">
-                        Tolak
-                    </button>
+                        <button
+                            onclick="updateApproval('${item.id}','Approved')"
+                            class="flex-1 bg-green-600 text-white py-2 rounded-xl text-sm font-semibold">
+
+                            Setujui
+
+                        </button>
+
+                        <button
+                            onclick="updateApproval('${item.id}','Rejected')"
+                            class="flex-1 bg-red-600 text-white py-2 rounded-xl text-sm font-semibold">
+
+                            Tolak
+
+                        </button>
+
+                    </div>
+
                 </div>
 
-            </div>
-        `).join("");
+            `).join("");
 
-    } catch (error) {
-        console.error("Approval error:", error);
-        showToast("Gagal memuat approval", true);
+    }
+    catch (error) {
 
-    } finally {
+        console.error(
+            "Approval error:",
+            error
+        );
+
+        showToast(
+            "Gagal memuat approval",
+            true
+        );
+
+    }
+    finally {
+
         hideLoader();
+
     }
 }
 
-async function updateApproval(rowIndex, approval) {
-    const user = AppState.currentUser;
+async function updateApproval(id, approval) {
+
+    const user =
+        AppState.currentUser;
+
     if (!user) return;
 
-    const label = approval === "Approved" ? "menyetujui" : "menolak";
+    const label =
+        approval === "Approved"
+            ? "menyetujui"
+            : "menolak";
 
     Swal.fire({
-        title: approval === "Approved" ? "Setujui Pengajuan?" : "Tolak Pengajuan?",
-        text: `Anda akan ${label} pengajuan ini.`,
+
+        title:
+            approval === "Approved"
+                ? "Setujui Pengajuan?"
+                : "Tolak Pengajuan?",
+
+        text:
+            `Anda akan ${label} pengajuan ini.`,
+
         icon: "question",
+
         showCancelButton: true,
-        confirmButtonText: approval === "Approved" ? "Ya, Setujui" : "Ya, Tolak",
+
+        confirmButtonText:
+            approval === "Approved"
+                ? "Ya, Setujui"
+                : "Ya, Tolak",
+
         cancelButtonText: "Batal",
-        confirmButtonColor: approval === "Approved" ? "#16a34a" : "#dc2626"
+
+        confirmButtonColor:
+            approval === "Approved"
+                ? "#16a34a"
+                : "#dc2626"
+
     }).then(async result => {
-        if (!result.isConfirmed) return;
+
+        if (!result.isConfirmed) {
+            return;
+        }
 
         try {
-            showLoader("Memproses approval...");
 
-            const res = await ApiService.call({
-                action: "update_status_approval",
-                rowIndex,
-                approval,
-                approvedBy: user.username
-            });
+            showLoader(
+                "Memproses approval..."
+            );
+
+            const {
+                error
+            } = await window.supabaseClient
+                .from("status_harian")
+                .update({
+
+                    approval:
+
+                        approval,
+
+                    approved_by:
+
+                        user.username,
+                        
+                    approved_at:
+                        new Date().toISOString()
+
+                })
+                .eq(
+                    "id",
+                    id
+                );
+
+            if (error) {
+                throw error;
+            }
 
             Swal.fire({
+
                 icon: "success",
+
                 title: "Berhasil",
-                text: res.message || "Status berhasil diperbarui",
+
+                text:
+                    approval === "Approved"
+                        ? "Pengajuan berhasil disetujui"
+                        : "Pengajuan berhasil ditolak",
+
                 timer: 1500,
+
                 showConfirmButton: false
+
             });
 
-            loadStatusApproval(false);
+            // refresh list
+            await loadStatusApproval(false);
 
-        } catch (error) {
-            console.error(error);
-            showToast("Gagal memproses approval", true);
+            // refresh dashboard wali
+            if (
+                typeof loadWaliDashboard ===
+                "function"
+            ) {
+                await loadWaliDashboard(false);
+            }
 
-        } finally {
-            hideLoader();
         }
+        catch (error) {
+
+            console.error(
+                "Update approval error:",
+                error
+            );
+
+            showToast(
+                error.message ||
+                "Gagal memproses approval",
+                true
+            );
+
+        }
+        finally {
+
+            hideLoader();
+
+        }
+
     });
+
 }
 // ===============================
 // MODE SISWA
@@ -1516,226 +1681,7 @@ function pilihModeSiswaOrtu() {
         navigateTo("page-user-dashboard");
     });
 }
-// ===============================
-// USER DASHBOARD
-// ===============================
 
-//01-07-2026
-
-// async function loadUserDashboardStats() {
-//     try {
-//         const user = AppState.currentUser;
-//         if (!user) return;
-
-//         if (!AppState.currentUserLocation && user.lokasiId) {
-//             await loadUserLocation();
-//         }
-
-//         const riwayat = await ApiService.call({
-//             action: "get_riwayat",
-//             role: user.role,
-//             username: user.username
-//         });
-        
-
-//         // ===============================
-//         // REQUIRED UI CHECK
-//         // ===============================
-//         const requiredUI = [
-//             "ui-status-hari",
-//             "ui-masuk",
-//             "ui-pulang",
-//             "ui-total-hadir",
-//             "ui-total-masuk",
-//             "ui-total-pulang",
-//             "ui-progress-kehadiran",
-//             "ui-persentase",
-//             "ui-last-absen"
-//         ];
-
-//         const missing = requiredUI.filter(id => !document.getElementById(id));
-
-//         if (missing.length > 0) {
-//             console.warn("Dashboard UI missing:", missing);
-//             return; // STOP supaya tidak error
-//         }
-
-//         // ===============================
-//         // SAFE DOM HELPERS
-//         // ===============================
-//         const setText = (id, value) => {
-//             const el = document.getElementById(id);
-//             if (el) el.innerText = value;
-//         };
-
-//         const setHTML = (id, value) => {
-//             const el = document.getElementById(id);
-//             if (el) el.innerHTML = value;
-//         };
-
-//         const setWidth = (id, value) => {
-//             const el = document.getElementById(id);
-//             if (el) el.style.width = value;
-//         };
-
-//         // ===============================
-//         // VALIDATE DATA
-//         // ===============================
-//         if (!Array.isArray(riwayat)) {
-//             console.warn("Riwayat bukan array:", riwayat);
-//             return;
-//         }
-        
-
-//         // ===============================
-//         // FORMAT TODAY
-//         // ===============================
-//         const today = new Date();
-
-//         const todayStr =
-//             today.getDate().toString().padStart(2, "0") + "/" +
-//             (today.getMonth() + 1).toString().padStart(2, "0") + "/" +
-//             today.getFullYear();
-
-//         // ===============================
-//         // FILTER DATA
-//         // ===============================
-//         const todayData = riwayat.filter(r =>
-//             r?.timestamp?.startsWith(todayStr)
-//         );
-
-//         const thisMonth = riwayat.filter(r => {
-//             if (!r?.timestamp) return false;
-
-//             const d = parseDateID(r.timestamp);
-
-//             return (
-//                 d &&
-//                 d.getMonth() === today.getMonth() &&
-//                 d.getFullYear() === today.getFullYear()
-//             );
-//         });
-
-//         // ===============================
-//         // STATUS HARI INI
-//         // ===============================
-//         const masukToday = todayData.find(r => r.tipe === "Masuk");
-//         const pulangToday = todayData.find(r => r.tipe === "Pulang");
-
-//         const statusHari =
-//             todayData.length > 0 ? "Hadir" : "Belum Absen";
-
-//         // ===============================
-//         // RINGKASAN BULAN
-//         // ===============================
-//         const totalHadir = new Set(
-//             thisMonth
-//                 .filter(r => r.tipe === "Masuk")
-//                 .map(r => r.timestamp.split(" ")[0])
-//         ).size;
-
-//         const totalMasuk =
-//             thisMonth.filter(r => r.tipe === "Masuk").length;
-
-//         const totalPulang =
-//             thisMonth.filter(r => r.tipe === "Pulang").length;
-
-//         // ===============================
-//         // PROGRESS
-//         // ===============================
-//         const targetHari = 22;
-
-//         const progress =
-//             targetHari > 0
-//                 ? Math.min((totalHadir / targetHari) * 100, 100)
-//                 : 0;
-
-//         // ===============================
-//         // LAST ABSEN
-//         // ===============================
-//         const last = riwayat[0];
-
-//         // ===============================
-//         // UPDATE UI (SAFE)
-//         // ===============================
-//         setText("ui-status-hari", statusHari);
-
-//         setText(
-//             "ui-masuk",
-//             masukToday?.timestamp?.split(" ")[1] || "-"
-//         );
-
-//         setText(
-//             "ui-pulang",
-//             pulangToday?.timestamp?.split(" ")[1] || "-"
-//         );
-//         setText("ui-user-name", user.nama);
-//         setText("ui-user-kategori", user.kategori || "-");
-//         setText("ui-total-hadir", totalHadir);
-//         setText("ui-total-masuk", totalMasuk);
-//         setText("ui-total-pulang", totalPulang);
-
-//         setWidth("ui-progress-kehadiran", `${progress}%`);
-//         setText("ui-persentase", `${Math.round(progress)}%`);
-//         // setText("ui-user-lokasi", AppState.currentUserLocation?.namaIndustri || "Belum diatur");
-//         const lokasiEl = document.getElementById("ui-user-lokasi");
-
-//             if (lokasiEl && AppState.currentUserLocation) {
-//                 const lokasi = AppState.currentUserLocation;
-
-//                 lokasiEl.innerHTML = `
-//                     <i class="fa-solid fa-location-dot"></i>
-//                     ${lokasi.namaIndustri || "Lokasi PKL"}
-//                 `;
-
-//                 lokasiEl.href = `https://www.google.com/maps?q=${lokasi.lat},${lokasi.lng}`;
-//                 lokasiEl.target = "_blank";
-//             } else if (lokasiEl) {
-//                 lokasiEl.innerText = "Belum diatur";
-//                 lokasiEl.removeAttribute("href");
-//             }
-            
-//         setText(
-//             "ui-user-pembina",
-//             user.pembimbingNama || "-"
-//         );
-
-//         const waEl = document.getElementById("ui-user-wa-pembina");
-
-//         if (waEl && user.pembimbingWa) {
-//             let wa = String(user.pembimbingWa).replace(/\D/g, "");
-
-//             if (wa.startsWith("08")) {
-//                 wa = "62" + wa.substring(1);
-//             }
-
-//             waEl.href = `https://wa.me/${wa}`;
-//             waEl.classList.remove("hidden");
-//         } else if (waEl) {
-//             waEl.classList.add("hidden");
-//         }
-
-//         if (last) {
-//             setHTML("ui-last-absen", `
-//                 <p><b>${last.tipe}</b> - ${last.timestamp}</p>
-//                 <p>${Math.round(last.jarak)} meter</p>
-//             `);
-//         } else {
-//             setHTML("ui-last-absen", `
-//                 <p>Belum ada riwayat absensi</p>
-//             `);
-//         }
-
-//         console.log("Dashboard loaded successfully");
-//         console.log("Total hadir:", totalHadir);
-
-//     } catch (error) {
-//         console.error("Dashboard error:", error);
-//         showToast("Gagal load dashboard", true);
-//     } finally {
-//         hideLoader();
-//     }
-// }
 
 async function loadUserDashboardStats() {
 
@@ -1745,109 +1691,374 @@ async function loadUserDashboardStats() {
 
         if (!user) return;
 
+        // ======================
+        // LOAD LOKASI PKL
+        // ======================
+
         if (!AppState.currentUserLocation && user.lokasiId) {
             await loadUserLocation();
         }
 
-        const dashboard = await ApiService.call({
-            action: "get_dashboard_siswa",
-            username: user.username
-        });
+        // =========================
+        // PEMBIMBING
+        // =========================
 
-        const hariIni = dashboard.hariIni || {};
-        const ringkasan = dashboard.ringkasan || {};
-        const last = dashboard.lastAbsen || null;
+        await loadPembimbingSiswa();
 
-        const setText = (id,val)=>{
-            const el=document.getElementById(id);
-            if(el) el.innerText=val;
+        // ======================
+        // AMBIL DATA ABSENSI
+        // ======================
+
+        const {
+            data: riwayat,
+            error
+        } = await window.supabaseClient
+            .from("absensi")
+            .select("*")
+            .eq("username", user.username)
+            .order("waktu", {
+                ascending: false
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        // ======================
+        // HARI INI
+        // ======================
+
+        const today =
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
+        const absenHariIni =
+            (riwayat || []).filter(r =>
+                r.waktu &&
+                r.waktu.startsWith(today)
+            );
+
+        const masuk =
+            absenHariIni.find(
+                r => r.tipe === "Masuk"
+            );
+
+        const pulang =
+            absenHariIni.find(
+                r => r.tipe === "Pulang"
+            );
+
+        const hariIni = {
+
+            status:
+                absenHariIni.length > 0
+                    ? "Hadir"
+                    : "Belum Absen",
+
+            masuk:
+                masuk
+                    ? new Date(masuk.waktu)
+                        .toLocaleTimeString(
+                            "id-ID",
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit"
+                            }
+                        )
+                    : "-",
+
+            pulang:
+                pulang
+                    ? new Date(pulang.waktu)
+                        .toLocaleTimeString(
+                            "id-ID",
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit"
+                            }
+                        )
+                    : "-"
+
         };
 
-        const setHTML=(id,val)=>{
-            const el=document.getElementById(id);
-            if(el) el.innerHTML=val;
+        // ======================
+        // BULAN INI
+        // ======================
+
+        const now = new Date();
+
+        const bulan =
+            now.getMonth();
+
+        const tahun =
+            now.getFullYear();
+
+        const bulanIni =
+            (riwayat || []).filter(r => {
+
+                if (!r.waktu) return false;
+
+                const d =
+                    new Date(r.waktu);
+
+                return (
+                    d.getMonth() === bulan &&
+                    d.getFullYear() === tahun
+                );
+
+            });
+
+        const totalMasuk =
+            bulanIni.filter(
+                r => r.tipe === "Masuk"
+            ).length;
+
+        const totalPulang =
+            bulanIni.filter(
+                r => r.tipe === "Pulang"
+            ).length;
+
+        const hariMasuk =
+            new Set(
+                bulanIni
+                    .filter(
+                        r => r.tipe === "Masuk"
+                    )
+                    .map(
+                        r => r.waktu.substring(0, 10)
+                    )
+            );
+
+        const totalHadir =
+            hariMasuk.size;
+
+        const progress =
+            Math.min(
+                Math.round(
+                    (totalHadir / 22) * 100
+                ),
+                100
+            );
+
+        const ringkasan = {
+
+            totalHadir,
+
+            totalMasuk,
+
+            totalPulang,
+
+            progress
+
         };
 
-        const setWidth=(id,val)=>{
-            const el=document.getElementById(id);
-            if(el) el.style.width=val;
+        // ======================
+        // LAST ABSEN
+        // ======================
+
+        let last = null;
+
+        if (riwayat && riwayat.length > 0) {
+
+            const row = riwayat[0];
+
+            const dt =
+                new Date(row.waktu);
+
+            last = {
+
+                tipe:
+                    row.tipe,
+
+                tanggal:
+                    dt.toLocaleDateString(
+                        "id-ID"
+                    ),
+
+                jam:
+                    dt.toLocaleTimeString(
+                        "id-ID"
+                    ),
+
+                jarak:
+                    row.jarak || 0
+
+            };
+
+        }
+
+        // ======================
+        // HELPER
+        // ======================
+
+        const setText = (id, val) => {
+
+            const el =
+                document.getElementById(id);
+
+            if (el) {
+                el.innerText = val;
+            }
+
+        };
+
+        const setHTML = (id, val) => {
+
+            const el =
+                document.getElementById(id);
+
+            if (el) {
+                el.innerHTML = val;
+            }
+
+        };
+
+        const setWidth = (id, val) => {
+
+            const el =
+                document.getElementById(id);
+
+            if (el) {
+                el.style.width = val;
+            }
+
         };
 
         // ======================
         // STATUS HARI INI
         // ======================
 
-        setText("ui-status-hari",hariIni.status||"Belum Absen");
-        setText("ui-masuk",hariIni.masuk||"-");
-        setText("ui-pulang",hariIni.pulang||"-");
+        setText(
+            "ui-status-hari",
+            hariIni.status
+        );
+
+        setText(
+            "ui-masuk",
+            hariIni.masuk
+        );
+
+        setText(
+            "ui-pulang",
+            hariIni.pulang
+        );
 
         // ======================
-        // USER
+        // DATA SISWA
         // ======================
 
-        setText("ui-user-name",user.nama);
-        setText("ui-user-kategori",user.kategori||"-");
+        setText(
+            "ui-user-name",
+            user.nama
+        );
+
+        setText(
+            "ui-user-kategori",
+            user.kategori || "-"
+        );
 
         // ======================
         // RINGKASAN
         // ======================
 
-        setText("ui-total-hadir",ringkasan.totalHadir||0);
-        setText("ui-total-masuk",ringkasan.totalMasuk||0);
-        setText("ui-total-pulang",ringkasan.totalPulang||0);
+        setText(
+            "ui-total-hadir",
+            ringkasan.totalHadir
+        );
+
+        setText(
+            "ui-total-masuk",
+            ringkasan.totalMasuk
+        );
+
+        setText(
+            "ui-total-pulang",
+            ringkasan.totalPulang
+        );
 
         setWidth(
             "ui-progress-kehadiran",
-            `${ringkasan.progress||0}%`
+            `${ringkasan.progress}%`
         );
 
         setText(
             "ui-persentase",
-            `${ringkasan.progress||0}%`
+            `${ringkasan.progress}%`
         );
 
         // ======================
-        // LOKASI
+        // LOKASI PKL
         // ======================
 
-        const lokasiEl=document.getElementById("ui-user-lokasi");
+        const lokasiEl =
+            document.getElementById(
+                "ui-user-lokasi"
+            );
 
-        if(lokasiEl && AppState.currentUserLocation){
+        if (
+            lokasiEl &&
+            AppState.currentUserLocation
+        ) {
 
-            const lokasi=AppState.currentUserLocation;
+            const lokasi =
+                AppState.currentUserLocation;
 
-            lokasiEl.innerHTML=`
+            lokasiEl.innerHTML = `
                 <i class="fa-solid fa-location-dot"></i>
                 ${lokasi.namaIndustri}
             `;
 
-            lokasiEl.href=`https://www.google.com/maps?q=${lokasi.lat},${lokasi.lng}`;
-            lokasiEl.target="_blank";
+            lokasiEl.href =
+                `https://www.google.com/maps?q=${lokasi.lat},${lokasi.lng}`;
 
+            lokasiEl.target =
+                "_blank";
         }
 
         // ======================
         // PEMBIMBING
         // ======================
 
-        setText("ui-user-pembina",user.pembimbingNama||"-");
+        // setText(
+        //     "ui-user-pembina",
+        //     user.pembimbingNama || "-"
+        // );
 
-        const waEl=document.getElementById("ui-user-wa-pembina");
+        const waEl =
+            document.getElementById(
+                "ui-user-wa-pembina"
+            );
 
-        if(waEl && user.pembimbingWa){
+        if (
+            waEl &&
+            user.pembimbingWa
+        ) {
 
-            let wa=user.pembimbingWa.replace(/\D/g,'');
+            let wa =
+                user.pembimbingWa.replace(
+                    /\D/g,
+                    ""
+                );
 
-            if(wa.startsWith("08")){
-                wa="62"+wa.substring(1);
+            if (wa.startsWith("08")) {
+                wa =
+                    "62" +
+                    wa.substring(1);
             }
 
-            waEl.href=`https://wa.me/${wa}`;
-            waEl.classList.remove("hidden");
+            waEl.href =
+                `https://wa.me/${wa}`;
 
-        }else if(waEl){
+            waEl.classList.remove(
+                "hidden"
+            );
 
-            waEl.classList.add("hidden");
+        } else if (waEl) {
+
+            waEl.classList.add(
+                "hidden"
+            );
 
         }
 
@@ -1855,35 +2066,136 @@ async function loadUserDashboardStats() {
         // LAST ABSEN
         // ======================
 
-        if(last){
+        if (last) {
 
-            setHTML("ui-last-absen",`
+            setHTML(
+                "ui-last-absen",
+                `
                 <p><b>${last.tipe}</b></p>
                 <p>${last.tanggal} ${last.jam}</p>
                 <p>${Math.round(last.jarak)} meter</p>
-            `);
+                `
+            );
 
-        }else{
+        } else {
 
-            setHTML("ui-last-absen",
-                "<p>Belum ada riwayat absensi</p>"
+            setHTML(
+                "ui-last-absen",
+                `
+                <p>
+                    Belum ada riwayat absensi
+                </p>
+                `
             );
 
         }
 
     }
-    catch(err){
+    catch (err) {
 
-        console.error(err);
-        showToast("Gagal memuat dashboard",true);
+        console.error(
+            "Dashboard siswa error:",
+            err
+        );
+
+        showToast(
+            "Gagal memuat dashboard",
+            true
+        );
 
     }
-    finally{
+    finally {
 
         hideLoader();
 
     }
 
+}
+
+async function loadPembimbingSiswa() {
+
+    const user = AppState.currentUser;
+
+    if (!user) {
+        console.warn("User belum tersedia");
+        return null;
+    }
+
+    if (!user.pId) {
+        console.warn("Siswa belum memiliki p_id");
+        
+        const el = document.getElementById("ui-user-pembina");
+        if (el) {
+            el.innerText = "Belum ditentukan";
+        }
+
+        return null;
+    }
+
+    try {
+
+        const {
+            data: guru,
+            error
+        } = await window.supabaseClient
+            .from("guru")
+            .select("p_id,nama_lengkap")
+            .eq("p_id", user.pId || user.p_id)
+            .maybeSingle();
+
+        if (error) {
+            console.error(
+                "Gagal mengambil data pembimbing:",
+                error
+            );
+
+            return null;
+        }
+
+        if (!guru) {
+
+            console.warn(
+                "Guru tidak ditemukan untuk p_id:",
+                user.pId
+            );
+
+            const el =
+                document.getElementById(
+                    "ui-user-pembina"
+                );
+
+            if (el) {
+                el.innerText = "Belum ditentukan";
+            }
+
+            return null;
+        }
+
+        // =========================
+        // TAMPILKAN NAMA PEMBIMBING
+        // =========================
+
+        const pembinaEl =
+            document.getElementById(
+                "ui-user-pembina"
+            );
+
+        if (pembinaEl) {
+            pembinaEl.innerText =
+                guru.nama_lengkap || "-";
+        }
+
+        return guru;
+
+    } catch (error) {
+
+        console.error(
+            "Load pembimbing error:",
+            error
+        );
+
+        return null;
+    }
 }
 
 function getTodayStatus(riwayat) {
@@ -1935,98 +2247,6 @@ function getAttendanceProgress(totalHadir) {
     return Math.min(percent, 100);
 }
 
-//Riwayat Absen Bentuk CARD
-// function renderStudentHistoryCards(riwayat) {
-//     const container = document.getElementById("student-history-list");
-//     if (!container) return;
-
-//     const monthEl = document.getElementById("student-history-month");
-//     const yearEl = document.getElementById("student-history-year");
-
-//     const selectedMonth = Number(monthEl?.value || (new Date().getMonth() + 1));
-//     const selectedYear = Number(yearEl?.value || new Date().getFullYear());
-
-//     const now = new Date();
-//     const currentMonth = now.getMonth() + 1;
-//     const currentYear = now.getFullYear();
-
-//     let jumlahHari = new Date(selectedYear, selectedMonth, 0).getDate();
-
-//     if (selectedMonth === currentMonth && selectedYear === currentYear) {
-//         jumlahHari = now.getDate();
-//     }
-
-//     const grouped = {};
-
-//     (riwayat || []).forEach(r => {
-//         const tanggalText = r.timestamp?.split(" ")[0];
-//         if (!tanggalText) return;
-
-//         const [day, month, year] = tanggalText.split("/").map(Number);
-
-//         if (month !== selectedMonth || year !== selectedYear) return;
-
-//         if (!grouped[day]) {
-//             grouped[day] = {
-//                 masuk: null,
-//                 pulang: null
-//             };
-//         }
-
-//         if (r.tipe === "Masuk") grouped[day].masuk = r;
-//         if (r.tipe === "Pulang") grouped[day].pulang = r;
-//     });
-
-//     let html = "";
-
-//     for (let day = jumlahHari; day >= 1; day--) {
-//         const masuk = grouped[day]?.masuk;
-//         const pulang = grouped[day]?.pulang;
-
-//         html += `
-//             <div class="history-card">
-//                 <div class="history-date">
-//                     <div class="history-weekday">
-//                         ${getDayName(day, selectedMonth, selectedYear)}
-//                     </div>
-//                     <div class="day">
-//                         ${day}
-//                     </div>
-//                     <div class="month">
-//                         ${getMonthShort(selectedMonth)} ${selectedYear}
-//                     </div>
-//                 </div>
-
-//                 <div class="history-action">
-//                     <div class="history-badge in">Scan In</div>
-//                     <div class="history-time">
-//                         ${masuk ? masuk.timestamp.split(" ")[1] : "00:00:00"}
-//                     </div>
-//                     <div class="history-note">
-//                         ${masuk ? `${Math.round(masuk.jarak || 0)} meter` : "Belum absen"}
-//                     </div>
-//                 </div>
-
-//                 <div class="history-action">
-//                     <div class="history-badge out">
-//                         Scan Out
-//                     </div>
-//                     <div class="history-time">
-//                         ${pulang ? pulang.timestamp.split(" ")[1] : "00:00:00"}
-//                     </div>
-//                     <div class="history-note">
-//                         ${pulang
-//                             ? `${Math.round(pulang.jarak || 0)} meter`
-//                             : "Belum absen"}
-//                     </div>
-//                 </div>
-//             </div>
-//         `;
-//     }
-
-//     container.innerHTML = html;
-// }
-
 function getDayName(day, month, year) {
     const days = [
         "Minggu",
@@ -2050,24 +2270,6 @@ function getMonthShort(month) {
     return months[month - 1] || "";
 }
 
-// function initStudentHistoryFilter(force = false) {
-
-//     const now = new Date();
-
-//     const monthEl = document.getElementById("student-history-month");
-//     const yearEl = document.getElementById("student-history-year");
-
-//     if (!monthEl || !yearEl) return;
-
-//     if (force || !monthEl.value) {
-//         monthEl.value = now.getMonth() + 1;
-//     }
-
-//     if (force || !yearEl.value) {
-//         yearEl.value = now.getFullYear();
-//     }
-
-// }
 function initStudentHistoryFilter() {
 
     const now = new Date();
@@ -2206,26 +2408,53 @@ async function previewStatusPhoto(event) {
 }
 
 async function submitStatusHarian() {
+
     try {
-        const user = AppState.currentUser;
+
+        const user =
+            AppState.currentUser;
+
         if (!user) return;
 
-        const tanggal = document.getElementById("status-tanggal")?.value;
-        const status = document.getElementById("status-tipe")?.value;
-        const keterangan = document.getElementById("status-keterangan")?.value;
+        const tanggal =
+            document.getElementById(
+                "status-tanggal"
+            )?.value;
+
+        const status =
+            document.getElementById(
+                "status-tipe"
+            )?.value;
+
+        const keterangan =
+            document.getElementById(
+                "status-keterangan"
+            )?.value || "";
 
         if (!tanggal) {
-            showToast("Tanggal wajib diisi", true);
+
+            showToast(
+                "Tanggal wajib diisi",
+                true
+            );
+
             return;
         }
 
         if (!status) {
-            showToast("Pilih status terlebih dahulu", true);
+
+            showToast(
+                "Pilih status terlebih dahulu",
+                true
+            );
+
             return;
         }
-        // ===============================
-        // VALIDASI FOTO BUKTI
-        // ===============================
+
+        // ==========================
+        // VALIDASI FOTO
+        // ==========================
+
         const wajibFoto = [
             "Sakit",
             "Izin"
@@ -2235,47 +2464,179 @@ async function submitStatusHarian() {
             wajibFoto.includes(status) &&
             !statusPhoto
         ) {
-            showToast("Silakan upload foto bukti terlebih dahulu.", true);
+
+            showToast(
+                "Silakan upload foto bukti terlebih dahulu.",
+                true
+            );
+
             return;
         }
 
-        showLoader("Mengirim konfirmasi...");
+        showLoader(
+            "Mengirim konfirmasi..."
+        );
 
-        const res = await ApiService.call({
-            action: "submit_status_harian",
-            tanggal,
-            username: user.username,
-            nama: user.nama,
-            kategori: user.kategori,
-            lokasiId: user.lokasiId,
-            status,
-            keterangan,
-            fotoBase64: statusPhoto
-        });
+        // ==========================
+        // CEK DUPLIKAT
+        // ==========================
 
-        if (res.status === "error") {
-            showToast(res.message, true);
+        const {
+            data: existing,
+            error: cekError
+        } = await window.supabaseClient
+            .from("status_harian")
+            .select("id")
+            .eq(
+                "username",
+                user.username
+            )
+            .eq(
+                "tanggal",
+                tanggal
+            );
+
+        if (cekError) {
+            throw cekError;
+        }
+
+        if (
+            existing &&
+            existing.length > 0
+        ) {
+
+            showToast(
+                "Anda sudah mengirim status hari ini",
+                true
+            );
+
             return;
+        }
+
+        // ==========================
+        // UPLOAD FOTO
+        // ==========================
+
+        let fotoUrl = null;
+
+        if (statusPhoto) {
+
+            showLoader(
+                "Upload bukti..."
+            );
+
+            fotoUrl =
+                await uploadFotoStatus(
+                    statusPhoto,
+                    user.username
+                );
+
+        }
+
+        // ==========================
+        // INSERT STATUS
+        // ==========================
+
+        showLoader(
+            "Menyimpan data..."
+        );
+
+        const {
+            error: insertError
+        } = await window.supabaseClient
+            .from("status_harian")
+            .insert([{
+
+                tanggal:
+
+                    tanggal,
+
+                username:
+
+                    user.username,
+
+                nama_lengkap:
+
+                    user.nama,
+
+                kategori:
+
+                    user.kategori,
+
+                lokasi_id:
+
+                    user.lokasiId,
+
+                status:
+
+                    status,
+
+                keterangan:
+
+                    keterangan,
+
+                approval:
+
+                    "Pending",
+
+                approved_by:
+
+                    null,
+
+                foto_bukti:
+
+                    fotoUrl
+
+            }]);
+
+        if (insertError) {
+            throw insertError;
         }
 
         Swal.fire({
+
             icon: "success",
+
             title: "Berhasil",
-            text: "Konfirmasi kehadiran berhasil dikirim.",
-            timer: 1600,
+
+            text:
+                "Konfirmasi kehadiran berhasil dikirim.",
+
+            timer: 1800,
+
             showConfirmButton: false
+
         });
 
-        // document.getElementById("status-tipe").value = "";
-        // document.getElementById("status-keterangan").value = "";
         resetStatusHarianForm();
 
-    } catch (error) {
-        console.error(error);
-        showToast("Gagal mengirim konfirmasi", true);
+        setTimeout(() => {
 
-    } finally {
+            navigateTo(
+                "page-user-dashboard"
+            );
+
+        }, 1500);
+
+    }
+    catch (error) {
+
+        console.error(
+            "Submit status error:",
+            error
+        );
+
+        showToast(
+            error.message ||
+            "Gagal mengirim konfirmasi",
+            true
+        );
+
+    }
+    finally {
+
         hideLoader();
+
     }
 }
 

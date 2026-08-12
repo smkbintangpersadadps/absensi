@@ -11,40 +11,6 @@ const PageLifecycle = {
 // optional global cleanup handler
 let pageCleanup = null;
 
-// ===============================
-// NAVIGATE PAGE
-// ===============================
-// function navigateTo(pageId) {
-
-//     // 1. RUN CLEANUP PAGE SEBELUMNYA
-//     if (typeof pageCleanup === "function") {
-//         try {
-//             pageCleanup();
-//         } catch (e) {
-//             console.warn("Cleanup error:", e);
-//         }
-//         pageCleanup = null;
-//     }
-
-//     // 2. HIDE ALL PAGES
-//     const pages = document.querySelectorAll("section[id^='page-']");
-//     pages.forEach(p => p.classList.add("hidden-page"));
-
-//     // 3. SHOW TARGET PAGE
-//     const target = document.getElementById(pageId);
-//     if (target) target.classList.remove("hidden-page");
-
-//     // 4. TOGGLE LAYOUT
-//     const layout = document.getElementById("layout-main");
-//     if (layout) {
-//         layout.classList.toggle("hidden-page", pageId === "page-login");
-//     }
-
-//     // 5. PAGE LOADER
-//     runPageLoader(pageId);
-//     setActiveNav(pageId); // 👈 panggil di sini
-// }
-
 function navigateTo(pageId) {
 
     // 1. RUN CLEANUP PAGE SEBELUMNYA
@@ -142,9 +108,6 @@ function runPageLoader(pageId) {
             break;
 
         case "page-user-absen":
-            // ONLY THIS ONE CONTROL CAMERA + GPS
-            // initAbsenForm?.();
-            // break;
             if (AppState.accessMode === "ortu") {
                 showToast("Orang tua tidak memiliki akses absensi", true);
                 navigateTo("page-user-dashboard");
@@ -259,11 +222,7 @@ function buildMenu(user) {
                 <a href="#" onclick="navigateTo('page-user-dashboard')">Dashboard</a>
                 <a href="#" onclick="navigateTo('page-user-absen')">Absen</a>
                 <a href="#" onclick="navigateTo('page-user-status')">Konfirmasi Kehadiran</a>
-                <a href="#" onclick="navigateTo('page-user-status-history')"
-                    class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition">
-                    <i class="fa-solid fa-list-check w-5"></i>
-                    <span>Riwayat Status</span>
-                </a>
+                <a href="#" onclick="navigateTo('page-user-status-history')">Riwayat Status</a>
                 <a href="#" onclick="navigateTo('page-history')">Riwayat</a>
                 <a href="#" onclick="navigateTo('page-user-profile')">Profil</a>
             `;
@@ -435,26 +394,17 @@ function buildMobileBottomMenu(user) {
                     <i class="fa-solid fa-clock-rotate-left text-lg"></i>
                     <span>Riwayat</span>
                 </button>
-
-                <button onclick="navigateTo('page-user-profile')"
-                    class="bottom-nav flex flex-col items-center text-xs text-gray-500 transition">
-
-                    <i class="fa-solid fa-user text-lg"></i>
-
-                    <span>Profil</span>
-
-                </button>
             `;
         }
     }
 }
 
 // CHANGE PASSWORD
-function loadProfile(){
+async function loadProfile() {
 
     const user = AppState.currentUser;
 
-    if(!user) return;
+    if (!user) return;
 
     document.getElementById("profile-nama").innerText =
         user.nama || "-";
@@ -468,9 +418,47 @@ function loadProfile(){
     document.getElementById("profile-lokasi").innerText =
         AppState.currentUserLocation?.namaIndustri || "-";
 
+    // default
     document.getElementById("profile-pembimbing").innerText =
-        user.pembimbingNama || "-";
+        "Memuat...";
 
+    try {
+
+        const {
+            data: guru,
+            error
+        } = await window.supabaseClient
+            .from("guru")
+            .select("nama_lengkap")
+            .eq("p_id", user.pId)
+            .maybeSingle();
+
+        if (!error && guru) {
+
+            document.getElementById(
+                "profile-pembimbing"
+            ).innerText =
+                guru.nama_lengkap;
+
+        } else {
+
+            document.getElementById(
+                "profile-pembimbing"
+            ).innerText =
+                "-";
+
+        }
+
+    } catch (err) {
+
+        console.error(err);
+
+        document.getElementById(
+            "profile-pembimbing"
+        ).innerText =
+            "-";
+
+    }
 }
 
 function showChangePassword(){
@@ -498,84 +486,166 @@ function closeChangePassword(){
 async function changePassword() {
 
     const user = AppState.currentUser;
+
     if (!user) return;
+
     const oldPassword =
-        document.getElementById("old-password").value.trim();
+        document.getElementById("old-password")
+        .value.trim();
+
     const newPassword =
-        document.getElementById("new-password").value.trim();
+        document.getElementById("new-password")
+        .value.trim();
+
     const confirmPassword =
-        document.getElementById("confirm-password").value.trim();
-    // ===============================
+        document.getElementById("confirm-password")
+        .value.trim();
+
+    // ======================
     // VALIDASI
-    // ===============================
+    // ======================
+
     if (!oldPassword) {
         showToast("Masukkan password lama.", true);
         return;
     }
+
     if (newPassword.length < 6) {
-        showToast("Password baru minimal 6 karakter.", true);
+        showToast(
+            "Password baru minimal 6 karakter.",
+            true
+        );
         return;
     }
+
     if (newPassword !== confirmPassword) {
-        showToast("Konfirmasi password tidak sama.", true);
+        showToast(
+            "Konfirmasi password tidak sama.",
+            true
+        );
         return;
     }
+
     if (oldPassword === newPassword) {
-        showToast("Password baru harus berbeda dengan password lama.", true);
+        showToast(
+            "Password baru harus berbeda dengan password lama.",
+            true
+        );
         return;
     }
 
-    // =========================
-    // LOADING BUTTON
-    // =========================
+    const btn =
+        document.getElementById(
+            "btn-change-password"
+        );
 
-    const btn = document.getElementById("btn-change-password");
+    btn.disabled = true;
 
-        btn.disabled = true;
-        btn.innerHTML = `
+    btn.innerHTML = `
         <i class="fa-solid fa-spinner fa-spin mr-2"></i>
         Menyimpan...
-        `;
+    `;
 
     try {
-        showLoader("Mengubah password...");
-        const res = await ApiService.call({
-            action: "change_password",
-            username: user.username,
-            oldPassword,
-            newPassword
-        });
-        if (res.status === "error") {
-            hideLoader();
-            resetChangePasswordButton();
-            showToast(
-                res.message || "Gagal mengubah password.",
-                true
-            );
-            return;
+
+        showLoader(
+            "Mengubah password..."
+        );
+
+        // ======================
+        // CEK PASSWORD LAMA
+        // ======================
+
+        const {
+            data: userDb,
+            error: cekError
+        } = await window.supabaseClient
+            .from("users")
+            .select("password")
+            .eq(
+                "username",
+                user.username
+            )
+            .single();
+
+        if (cekError) {
+            throw cekError;
         }
-        // ===============================
-        // SUKSES
-        // ===============================
-        closeChangePassword();
+
+        if (
+            !userDb ||
+            userDb.password !== oldPassword
+        ) {
+
+            throw new Error(
+                "Password lama tidak sesuai."
+            );
+
+        }
+
+        // ======================
+        // UPDATE PASSWORD
+        // ======================
+
+        const {
+            error: updateError
+        } = await window.supabaseClient
+            .from("users")
+            .update({
+                password: newPassword
+            })
+            .eq(
+                "username",
+                user.username
+            );
+
+        if (updateError) {
+            throw updateError;
+        }
+
+        // tutup loader dulu
         hideLoader();
+
+        closeChangePassword();
+
         await Swal.fire({
             icon: "success",
             title: "Password Berhasil Diubah",
-            text: "Silakan login kembali menggunakan password baru.",
-            confirmButtonText: "Login Ulang",
-            confirmButtonColor: "#4f46e5",
-            allowOutsideClick: false
+            text:
+                "Silakan login kembali menggunakan password baru.",
+            confirmButtonText:
+                "Login Ulang",
+            confirmButtonColor:
+                "#4f46e5",
+            allowOutsideClick:
+                false
         });
-        resetChangePasswordButton();
+
         logout();
+
     }
     catch (err) {
-        console.error("Change Password Error :", err);
+
+        console.error(
+            "Change Password Error:",
+            err
+        );
+
         hideLoader();
-        resetChangePasswordButton();
-        showToast("Terjadi kesalahan saat mengubah password.", true );
+
+        showToast(
+            err.message ||
+            "Gagal mengubah password",
+            true
+        );
+
     }
+    finally {
+
+        resetChangePasswordButton();
+
+    }
+
 }
 
 function togglePasswords(id, btn){

@@ -24,6 +24,8 @@ const ApiService = {
                 case "get_settings":
                     return await this.getSettingsSupabase();
 
+                case "get_monitoring_dashboard":
+                    return await this.getMonitoringDashboard(payload);
                 // ===============================
                 // ACTION LAIN MASIH KE GAS
                 // ===============================
@@ -94,6 +96,65 @@ const ApiService = {
             radius: parseInt(settings.radius || 0)
         };
 
+    },
+
+    async getMonitoringDashboard(payload) {
+
+        if (payload.mode !== "wali") {
+            throw new Error("Mode belum didukung");
+        }
+
+        // Ambil siswa yang menjadi tanggung jawab wali
+        const { data: siswaData, error } =
+            await window.supabaseClient
+                .from("users")
+                .select(`
+                    username,
+                    nama_lengkap,
+                    kategori,
+                    parent_id,
+                    lokasi_id
+                `)
+                .eq("parent_id", payload.username)
+                .eq("role", "siswa");
+
+        if (error) {
+            throw error;
+        }
+
+        const siswa = [];
+
+        for (const item of siswaData) {
+
+            // Ambil data lokasi PKL
+            const { data: lokasi } =
+                await window.supabaseClient
+                    .from("lokasi")
+                    .select("*")
+                    .eq("lokasi_id", item.lokasi_id)
+                    .single();
+
+            siswa.push({
+                username: item.username,
+                nama: item.nama_lengkap,
+                kategori: item.kategori,
+                parentId: item.parent_id,
+                lokasiId: item.lokasi_id,
+                namaIndustri: lokasi?.nama_industri || "-",
+                mapsUrl: lokasi
+                    ? `https://www.google.com/maps?q=${lokasi.latitude},${lokasi.longitude}`
+                    : "",
+                statusHarian: "",
+                keteranganStatus: "",
+                approvalStatus: "",
+                approvedBy: ""
+            });
+        }
+
+        return {
+            mode: "wali",
+            siswa
+        };
     },
 
     // ==========================================

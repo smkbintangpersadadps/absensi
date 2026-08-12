@@ -45,29 +45,75 @@ function stopCamera() {
 }
 
 async function loadUserLocation() {
+
     try {
+
         const user = AppState.currentUser;
 
         if (!user?.lokasiId) {
             throw new Error("Lokasi PKL belum diatur");
         }
 
-        const lokasi = await ApiService.call({
-            action: "get_user_location",
-            lokasiId: user.lokasiId
-        });
+        const { data, error } =
+            await window.supabaseClient
+                .from("lokasi")
+                .select("*")
+                .eq("lokasi_id", user.lokasiId)
+                .single();
 
-        AppState.currentUserLocation = lokasi;
-
-        const lokasiEl = document.getElementById("lokasi-industri");
-        if (lokasiEl) {
-            lokasiEl.innerText = lokasi.namaIndustri;
+        if (error) {
+            throw error;
         }
 
-    } catch (error) {
-        console.error("Load lokasi gagal:", error);
-        showToast(error.message || "Gagal memuat lokasi PKL", true);
+        if (!data) {
+            throw new Error("Data lokasi tidak ditemukan");
+        }
+
+        AppState.currentUserLocation = {
+
+            lokasiId: data.lokasi_id,
+
+            namaIndustri: data.nama_industri,
+
+            lat: Number(data.latitude),
+
+            lng: Number(data.longitude),
+
+            radius: Number(data.radius),
+
+            alamat: data.alamat
+
+        };
+
+        const lokasiEl =
+            document.getElementById("lokasi-industri");
+
+        if (lokasiEl) {
+            lokasiEl.innerText =
+                data.nama_industri || "-";
+        }
+
+        console.log(
+            "Lokasi berhasil dimuat:",
+            AppState.currentUserLocation
+        );
+
     }
+    catch (error) {
+
+        console.error(
+            "Load lokasi gagal:",
+            error
+        );
+
+        showToast(
+            error.message ||
+            "Gagal memuat lokasi PKL",
+            true
+        );
+
+    }
+
 }
 
 function startGPS() {
@@ -241,6 +287,7 @@ buttons.forEach(btn => {
 });
 
 async function submitAbsensi() {
+
     const user = AppState.currentUser;
 
     if (!user) {
@@ -263,6 +310,14 @@ async function submitAbsensi() {
         return;
     }
 
+    const tipe =
+        document.getElementById("absen-tipe").value;
+
+    if (!tipe) {
+        showToast("Pilih tipe absensi", true);
+        return;
+    }
+
     const jarak = calculateDistance(
         AppState.currentLocation.lat,
         AppState.currentLocation.lng,
@@ -271,122 +326,255 @@ async function submitAbsensi() {
     );
 
     if (jarak > AppState.currentUserLocation.radius) {
+
         showToast(
-            `Anda berada di luar radius absensi (${jarak.toFixed(2)} m)`,
+            `Anda berada di luar radius absensi (${Math.round(jarak)} m)`,
             true
         );
+
         return;
     }
 
     if (window.__isSubmittingAbsensi) return;
+
     window.__isSubmittingAbsensi = true;
 
     try {
-        showLoader("Mengirim absensi...");
 
-        const res = await ApiService.call({
-            action: "submit_absen",
-            username: user.username,
-            nama: user.nama,
-            kategori: user.kategori,
-            lokasiId: user.lokasiId,
-            tipe: document.getElementById("absen-tipe").value,
-            fotoBase64: capturedPhoto,
-            lat: AppState.currentLocation.lat,
-            lng: AppState.currentLocation.lng,
-            jarak: jarak
-        });
+        // ===============================
+        // CEK DUPLIKAT HARI INI
+        // ===============================
 
-        if (res.status === "error") {
-            showToast(res.message, true);
+        const today =
+            new Date().toISOString().split("T")[0];
+
+        const {
+            data: existing,
+            error: cekError
+        } = await window.supabaseClient
+            .from("absensi")
+            .select("id")
+            .eq("username", user.username)
+            .eq("tipe", tipe)
+            .gte("waktu", `${today}T00:00:00`)
+            .lte("waktu", `${today}T23:59:59`);
+
+        if (cekError) {
+            throw cekError;
+        }
+
+        if (existing.length > 0) {
+
+            showToast(
+                `Anda sudah melakukan absen ${tipe} hari ini`,
+                true
+            );
+
             return;
         }
 
-        showToast("Absensi berhasil");
+        // ===============================
+        // UPLOAD FOTO
+        // ===============================
+
+        showLoader("Upload foto...");
+
+        const fotoUrl =
+            await uploadFotoAbsensi(
+                capturedPhoto,
+                user.username
+            );
+
+        // ===============================
+        // SIMPAN ABSENSI
+        // ===============================
+
+        showLoader("Menyimpan absensi...");
+
+        const mapsUrl =
+            `https://www.google.com/maps?q=${AppState.currentLocation.lat},${AppState.currentLocation.lng}`;
+
+        const now = new Date().toISOString();
+
+const {
+    error: insertError
+} = await window.supabaseClient
+    .from("absensi")
+    .insert([{
+        username: user.username,
+        nama_lengkap: user.nama,
+        kategori: user.kategori,
+        lokasi_id: user.lokasiId,
+        nama_industri: AppState.currentUserLocation.namaIndustri,
+        tipe: tipe,
+        foto_url: fotoUrl,
+        latitude: AppState.currentLocation.lat,
+        longitude: AppState.currentLocation.lng,
+        jarak: Math.round(jarak),
+        maps_url: mapsUrl
+    }]);
+
+        if (insertError) {
+            throw insertError;
+        }
+
+        Swal.fire({
+            icon: "success",
+            title: "Berhasil",
+            text: `Absen ${tipe} berhasil disimpan`,
+            timer: 2000,
+            showConfirmButton: false
+        });
 
         resetAbsensi();
 
         stopCamera?.();
 
-        setTimeout(goToDashboardByRole, 800);
+        setTimeout(() => {
+            goToDashboardByRole();
+        }, 1500);
 
-    } catch (error) {
-        console.error("Submit absensi error:", error);
+    }
+    catch (error) {
+
+        console.error(
+            "Submit absensi error:",
+            error
+        );
+
         showToast(
-            error.message || "Gagal mengirim absensi",
+            error.message ||
+            "Gagal menyimpan absensi",
             true
         );
 
-    } finally {
+    }
+    finally {
+
         hideLoader();
+
         window.__isSubmittingAbsensi = false;
     }
 }
 
-// async function initAbsenForm() {
-//     await loadUserLocation();
-
-//     startCamera?.();
-//     startGPS?.();
-
-//     pageCleanup = () => {
-//         stopCamera?.();
-//     };
-// }
 async function initAbsenForm() {
+
     const user = AppState.currentUser;
+
     if (!user) return;
 
     try {
-        showLoader("Memeriksa status hari ini...");
 
-        const status = await ApiService.call({
-            action: "cek_status_harian",
-            username: user.username
-        });
+        showLoader(
+            "Memeriksa status hari ini..."
+        );
 
-        if (status.ada && !status.bolehAbsen) {
-            hideLoader();
+        const today =
+            new Date()
+                .toISOString()
+                .split("T")[0];
 
-            Swal.fire({
-                icon: "info",
-                title: "Absensi Dinonaktifkan",
-                html: `
-                    <div style="text-align:left">
-                        <p>Hari ini Anda sudah mengirim status:</p>
-                        <p><b>${status.status}</b></p>
-                        <p>Status Approval: <b>${status.approval}</b></p>
-                        ${
-                            status.keterangan
-                                ? `<p>Keterangan: ${status.keterangan}</p>`
-                                : ""
-                        }
-                    </div>
-                `,
-                confirmButtonColor: "#4f46e5"
-            }).then(() => {
-                navigateTo("page-user-dashboard");
-            });
+        const {
+            data: statusHarian,
+            error
+        } = await window.supabaseClient
+            .from("status_harian")
+            .select("*")
+            .eq("username", user.username)
+            .eq("tanggal", today)
+            .maybeSingle();
 
-            return;
+        if (error) {
+            throw error;
+        }
+
+        if (statusHarian) {
+
+            const approval =
+                statusHarian.approval || "Pending";
+
+            if (
+                approval === "Pending" ||
+                approval === "Approved"
+            ) {
+
+                hideLoader();
+
+                Swal.fire({
+                    icon: "info",
+                    title: "Absensi Dinonaktifkan",
+                    html: `
+                        <div style="text-align:left">
+                            <p>Status Hari Ini :</p>
+
+                            <p>
+                                <b>
+                                    ${statusHarian.status}
+                                </b>
+                            </p>
+
+                            <p>
+                                Approval :
+                                <b>
+                                    ${approval}
+                                </b>
+                            </p>
+
+                            ${
+                                statusHarian.keterangan
+                                    ? `
+                                        <p>
+                                            ${statusHarian.keterangan}
+                                        </p>
+                                    `
+                                    : ""
+                            }
+                        </div>
+                    `
+                }).then(() => {
+
+                    navigateTo(
+                        "page-user-dashboard"
+                    );
+
+                });
+
+                return;
+            }
         }
 
         await loadUserLocation();
 
-        startCamera?.();
-        startGPS?.();
+        startCamera();
+
+        startGPS();
 
         pageCleanup = () => {
+
             stopCamera?.();
+
         };
 
-    } catch (error) {
-        console.error("Init absen error:", error);
-        showToast("Gagal membuka halaman absensi", true);
-
-    } finally {
-        hideLoader();
     }
+    catch (error) {
+
+        console.error(
+            "Init absen error:",
+            error
+        );
+
+        showToast(
+            "Gagal membuka halaman absensi",
+            true
+        );
+
+    }
+    finally {
+
+        hideLoader();
+
+    }
+
 }
 
 // ===============================

@@ -54,7 +54,7 @@ function restoreSession() {
 // SESSION TIMEOUT
 // ===============================
 let sessionTimer = null;
-const SESSION_TIMEOUT = 5 * 60 * 1000; // 5 menit
+const SESSION_TIMEOUT = 20 * 60 * 1000; // 5 menit
 
 function startSessionTimer() {
     clearTimeout(sessionTimer);
