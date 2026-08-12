@@ -98,29 +98,6 @@ async function handleLogin(e) {
     }
 }
 
-// ===============================
-// LOGOUT
-// ===============================
-// function logout() {
-
-//     AppState.currentUser = null;
-
-//     localStorage.removeItem("absen_user");
-//     localStorage.removeItem("absen_settings");
-
-//     // STOP CAMERA WAJIB
-//     if (typeof stopCamera === "function") {
-//         stopCamera();
-//     }
-
-//     // optional reset UI
-//     document.getElementById("login-form")?.reset();
-
-//     navigateTo("page-login");
-
-//     showToast("Berhasil logout");
-// }
-
 function logout() {
     Swal.fire({
         title: "Keluar dari aplikasi?",
