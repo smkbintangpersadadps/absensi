@@ -606,6 +606,13 @@ async function loadStatusHistory(useLoader = false) {
                           ).toLocaleString("id-ID")
                         : "-";
 
+                const approvedAt =
+                    item.approved_at
+                        ? new Date(
+                            item.approved_at
+                          ).toLocaleString("id-ID")
+                        : "-";
+
                 return `
 
                 <div class="bg-white rounded-2xl p-4 shadow border border-slate-100">
@@ -643,16 +650,31 @@ async function loadStatusHistory(useLoader = false) {
                     ${
                         item.foto_bukti
                         ? `
-                            <a
-                                href="${item.foto_bukti}"
-                                target="_blank"
-                                class="mt-3 inline-flex items-center gap-2 text-indigo-600 text-sm">
+                            <button
+                                onclick="previewStatusBukti('${item.foto_bukti}')"
+                                class="
+                                    mt-3
+                                    inline-flex
+                                    items-center
+                                    gap-2
+                                    px-3
+                                    py-2
+                                    rounded-xl
+                                    border
+                                    border-indigo-200
+                                    bg-indigo-50
+                                    text-indigo-700
+                                    text-sm
+                                    font-medium
+                                    hover:bg-indigo-100
+                                    transition
+                                ">
 
-                                <i class="fa-solid fa-image"></i>
-                                Lihat Bukti
+                                <i class="fa-solid fa-camera"></i>
+                                Bukti Lampiran
 
-                            </a>
-                          `
+                            </button>
+                        `
                         : ""
                     }
 
@@ -686,12 +708,13 @@ async function loadStatusHistory(useLoader = false) {
                     ${
                         approvedByNama
                         ? `
-                            <div class="mt-2 text-[11px] text-slate-400">
-
-                                Diproses oleh :
+                            <div class="mt-2 text-[11px] flex items-center justify-between">
+                                <span class="font-medium text-slate-600">
+                                    Diproses oleh : ${approvedByNama}
+                                </span>
 
                                 <span class="font-medium text-slate-600">
-                                    ${approvedByNama}
+                                    Waktu Proses : ${createdAt}
                                 </span>
 
                             </div>
@@ -728,6 +751,99 @@ async function loadStatusHistory(useLoader = false) {
 
     }
 
+}
+
+//Preview Riwayat Status
+function previewStatusBukti(url) {
+
+    if (!url) {
+
+        Swal.fire({
+            icon: "warning",
+            title: "Bukti Tidak Tersedia",
+            text: "File bukti tidak ditemukan."
+        });
+
+        return;
+    }
+
+    Swal.fire({
+
+        title: "Bukti Pengajuan",
+
+        width: 650,
+
+        showCloseButton: true,
+
+        showConfirmButton: false,
+
+        html: `
+
+            <div class="text-center">
+
+                <img
+                    src="${url}"
+                    onerror="
+                        this.style.display='none';
+                        document.getElementById('status-bukti-expired').style.display='flex';
+                    "
+                    style="
+                        max-width:100%;
+                        max-height:450px;
+                        border-radius:12px;
+                        border:1px solid #e2e8f0;
+                        box-shadow:0 8px 24px rgba(0,0,0,.15);
+                    "
+                >
+
+                <div
+                    id="status-bukti-expired"
+                    style="
+                        display:none;
+                        flex-direction:column;
+                        align-items:center;
+                        justify-content:center;
+                        padding:30px;
+                        border:2px dashed #cbd5e1;
+                        border-radius:12px;
+                        background:#f8fafc;
+                    ">
+
+                    <i
+                        class="fa-solid fa-image"
+                        style="
+                            font-size:48px;
+                            color:#94a3b8;
+                            margin-bottom:12px;
+                        ">
+                    </i>
+
+                    <div
+                        style="
+                            font-size:15px;
+                            font-weight:600;
+                            color:#334155;
+                            margin-bottom:6px;
+                        ">
+                        Bukti Tidak Tersedia
+                    </div>
+
+                    <div
+                        style="
+                            font-size:12px;
+                            color:#64748b;
+                            line-height:1.6;
+                        ">
+                        File bukti telah dihapus otomatis
+                        oleh sistem penyimpanan.
+                    </div>
+
+                </div>
+
+            </div>
+
+        `
+    });
 }
 
 //RIWAYAT SISWA
@@ -1014,6 +1130,10 @@ function previewFoto({
                 ">
                     <img
                         src="${imageUrl}"
+                        onerror="
+                            this.style.display='none';
+                            document.getElementById('foto-expired').style.display='flex';
+                        "
                         style="
                             width:auto;
                             max-width:320px;
@@ -1024,6 +1144,57 @@ function previewFoto({
                             box-shadow:0 8px 24px rgba(0,0,0,.15);
                         "
                     >
+
+                    <div
+                        id="foto-expired"
+                        style="
+                            display:none;
+                            flex-direction:column;
+                            align-items:center;
+                            justify-content:center;
+                            padding:30px;
+                            border:2px dashed #cbd5e1;
+                            border-radius:12px;
+                            background:#f8fafc;
+                            max-width:320px;
+                            margin:auto;
+                        ">
+
+                        <i
+                            class="fa-solid fa-images"
+                            style="
+                                font-size:48px;
+                                color:#94a3b8;
+                                margin-bottom:12px;
+                            ">
+                        </i>
+
+                        <div
+                            style="
+                                font-size:15px;
+                                font-weight:600;
+                                color:#334155;
+                                margin-bottom:6px;
+                            ">
+                            Foto Tidak Tersedia
+                        </div>
+
+                        <div
+                            style="
+                                font-size:12px;
+                                color:#64748b;
+                                line-height:1.6;
+                            ">
+                            📦 Foto telah diarsipkan
+
+                            Untuk menghemat penyimpanan,
+                            foto absensi yang berusia lebih dari 30 hari
+                            akan dihapus otomatis.
+
+                            Data kehadiran tetap tersedia.
+                        </div>
+
+                    </div>
                 </div>
 
             </div>

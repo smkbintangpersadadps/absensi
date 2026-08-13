@@ -318,6 +318,46 @@ async function submitAbsensi() {
         return;
     }
 
+    // ===============================
+    // VALIDASI ABSEN PULANG
+    // WAJIB SUDAH ABSEN MASUK
+    // ===============================
+
+    if (tipe === "Pulang") {
+
+        const today =
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
+        const {
+            data: absenMasuk,
+            error: masukError
+        } = await window.supabaseClient
+            .from("absensi")
+            .select("id,waktu")
+            .eq("username", user.username)
+            .eq("tipe", "Masuk")
+            .gte("waktu", `${today}T00:00:00`)
+            .lte("waktu", `${today}T23:59:59`)
+            .limit(1);
+
+        if (masukError) {
+            throw masukError;
+        }
+
+        if (!absenMasuk || absenMasuk.length === 0) {
+
+            Swal.fire({
+                icon: "warning",
+                title: "Absen Masuk Belum Ada",
+                text: "Anda harus melakukan Absen Masuk terlebih dahulu sebelum Absen Pulang."
+            });
+
+            return;
+        }
+    }
+
     const jarak = calculateDistance(
         AppState.currentLocation.lat,
         AppState.currentLocation.lng,
@@ -396,23 +436,23 @@ async function submitAbsensi() {
 
         const now = new Date().toISOString();
 
-const {
-    error: insertError
-} = await window.supabaseClient
-    .from("absensi")
-    .insert([{
-        username: user.username,
-        nama_lengkap: user.nama,
-        kategori: user.kategori,
-        lokasi_id: user.lokasiId,
-        nama_industri: AppState.currentUserLocation.namaIndustri,
-        tipe: tipe,
-        foto_url: fotoUrl,
-        latitude: AppState.currentLocation.lat,
-        longitude: AppState.currentLocation.lng,
-        jarak: Math.round(jarak),
-        maps_url: mapsUrl
-    }]);
+        const {
+            error: insertError
+        } = await window.supabaseClient
+            .from("absensi")
+            .insert([{
+                username: user.username,
+                nama_lengkap: user.nama,
+                kategori: user.kategori,
+                lokasi_id: user.lokasiId,
+                nama_industri: AppState.currentUserLocation.namaIndustri,
+                tipe: tipe,
+                foto_url: fotoUrl,
+                latitude: AppState.currentLocation.lat,
+                longitude: AppState.currentLocation.lng,
+                jarak: Math.round(jarak),
+                maps_url: mapsUrl
+            }]);
 
         if (insertError) {
             throw insertError;

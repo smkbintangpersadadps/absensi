@@ -92,7 +92,7 @@ function runPageLoader(pageId) {
             break;
 
         case "page-wali-rekap":
-            initRekapBulananPage?.();
+            RekapBulananService.init(true);
             break;
 
         case "page-wali-history":

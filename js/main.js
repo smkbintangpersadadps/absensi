@@ -54,7 +54,7 @@ function restoreSession() {
 // SESSION TIMEOUT
 // ===============================
 let sessionTimer = null;
-const SESSION_TIMEOUT = 20 * 60 * 1000; // 5 menit
+const SESSION_TIMEOUT = 20 * 60 * 1000; // 20 menit
 
 function startSessionTimer() {
     clearTimeout(sessionTimer);
@@ -91,7 +91,7 @@ function autoLogoutByTimeout() {
     Swal.fire({
         icon: "warning",
         title: "Sesi Berakhir",
-        text: "Anda logout otomatis karena tidak ada aktivitas selama 5 menit.",
+        text: "Anda logout otomatis karena tidak ada aktivitas selama 20 menit.",
         confirmButtonText: "OK",
         confirmButtonColor: "#4f46e5"
     }).then(() => {

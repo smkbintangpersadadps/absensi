@@ -906,6 +906,255 @@ function setMonitoringMode(mode) {
     loadWaliDashboard?.(true);
 }
 
+async function getMonitoringDashboard(mode, username) {
+
+    try {
+
+        const currentUser = AppState.currentUser;
+
+        let siswa = [];
+
+        // ==================================
+        // MODE WALI KELAS
+        // ==================================
+        if (mode === "wali") {
+
+            const kategoriWali =
+                String(currentUser.kategori || "")
+                .trim();
+
+            const {
+                data,
+                error
+            } = await window.supabaseClient
+                .from("users")
+                .select(`
+                    username,
+                    nama_lengkap,
+                    kategori,
+                    lokasi_id,
+                    parent_id,
+                    p_id,
+                    role
+                `)
+                .eq("role", "siswa")
+                .eq("kategori", kategoriWali);
+
+            if (error) throw error;
+
+            siswa = data || [];
+        }
+
+        // ==================================
+        // MODE PEMBIMBING PKL
+        // ==================================
+        else {
+
+            const pembimbingId =
+                String(
+                    currentUser.pId ||
+                    currentUser.p_id ||
+                    ""
+                ).trim();
+
+            const {
+                data,
+                error
+            } = await window.supabaseClient
+                .from("users")
+                .select(`
+                    username,
+                    nama_lengkap,
+                    kategori,
+                    lokasi_id,
+                    parent_id,
+                    p_id,
+                    role
+                `)
+                .eq("role", "siswa")
+                .eq("p_id", pembimbingId);
+
+            if (error) throw error;
+
+            siswa = data || [];
+        }
+
+        console.log("MODE:", mode);
+        console.log("JUMLAH SISWA:", siswa.length);
+        console.log("DATA SISWA:", siswa);
+
+        // ==================================
+        // LOKASI INDUSTRI
+        // ==================================
+
+        const lokasiIds = [
+            ...new Set(
+                siswa
+                    .map(s => s.lokasi_id)
+                    .filter(Boolean)
+            )
+        ];
+
+        let lokasiMap = {};
+
+        if (lokasiIds.length > 0) {
+
+            const {
+                data: lokasiData,
+                error: lokasiError
+            } = await window.supabaseClient
+                .from("lokasi")
+                .select("*")
+                .in("lokasi_id", lokasiIds);
+
+            if (lokasiError) {
+                console.error(lokasiError);
+            }
+
+            lokasiMap = Object.fromEntries(
+                (lokasiData || []).map(l => [
+                    l.lokasi_id,
+                    l
+                ])
+            );
+        }
+
+        // ==================================
+        // ABSENSI HARI INI
+        // ==================================
+
+        const usernames =
+            siswa.map(s => s.username);
+
+        let riwayat = [];
+
+        if (usernames.length > 0) {
+
+            const start =
+                new Date();
+
+            start.setHours(0,0,0,0);
+
+            const end =
+                new Date();
+
+            end.setHours(23,59,59,999);
+
+            const {
+                data: absensiData,
+                error: absensiError
+            } = await window.supabaseClient
+                .from("absensi")
+                .select("*")
+                .in("username", usernames)
+                .gte("waktu", start.toISOString())
+                .lte("waktu", end.toISOString());
+
+            if (absensiError) {
+                console.error(absensiError);
+            }
+
+            riwayat = absensiData || [];
+        }
+
+        // ==================================
+        // STATUS HARIAN
+        // ==================================
+
+        let statusMap = {};
+
+        if (usernames.length > 0) {
+
+            const today =
+                new Date()
+                .toISOString()
+                .split("T")[0];
+
+            const {
+                data: statusData,
+                error: statusError
+            } = await window.supabaseClient
+                .from("status_harian")
+                .select("*")
+                .in("username", usernames)
+                .eq("tanggal", today);
+            
+            if (statusError) {
+                console.error(statusError);
+            }
+
+            statusMap = Object.fromEntries(
+                (statusData || []).map(s => [
+                    s.username,
+                    s
+                ])
+            );
+        }
+
+        // ==================================
+        // MERGE DATA
+        // ==================================
+
+        const siswaFinal = siswa.map(s => {
+
+            const lokasi =
+                lokasiMap[s.lokasi_id] || {};
+
+            const status =
+                statusMap[s.username] || {};
+
+            return {
+
+                username: s.username,
+
+                nama:
+                    s.nama_lengkap || "-",
+
+                kategori:
+                    s.kategori || "-",
+
+                lokasiId:
+                    s.lokasi_id,
+
+                namaIndustri:
+                    lokasi.nama_industri || "-",
+
+                mapsUrl:
+                    lokasi.latitude &&
+                    lokasi.longitude
+                        ? `https://www.google.com/maps?q=${lokasi.latitude},${lokasi.longitude}`
+                        : "#",
+
+                statusHarian:
+                    status.status || "",
+
+                approvalStatus:
+                    status.approval || "",
+
+                keteranganStatus:
+                    status.keterangan || ""
+
+            };
+
+        });
+
+        return {
+            siswa: siswaFinal,
+            riwayat
+        };
+
+    }
+    catch (error) {
+
+        console.error(
+            "getMonitoringDashboard:",
+            error
+        );
+
+        throw error;
+    }
+}
+
 async function loadWaliDashboard(useLoader = false) {
     try {
         const user = AppState.currentUser;
@@ -919,15 +1168,20 @@ async function loadWaliDashboard(useLoader = false) {
             AppState.monitoringMode = "wali";
         }
 
-        const data = await ApiService.call({
-            action: "get_monitoring_dashboard",
-            mode: AppState.monitoringMode,
-            username: user.username,
-            kategori: user.kategori
-        });
+        const data = await getMonitoringDashboard(
+            AppState.monitoringMode,
+            user.username
+        );
 
-        const siswa = data.siswa || [];
-        const riwayat = data.riwayat || [];
+        console.log("SISWA FINAL:", data.siswa);
+
+        console.log("MONITORING DATA:", data);
+
+        const siswa =
+            data.siswa || [];
+
+        const riwayat =
+            data.riwayat || [];
 
         const contentBox = document.getElementById("wali-dashboard-content");
         const emptyBox = document.getElementById("wali-dashboard-empty");
@@ -979,17 +1233,22 @@ async function loadWaliDashboard(useLoader = false) {
             return;
         }
 
-        const today = new Date();
+        const today =
+            new Date().toISOString().split("T")[0];
 
-        const todayStr =
-            today.getDate().toString().padStart(2, "0") + "/" +
-            (today.getMonth() + 1).toString().padStart(2, "0") + "/" +
-            today.getFullYear();
+        const hadirHariIni =
+            riwayat.filter(r => {
 
-        const hadirHariIni = riwayat.filter(r =>
-            r.timestamp?.startsWith(todayStr) &&
-            r.tipe === "Masuk"
-        );
+                const tanggalAbsen =
+                    String(r.waktu || "")
+                    .split("T")[0];
+
+                return (
+                    tanggalAbsen === today &&
+                    String(r.tipe || "").toLowerCase() === "masuk"
+                );
+
+            });
 
         const hadirUsernames = new Set(
             hadirHariIni.map(r => String(r.username || "").trim())
@@ -997,20 +1256,22 @@ async function loadWaliDashboard(useLoader = false) {
 
         const statusKhusus = siswa.filter(s =>
             s.statusHarian &&
-            String(s.approvalStatus || "").trim().toLowerCase() === "approved" &&
-            !hadirUsernames.has(String(s.username || "").trim())
+            String(s.approvalStatus || "").trim().toLowerCase() === "approved"
         );
 
         const statusPending = siswa.filter(s =>
             s.statusHarian &&
-            String(s.approvalStatus || "").trim().toLowerCase() === "pending" &&
-            !hadirUsernames.has(String(s.username || "").trim())
+            String(s.approvalStatus || "").trim().toLowerCase() === "pending"
         );
 
-        const statusUsernames = new Set(
-            statusKhusus.map(s => String(s.username || "").trim()),
-            statusPending.map(s => String(s.username || "").trim())
-        );
+        const statusUsernames = new Set([
+            ...statusKhusus.map(s =>
+                String(s.username || "").trim()
+            ),
+            ...statusPending.map(s =>
+                String(s.username || "").trim()
+            )
+        ]);
 
         const belumHadir = siswa.filter(s =>
             !hadirUsernames.has(String(s.username || "").trim()) &&
@@ -1119,7 +1380,7 @@ async function loadWaliDashboard(useLoader = false) {
                         <div class="flex items-center justify-between">
                             <div>
                                 <div class="font-medium text-slate-800">
-                                    ${r.nama || "-"}
+                                    ${r.nama_lengkap || r.nama || "-"}
                                 </div>
 
                                 <div class="text-xs text-slate-500 mt-1">
@@ -1133,7 +1394,7 @@ async function loadWaliDashboard(useLoader = false) {
                         </div>
 
                         <div class="mt-2 text-xs text-slate-500">
-                            ${r.timestamp || "-"}
+                            ${formatTanggalIndonesia(r.waktu)}
                         </div>
                     </div>
                 `).join("");
@@ -1473,8 +1734,68 @@ async function loadStatusApproval(useLoader = false) {
                             <div class="mt-3 text-sm text-slate-600 bg-slate-50 rounded-xl p-3">
                                 ${item.keterangan}
                             </div>
-                          `
-                        : ""
+                        `
+                        : `
+                            <div
+                                class="mt-3 flex items-center gap-2
+                                    px-3 py-2 rounded-xl
+                                    bg-slate-50 border border-slate-200
+                                    text-slate-500 text-sm">
+
+                                <i class="fa-regular fa-comment-dots"></i>
+
+                                <span>Tidak ada keterangan tambahan</span>
+
+                            </div>
+                        `
+                    }
+
+                    ${
+                        item.foto_bukti
+                        ? `
+                            <button
+                                onclick="previewApprovalBukti('${item.foto_bukti}')"
+                                class="mt-3 w-full flex items-center justify-center gap-2
+                                    py-2 rounded-xl
+                                    bg-indigo-50 text-indigo-700
+                                    border border-indigo-100
+                                    hover:bg-indigo-100
+                                    text-sm font-medium">
+
+                                <i class="fa-solid fa-camera"></i>
+                                Lihat Bukti Pengajuan
+
+                            </button>
+                        `
+                        : `
+                            <div
+                                class="mt-3 flex items-center gap-3
+                                    p-3 rounded-xl
+                                    bg-slate-50 border border-slate-200">
+
+                                <div
+                                    class="w-10 h-10 rounded-full
+                                        bg-slate-100
+                                        flex items-center justify-center">
+
+                                    <i class="fa-solid fa-file-circle-xmark text-slate-400"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="text-sm font-medium text-slate-700">
+                                        Tanpa Lampiran
+                                    </div>
+
+                                    <div class="text-xs text-slate-500">
+                                        Pengajuan ini tidak menyertakan bukti pendukung.
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        `
                     }
 
                     <div class="mt-4 flex gap-2">
@@ -2353,57 +2674,54 @@ async function compressImage(file, options = {}) {
 }
 
 //PREVIEW
-async function previewStatusPhoto(event) {
+function previewApprovalBukti(url) {
 
-    const file = event.target.files[0];
+    Swal.fire({
+        title: "Bukti Pengajuan",
+        imageUrl: url,
+        imageAlt: "Bukti Pengajuan",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#4f46e5",
 
-    if (!file) return;
+        imageWidth: 500,
 
-    if (file.size > 10 * 1024 * 1024) {
+        didOpen: () => {
 
-        showToast(
-            "Ukuran maksimal 10 MB",
-            true
-        );
+            const img =
+                Swal.getImage();
 
-        return;
+            if (img) {
 
-    }
+                img.onerror = () => {
 
-    showLoader("Memproses foto...");
+                    Swal.update({
+                        icon: "info",
+                        imageUrl: "",
+                        html: `
+                            <div class="text-center py-4">
 
-    try {
+                                <i class="fa-solid fa-image text-5xl text-slate-300 mb-3"></i>
 
-        statusPhoto = await compressImage(file, {
-            maxWidth: 1280,
-            quality: 0.75
-        });
+                                <div class="font-semibold text-slate-700">
+                                    Bukti Tidak Tersedia
+                                </div>
 
-        const preview =
-            document.getElementById(
-                "status-photo-preview"
-            );
+                                <div class="text-sm text-slate-500 mt-2">
+                                    File bukti telah dihapus otomatis oleh sistem
+                                    atau sudah tidak tersedia.
+                                </div>
 
-        preview.src = statusPhoto;
+                            </div>
+                        `
+                    });
 
-        preview.classList.remove("hidden-page");
+                };
 
-    }
-    catch(err){
+            }
 
-        console.error(err);
+        }
 
-        showToast(
-            "Gagal membaca gambar",
-            true
-        );
-
-    }
-    finally{
-
-        hideLoader();
-
-    }
+    });
 
 }
 
