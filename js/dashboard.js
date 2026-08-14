@@ -2392,6 +2392,248 @@ function previewApprovalBukti(url) {
 
 }
 
+async function checkHariAktifPKLByTanggal(
+    user,
+    tanggal
+) {
+
+    try {
+
+        if (
+            !user ||
+            !tanggal
+        ) {
+
+            return {
+                aktif: true
+            };
+        }
+
+        const lokasiId =
+            String(
+                user.lokasiId || ""
+            )
+            .trim()
+            .toUpperCase();
+
+        // =====================================
+        // TENTUKAN HARI
+        // =====================================
+
+        const date =
+            new Date(
+                `${tanggal}T00:00:00`
+            );
+
+        const namaHari =
+            [
+                "minggu",
+                "senin",
+                "selasa",
+                "rabu",
+                "kamis",
+                "jumat",
+                "sabtu"
+            ][
+                date.getDay()
+            ];
+
+        // =====================================
+        // CEK HARI LIBUR
+        // =====================================
+
+        const {
+            data: liburData,
+            error: liburError
+        } =
+            await window.supabaseClient
+                .from("hari_libur")
+                .select("*")
+                .eq(
+                    "tanggal",
+                    tanggal
+                );
+
+        if (liburError) {
+
+            throw liburError;
+        }
+
+        // =====================================
+        // CARI LIBUR YANG BERLAKU
+        // UNTUK LOKASI SISWA
+        // =====================================
+
+        const liburAktif =
+            (liburData || [])
+            .find(item => {
+
+                const berlaku =
+                    String(
+                        item.berlaku || ""
+                    )
+                    .trim()
+                    .toUpperCase();
+
+                // ---------------------------------
+                // BERLAKU UNTUK SEMUA LOKASI
+                // ---------------------------------
+
+                if (
+                    berlaku === "ALL"
+                ) {
+
+                    return true;
+                }
+
+                // ---------------------------------
+                // BERLAKU UNTUK BEBERAPA LOKASI
+                // Contoh:
+                // L001,L002,L003
+                // ---------------------------------
+
+                const lokasiList =
+                    berlaku
+                    .split(",")
+                    .map(
+                        value =>
+                            value
+                            .trim()
+                            .toUpperCase()
+                    )
+                    .filter(Boolean);
+
+                return lokasiList.includes(
+                    lokasiId
+                );
+
+            });
+
+        // =====================================
+        // JIKA LIBUR NASIONAL
+        // =====================================
+
+        if (liburAktif) {
+
+            return {
+
+                aktif: false,
+
+                jenis:
+                    "LIBUR_NASIONAL",
+
+                namaLibur:
+                    liburAktif.nama_libur,
+
+                tanggal,
+
+                message:
+                    liburAktif.nama_libur
+
+            };
+        }
+
+        // =====================================
+        // CEK KALENDER INDUSTRI
+        // =====================================
+
+        const {
+            data: kalender,
+            error: kalenderError
+        } =
+            await window.supabaseClient
+                .from(
+                    "kalender_industri"
+                )
+                .select("*")
+                .eq(
+                    "lokasi_id",
+                    lokasiId
+                )
+                .eq(
+                    "aktif",
+                    true
+                )
+                .maybeSingle();
+
+        if (kalenderError) {
+
+            throw kalenderError;
+        }
+
+        // =====================================
+        // TIDAK ADA KALENDER INDUSTRI
+        // =====================================
+
+        if (!kalender) {
+
+            return {
+
+                aktif: true
+
+            };
+        }
+
+        // =====================================
+        // CEK HARI AKTIF
+        // =====================================
+
+        const hariAktif =
+            kalender[
+                namaHari
+            ];
+
+        // =====================================
+        // HARI LIBUR INDUSTRI
+        // =====================================
+
+        if (
+            hariAktif === false ||
+            hariAktif === 0
+        ) {
+
+            return {
+
+                aktif: false,
+
+                jenis:
+                    "LIBUR_INDUSTRI",
+
+                namaIndustri:
+                    kalender.nama_industri,
+
+                namaHari,
+
+                tanggal,
+
+                message:
+                    `${kalender.nama_industri} libur pada hari ${namaHari}`
+
+            };
+        }
+
+        // =====================================
+        // HARI AKTIF
+        // =====================================
+
+        return {
+
+            aktif: true
+
+        };
+
+    }
+    catch (error) {
+
+        console.error(
+            "checkHariAktifPKLByTanggal:",
+            error
+        );
+
+        throw error;
+    }
+}
+
 async function submitStatusHarian() {
 
     try {
@@ -2400,6 +2642,10 @@ async function submitStatusHarian() {
             AppState.currentUser;
 
         if (!user) return;
+
+        // =====================================
+        // AMBIL FORM
+        // =====================================
 
         const tanggal =
             document.getElementById(
@@ -2416,6 +2662,10 @@ async function submitStatusHarian() {
                 "status-keterangan"
             )?.value || "";
 
+        // =====================================
+        // VALIDASI TANGGAL
+        // =====================================
+
         if (!tanggal) {
 
             showToast(
@@ -2425,6 +2675,10 @@ async function submitStatusHarian() {
 
             return;
         }
+
+        // =====================================
+        // VALIDASI STATUS
+        // =====================================
 
         if (!status) {
 
@@ -2436,9 +2690,219 @@ async function submitStatusHarian() {
             return;
         }
 
-        // ==========================
+        // =====================================
+        // CEK HARI AKTIF PKL
+        // =====================================
+
+        showLoader(
+            "Memeriksa kalender PKL..."
+        );
+
+        const hariAktif =
+            await checkHariAktifPKLByTanggal(
+                user,
+                tanggal
+            );
+
+        if (
+            !hariAktif.aktif
+        ) {
+
+            hideLoader();
+
+            // =================================
+            // LIBUR NASIONAL
+            // =================================
+
+            if (
+                hariAktif.jenis ===
+                "LIBUR_NASIONAL"
+            ) {
+
+                await Swal.fire({
+
+                    icon: "info",
+
+                    title:
+                        "Pengajuan Dinonaktifkan",
+
+                    html: `
+
+                        <div class="text-center">
+
+                            <div class="mb-4">
+
+                                <i
+                                    class="fa-solid fa-calendar-xmark"
+                                    style="
+                                        font-size:60px;
+                                        color:#ef4444;
+                                    ">
+                                </i>
+
+                            </div>
+
+                            <div
+                                class="
+                                    bg-red-50
+                                    border
+                                    border-red-200
+                                    rounded-xl
+                                    p-4
+                                ">
+
+                                <div
+                                    class="
+                                        font-bold
+                                        text-red-700
+                                        mb-2
+                                    ">
+
+                                    Hari Libur Nasional
+
+                                </div>
+
+                                <div
+                                    class="
+                                        text-slate-700
+                                        font-semibold
+                                    ">
+
+                                    ${hariAktif.namaLibur}
+
+                                </div>
+
+                            </div>
+
+                            <p
+                                class="
+                                    mt-4
+                                    text-sm
+                                    text-slate-500
+                                ">
+
+                                Pengajuan status kehadiran
+                                tidak dapat dilakukan
+                                pada hari libur nasional.
+
+                            </p>
+
+                        </div>
+
+                    `,
+
+                    confirmButtonText:
+                        "Mengerti",
+
+                    confirmButtonColor:
+                        "#4F46E5"
+
+                });
+
+                return;
+            }
+
+            // =================================
+            // LIBUR INDUSTRI
+            // =================================
+
+            if (
+                hariAktif.jenis ===
+                "LIBUR_INDUSTRI"
+            ) {
+
+                await Swal.fire({
+
+                    icon: "warning",
+
+                    title:
+                        "Pengajuan Dinonaktifkan",
+
+                    html: `
+
+                        <div class="text-center">
+
+                            <div class="mb-4">
+
+                                <i
+                                    class="fa-solid fa-building-circle-xmark"
+                                    style="
+                                        font-size:60px;
+                                        color:#f97316;
+                                    ">
+                                </i>
+
+                            </div>
+
+                            <div
+                                class="
+                                    bg-orange-50
+                                    border
+                                    border-orange-200
+                                    rounded-xl
+                                    p-4
+                                ">
+
+                                <div
+                                    class="
+                                        font-bold
+                                        text-orange-700
+                                        mb-2
+                                    ">
+
+                                    Hari Libur Industri
+
+                                </div>
+
+                                <div
+                                    class="
+                                        text-slate-700
+                                        font-semibold
+                                    ">
+
+                                    ${hariAktif.namaIndustri}
+
+                                </div>
+
+                            </div>
+
+                            <p
+                                class="
+                                    mt-4
+                                    text-sm
+                                    text-slate-500
+                                ">
+
+                                Industri tidak menerapkan
+                                kegiatan PKL pada hari
+
+                                <b>
+                                    ${hariAktif.namaHari.toUpperCase()}
+                                </b>.
+
+                            </p>
+
+                        </div>
+
+                    `,
+
+                    confirmButtonText:
+                        "Mengerti",
+
+                    confirmButtonColor:
+                        "#4F46E5"
+
+                });
+
+                return;
+            }
+
+            return;
+        }
+
+        // =====================================
         // VALIDASI FOTO
-        // ==========================
+        // =====================================
 
         const wajibFoto = [
             "Sakit",
@@ -2458,30 +2922,32 @@ async function submitStatusHarian() {
             return;
         }
 
-        showLoader(
-            "Mengirim konfirmasi..."
-        );
-
-        // ==========================
+        // =====================================
         // CEK DUPLIKAT
-        // ==========================
+        // =====================================
+
+        showLoader(
+            "Memeriksa pengajuan..."
+        );
 
         const {
             data: existing,
             error: cekError
-        } = await window.supabaseClient
-            .from("status_harian")
-            .select("id")
-            .eq(
-                "username",
-                user.username
-            )
-            .eq(
-                "tanggal",
-                tanggal
-            );
+        } =
+            await window.supabaseClient
+                .from("status_harian")
+                .select("id")
+                .eq(
+                    "username",
+                    user.username
+                )
+                .eq(
+                    "tanggal",
+                    tanggal
+                );
 
         if (cekError) {
+
             throw cekError;
         }
 
@@ -2490,24 +2956,39 @@ async function submitStatusHarian() {
             existing.length > 0
         ) {
 
-            showToast(
-                "Anda sudah mengirim status hari ini",
-                true
-            );
+            hideLoader();
+
+            await Swal.fire({
+
+                icon: "warning",
+
+                title:
+                    "Pengajuan Sudah Ada",
+
+                text:
+                    "Anda sudah mengirim status untuk tanggal tersebut.",
+
+                confirmButtonText:
+                    "Mengerti",
+
+                confirmButtonColor:
+                    "#4F46E5"
+
+            });
 
             return;
         }
 
-        // ==========================
+        // =====================================
         // UPLOAD FOTO
-        // ==========================
+        // =====================================
 
         let fotoUrl = null;
 
         if (statusPhoto) {
 
             showLoader(
-                "Upload bukti..."
+                "Mengupload bukti..."
             );
 
             fotoUrl =
@@ -2515,93 +2996,99 @@ async function submitStatusHarian() {
                     statusPhoto,
                     user.username
                 );
-
         }
 
-        // ==========================
+        // =====================================
         // INSERT STATUS
-        // ==========================
+        // =====================================
 
         showLoader(
-            "Menyimpan data..."
+            "Menyimpan pengajuan..."
         );
 
         const {
             error: insertError
-        } = await window.supabaseClient
-            .from("status_harian")
-            .insert([{
+        } =
+            await window.supabaseClient
+                .from("status_harian")
+                .insert([{
 
-                tanggal:
+                    tanggal:
+                        tanggal,
 
-                    tanggal,
+                    username:
+                        user.username,
 
-                username:
+                    nama_lengkap:
+                        user.nama,
 
-                    user.username,
+                    kategori:
+                        user.kategori,
 
-                nama_lengkap:
+                    lokasi_id:
+                        user.lokasiId,
 
-                    user.nama,
+                    status:
+                        status,
 
-                kategori:
+                    keterangan:
+                        keterangan,
 
-                    user.kategori,
+                    approval:
+                        "Pending",
 
-                lokasi_id:
+                    approved_by:
+                        null,
 
-                    user.lokasiId,
+                    foto_bukti:
+                        fotoUrl
 
-                status:
-
-                    status,
-
-                keterangan:
-
-                    keterangan,
-
-                approval:
-
-                    "Pending",
-
-                approved_by:
-
-                    null,
-
-                foto_bukti:
-
-                    fotoUrl
-
-            }]);
+                }]);
 
         if (insertError) {
+
             throw insertError;
         }
 
-        Swal.fire({
+        // =====================================
+        // BERHASIL
+        // =====================================
+
+        hideLoader();
+
+        await Swal.fire({
 
             icon: "success",
 
-            title: "Berhasil",
+            title:
+                "Berhasil",
 
             text:
                 "Konfirmasi kehadiran berhasil dikirim.",
 
-            timer: 1800,
+            timer: 2000,
 
-            showConfirmButton: false
+            timerProgressBar: true,
+
+            showConfirmButton: true,
+
+            confirmButtonText:
+                "OK",
+
+            confirmButtonColor:
+                "#4F46E5"
 
         });
 
+        // =====================================
+        // RESET
+        // =====================================
+
         resetStatusHarianForm();
 
-        setTimeout(() => {
-
-            navigateTo(
-                "page-user-dashboard"
-            );
-
-        }, 1500);
+        navigateTo(
+            "page-user-dashboard"
+        );
 
     }
     catch (error) {
@@ -2611,11 +3098,26 @@ async function submitStatusHarian() {
             error
         );
 
-        showToast(
-            error.message ||
-            "Gagal mengirim konfirmasi",
-            true
-        );
+        hideLoader();
+
+        await Swal.fire({
+
+            icon: "error",
+
+            title:
+                "Gagal Mengirim",
+
+            text:
+                error.message ||
+                "Terjadi kesalahan saat mengirim konfirmasi.",
+
+            confirmButtonText:
+                "Mengerti",
+
+            confirmButtonColor:
+                "#DC2626"
+
+        });
 
     }
     finally {

@@ -41,3 +41,43 @@ function formatTodayID() {
     return `${d}/${m}/${y}`;
 }
 
+function isLiburBerlakuUntukLokasi(
+    libur,
+    lokasiId
+) {
+
+    const berlaku =
+        String(
+            libur?.berlaku || ""
+        )
+        .trim()
+        .toUpperCase();
+
+    const lokasi =
+        String(
+            lokasiId || ""
+        )
+        .trim()
+        .toUpperCase();
+
+    if (!berlaku) {
+        return false;
+    }
+
+    // Berlaku untuk semua
+    if (berlaku === "ALL") {
+        return true;
+    }
+
+    const lokasiList =
+        berlaku
+        .split(",")
+        .map(x =>
+            x.trim().toUpperCase()
+        );
+
+    return lokasiList.includes(
+        lokasi
+    );
+}
+

@@ -14,117 +14,58 @@ async function getRekapBulanan({
         // AMBIL SISWA
         // =====================================
 
-        if (mode === "wali") {
-
-            const {
-                data,
-                error
-            } = await window.supabaseClient
+        let querySiswa =
+            window.supabaseClient
                 .from("users")
                 .select(`
                     username,
                     nama_lengkap,
-                    kategori
+                    kategori,
+                    lokasi_id
                 `)
-                .eq("role", "siswa")
-                .eq(
+                .eq("role", "siswa");
+
+        if (mode === "wali") {
+
+            querySiswa =
+                querySiswa.eq(
                     "kategori",
                     user.kategori
                 );
 
-            if (error) throw error;
+        } else if (mode === "pembimbing") {
 
-            siswa = data || [];
-        }
-
-        else if (mode === "pembimbing") {
-
-            const {
-                data,
-                error
-            } = await window.supabaseClient
-                .from("users")
-                .select(`
-                    username,
-                    nama_lengkap,
-                    kategori
-                `)
-                .eq("role", "siswa")
-                .eq(
+            querySiswa =
+                querySiswa.eq(
                     "p_id",
                     user.pId
                 );
 
-            if (error) throw error;
-
-            siswa = data || [];
-        }
-
-        else {
-
-            // ============================
-            // Ambil semua kategori dulu
-            // ============================
-
-            const {
-                data: allKategoriData,
-                error: kategoriError
-            } = await window.supabaseClient
-                .from("users")
-                .select("kategori")
-                .eq("role", "siswa");
-
-            if (kategoriError) {
-                throw kategoriError;
-            }
-
-            const kategoriList = [
-                ...new Set(
-                    (allKategoriData || [])
-                        .map(s => s.kategori)
-                        .filter(Boolean)
-                )
-            ].sort();
-
-            // simpan global
-            AppState.kategoriRekapBulanan =
-                kategoriList;
-
-            // ============================
-            // Ambil data siswa sesuai filter
-            // ============================
-
-            let query =
-                window.supabaseClient
-                    .from("users")
-                    .select(`
-                        username,
-                        nama_lengkap,
-                        kategori
-                    `)
-                    .eq("role", "siswa");
+        } else {
 
             if (
                 filterKategori &&
                 filterKategori !== "ALL"
             ) {
 
-                query =
-                    query.eq(
+                querySiswa =
+                    querySiswa.eq(
                         "kategori",
                         filterKategori
                     );
             }
-
-            const {
-                data,
-                error
-            } = await query;
-
-            if (error) throw error;
-
-            siswa = data || [];
         }
+
+        const {
+            data: siswaData,
+            error: siswaError
+        } = await querySiswa;
+
+        if (siswaError) {
+            throw siswaError;
+        }
+
+        siswa = siswaData || [];
 
         // =====================================
         // TANGGAL
@@ -152,7 +93,8 @@ async function getRekapBulanan({
 
             return {
                 rekap: [],
-                jumlahHari
+                jumlahHari,
+                kategoriList: []
             };
         }
 
@@ -215,6 +157,52 @@ async function getRekapBulanan({
         }
 
         // =====================================
+        // HARI LIBUR
+        // =====================================
+
+        const {
+            data: hariLiburData,
+            error: hariLiburError
+        } = await window.supabaseClient
+            .from("hari_libur")
+            .select("*")
+            .gte("tanggal", startDate)
+            .lte("tanggal", endDate);
+
+        if (hariLiburError) {
+            throw hariLiburError;
+        }
+
+        // =====================================
+        // KALENDER INDUSTRI
+        // =====================================
+
+        const lokasiIds = [
+            ...new Set(
+                siswa
+                    .map(
+                        s => s.lokasi_id
+                    )
+                    .filter(Boolean)
+            )
+        ];
+
+        const {
+            data: kalenderData,
+            error: kalenderError
+        } = await window.supabaseClient
+            .from("kalender_industri")
+            .select("*")
+            .in(
+                "lokasi_id",
+                lokasiIds
+            );
+
+        if (kalenderError) {
+            throw kalenderError;
+        }
+
+        // =====================================
         // MAP ABSENSI
         // =====================================
 
@@ -249,172 +237,312 @@ async function getRekapBulanan({
                 `${s.username}_${s.tanggal}`;
 
             statusMap[key] = s;
-
         });
 
         // =====================================
-        // GENERATE REKAP
+        // MAP LIBUR
         // =====================================
 
-        const rekap =
-            siswa.map(siswaItem => {
+        const hariLiburMap = {};
 
-                const harian = [];
+            (hariLiburData || []).forEach(item => {
 
-                let totalHadir = 0;
-                let totalDayOff = 0;
-                let totalIzin = 0;
-                let totalSakit = 0;
-                let totalPending = 0;
-                let totalBelum = 0;
-
-                for (
-                    let hari = 1;
-                    hari <= jumlahHari;
-                    hari++
+                if (
+                    !hariLiburMap[item.tanggal]
                 ) {
 
-                    const tanggal =
-                        `${tahun}-${String(bulan).padStart(2, "0")}-${String(hari).padStart(2, "0")}`;
+                    hariLiburMap[item.tanggal] = [];
+                }
 
-                    const key =
-                        `${siswaItem.username}_${tanggal}`;
+                hariLiburMap[item.tanggal]
+                    .push(item);
+            });
 
-                    let kode = "-";
-                    let label = "Belum";
+        // =====================================
+        // MAP KALENDER INDUSTRI
+        // =====================================
 
-                    // =====================
-                    // HADIR
-                    // =====================
+        const kalenderMap = {};
 
-                    if (
-                        absensiMap[key]
+        (kalenderData || []).forEach(item => {
+
+            kalenderMap[item.lokasi_id] =
+                item;
+        });
+
+        // =====================================
+        // REKAP
+        // =====================================
+        // =====================================
+        // TANGGAL HARI INI
+        // =====================================
+
+        const now = new Date();
+
+        const currentYear =
+            now.getFullYear();
+
+        const currentMonth =
+            now.getMonth() + 1;
+
+        const currentDay =
+            now.getDate();
+            
+        const rekap =
+            siswa.map(
+                siswaItem => {
+
+                    const harian = [];
+
+                    let totalHadir = 0;
+                    let totalDayOff = 0;
+                    let totalIzin = 0;
+                    let totalSakit = 0;
+                    let totalPending = 0;
+                    let totalBelum = 0;
+                    let totalLiburNasional = 0;
+                    let totalLiburIndustri = 0;
+
+                    for (
+                        let hari = 1;
+                        hari <= jumlahHari;
+                        hari++
                     ) {
 
-                        kode = "MP";
-                        label = "Masuk & Pulang";
+                        const tanggal =
+                            `${tahun}-${String(bulan).padStart(2, "0")}-${String(hari).padStart(2, "0")}`;
 
-                        totalHadir++;
-                    }
+                        const key =
+                            `${siswaItem.username}_${tanggal}`;
 
-                    // =====================
-                    // STATUS
-                    // =====================
+                        const currentDate =
+                            new Date(
+                                tahun,
+                                bulan - 1,
+                                hari
+                            );
 
-                    else if (
-                        statusMap[key]
-                    ) {
+                        const namaHari =
+                            [
+                                "minggu",
+                                "senin",
+                                "selasa",
+                                "rabu",
+                                "kamis",
+                                "jumat",
+                                "sabtu"
+                            ][currentDate.getDay()];
 
-                        const status =
-                            statusMap[key];
+                        const kalender =
+                            kalenderMap[
+                                siswaItem.lokasi_id
+                            ];
 
-                        const approval =
-                            String(
-                                status.approval || ""
-                            )
-                            .trim()
-                            .toLowerCase();
+                        // =====================================
+                        // CEK TANGGAL MASA DEPAN
+                        // =====================================
 
-                        if (
-                            approval === "pending"
-                        ) {
+                        const isFutureDate =
+                            tahun === currentYear &&
+                            bulan === currentMonth &&
+                            hari > currentDay;
 
-                            kode = "PD";
-                            label = "Pending";
+                        if (isFutureDate) {
 
-                            totalPending++;
+                            harian.push({
+                                kode: "",
+                                label: "Belum Berjalan"
+                            });
+
+                            continue;
                         }
+
+                        let kode = "-";
+                        let label = "Belum";
+
+                        // =====================
+                        // LIBUR NASIONAL
+                        // =====================
+
+                        const daftarLibur =
+                            hariLiburMap[tanggal] || [];
+
+                        const liburAktif =
+                            daftarLibur.find(item =>
+                                isLiburBerlakuUntukLokasi(
+                                    item,
+                                    siswaItem.lokasi_id
+                                )
+                            );
+
+                        if (liburAktif) {
+
+                            kode = "LN";
+
+                            label =
+                                liburAktif.nama_libur;
+
+                            totalLiburNasional++;
+                        }
+
+                        // =====================
+                        // LIBUR INDUSTRI
+                        // =====================
 
                         else if (
-                            approval === "approved"
+                            kalender &&
+                            (
+                                kalender[namaHari] === false ||
+                                kalender[namaHari] === 0
+                            )
                         ) {
 
-                            switch (
-                                String(status.status || "")
+                            kode = "LI";
+
+                            label =
+                                "Libur Industri";
+
+                            totalLiburIndustri++;
+                        }
+
+                        // =====================
+                        // HADIR
+                        // =====================
+
+                        else if (
+                            absensiMap[key]
+                        ) {
+
+                            kode = "MP";
+
+                            label =
+                                "Masuk & Pulang";
+
+                            totalHadir++;
+                        }
+
+                        // =====================
+                        // STATUS HARIAN
+                        // =====================
+
+                        else if (
+                            statusMap[key]
+                        ) {
+
+                            const status =
+                                statusMap[key];
+
+                            const approval =
+                                String(
+                                    status.approval || ""
+                                )
+                                .trim()
+                                .toLowerCase();
+
+                            if (
+                                approval === "pending"
                             ) {
 
-                                case "Izin":
+                                kode = "PD";
 
-                                    kode = "I";
-                                    label = "Izin";
+                                label = "Pending";
 
-                                    totalIzin++;
+                                totalPending++;
+                            }
 
-                                    break;
+                            else if (
+                                approval === "approved"
+                            ) {
 
-                                case "Sakit":
+                                switch (
+                                    status.status
+                                ) {
 
-                                    kode = "S";
-                                    label = "Sakit";
+                                    case "Izin":
 
-                                    totalSakit++;
+                                        kode = "I";
+                                        label = "Izin";
 
-                                    break;
+                                        totalIzin++;
 
-                                case "Day Off":
+                                        break;
 
-                                    kode = "D";
-                                    label = "Day Off";
+                                    case "Sakit":
 
-                                    totalDayOff++;
+                                        kode = "S";
+                                        label = "Sakit";
 
-                                    break;
+                                        totalSakit++;
 
-                                default:
+                                        break;
 
-                                    totalBelum++;
+                                    case "Day Off":
 
-                                    break;
+                                        kode = "D";
+                                        label = "Day Off";
+
+                                        totalDayOff++;
+
+                                        break;
+
+                                    default:
+
+                                        totalBelum++;
+
+                                        break;
+                                }
+                            }
+
+                            else {
+
+                                totalBelum++;
                             }
                         }
+
+                        // =====================
+                        // BELUM ABSEN
+                        // =====================
 
                         else {
 
                             totalBelum++;
                         }
+
+                        harian.push({
+                            kode,
+                            label
+                        });
                     }
 
-                    // =====================
-                    // BELUM
-                    // =====================
+                    return {
 
-                    else {
+                        nama:
+                            siswaItem.nama_lengkap,
 
-                        totalBelum++;
-                    }
+                        kategori:
+                            siswaItem.kategori,
 
-                    harian.push({
-                        kode,
-                        label
-                    });
+                        harian,
+
+                        totalHadir,
+                        totalDayOff,
+                        totalIzin,
+                        totalSakit,
+                        totalPending,
+                        totalBelum,
+                        totalLiburNasional,
+                        totalLiburIndustri
+                    };
                 }
+            );
 
-                return {
-
-                    nama:
-                        siswaItem.nama_lengkap,
-
-                    kategori:
-                        siswaItem.kategori,
-
-                    harian,
-
-                    totalHadir,
-                    totalDayOff,
-                    totalIzin,
-                    totalSakit,
-                    totalPending,
-                    totalBelum
-                };
-
-            });
-
-        // =====================================
-        // KATEGORI FILTER KEPSEK
-        // =====================================
-
-        const kategoriList =
-            AppState.kategoriRekapBulanan || [];
+        const kategoriList = [
+            ...new Set(
+                siswa.map(
+                    s => s.kategori
+                )
+            )
+        ].sort();
 
         return {
 
@@ -437,7 +565,13 @@ async function getRekapBulanan({
 }
 
 function getRekapBadgeClass(kode) {
-    switch (String(kode || "").trim().toUpperCase()) {
+
+    switch (
+        String(kode || "")
+        .trim()
+        .toUpperCase()
+    ) {
+
         case "MP":
             return "rekap-mp";
 
@@ -461,15 +595,28 @@ function getRekapBadgeClass(kode) {
 
         case "LA":
             return "rekap-lupa";
-        
+
         case "W":
             return "rekap-wfh";
-        
+
         case "ML":
             return "rekap-ml";
 
         case "PD":
             return "rekap-pending";
+
+        // ======================
+        // BARU
+        // ======================
+
+        case "LN":
+            return "rekap-libur-nasional";
+
+        case "LI":
+            return "rekap-libur-industri";
+        
+        case "":
+            return "rekap-future";
 
         default:
             return "rekap-kosong";
@@ -1009,11 +1156,11 @@ async function generateRekapPDF() {
     }
 
     doc.setFontSize(16);
-
-    doc.setFont(
-        "helvetica",
-        "bold"
-    );
+    doc.setFont("DejaVuSans", "normal");
+    // doc.setFont(
+    //     "helvetica",
+    //     "bold"
+    // );
 
     doc.text(
         "SMK BINTANG PERSADA DENPASAR",
@@ -1084,7 +1231,7 @@ async function generateRekapPDF() {
 
                 ...(r.harian || [])
                 .map(
-                    h => h.kode
+                    h => h.kode || ""
                 ),
 
                 r.totalHadir || 0,
@@ -1166,7 +1313,7 @@ async function generateRekapPDF() {
     // =====================================
     // TABLE
     // =====================================
-
+    
     doc.autoTable({
 
         startY: 55,
@@ -1181,13 +1328,17 @@ async function generateRekapPDF() {
 
         styles: {
 
+            font: "DejaVuSans",
+
+            fontStyle: "normal",
+
             fontSize: 6,
 
             halign: "center",
 
             valign: "middle",
 
-            lineColor: [0, 0, 0],
+            lineColor: [0,0,0],
 
             lineWidth: 0.1
 
@@ -1213,85 +1364,227 @@ async function generateRekapPDF() {
 
         },
 
-        didParseCell:
-            function (
-                dataCell
+        didParseCell: function(dataCell) {
+
+            if (
+                dataCell.section !== "body"
+            ) return;
+
+            const row =
+                rekap[
+                    dataCell.row.index
+                ];
+
+            const dayColumnStart = 3;
+
+            const dayColumnEnd =
+                3 + jumlahHari - 1;
+
+            if (
+                dataCell.column.index < dayColumnStart ||
+                dataCell.column.index > dayColumnEnd
             ) {
-
-                if (
-                    dataCell.section !==
-                    "body"
-                ) return;
-
-                const value =
-                    String(
-                        dataCell.cell.raw || ""
-                    )
-                    .trim()
-                    .toUpperCase();
-
-                switch (
-                    value
-                ) {
-
-                    case "MP":
-                        dataCell.cell.styles.textColor =
-                            [22, 163, 74];
-                        break;
-
-                    case "M":
-                        dataCell.cell.styles.textColor =
-                            [34, 197, 94];
-                        break;
-
-                    case "P":
-                        dataCell.cell.styles.textColor =
-                            [14, 165, 233];
-                        break;
-
-                    case "D":
-                        dataCell.cell.styles.textColor =
-                            [245, 158, 11];
-                        break;
-
-                    case "I":
-                        dataCell.cell.styles.textColor =
-                            [99, 102, 241];
-                        break;
-
-                    case "S":
-                        dataCell.cell.styles.textColor =
-                            [239, 68, 68];
-                        break;
-
-                    case "L":
-                        dataCell.cell.styles.textColor =
-                            [107, 114, 128];
-                        break;
-
-                    case "LA":
-                        dataCell.cell.styles.textColor =
-                            [59, 130, 246];
-                        break;
-
-                    case "W":
-                        dataCell.cell.styles.textColor =
-                            [99, 102, 241];
-                        break;
-
-                    case "ML":
-                        dataCell.cell.styles.textColor =
-                            [168, 85, 247];
-                        break;
-
-                    case "PD":
-                        dataCell.cell.styles.textColor =
-                            [217, 119, 6];
-                        break;
-                }
-
+                return;
             }
 
+            const hariIndex =
+                dataCell.column.index - 3;
+
+            const hariData =
+                row.harian?.[
+                    hariIndex
+                ];
+
+            const kode =
+                String(
+                    hariData?.kode || ""
+                )
+                .trim()
+                .toUpperCase();
+
+            // =====================
+            // HADIR
+            // =====================
+
+            if (
+                kode === "MP" ||
+                kode === "M" ||
+                kode === "P" ||
+                kode === "ML"
+            ) {
+
+                dataCell.cell.text =
+                    [""];
+
+                dataCell.cell.styles.fillColor =
+                    [255,255,255];
+            }
+
+            // =====================
+            // LIBUR INDUSTRI
+            // =====================
+
+            else if (
+                kode === "LI"
+            ) {
+
+                dataCell.cell.text =
+                    ["-"];
+
+                dataCell.cell.styles.fillColor =
+                    [245,235,235];
+
+                dataCell.cell.styles.textColor =
+                    [120,120,120];
+            }
+
+            // =====================
+            // LIBUR NASIONAL
+            // =====================
+
+            else if (
+                kode === "LN"
+            ) {
+
+                dataCell.cell.styles.fillColor =
+                    [254,243,199];
+
+                dataCell.cell.styles.textColor =
+                    [180,83,9];
+
+                dataCell.cell.styles.fontStyle =
+                    "bold";
+            }
+
+            // =====================
+            // IZIN
+            // =====================
+
+            else if (
+                kode === "I"
+            ) {
+
+                dataCell.cell.styles.textColor =
+                    [99,102,241];
+            }
+
+            // =====================
+            // SAKIT
+            // =====================
+
+            else if (
+                kode === "S"
+            ) {
+
+                dataCell.cell.styles.textColor =
+                    [239,68,68];
+            }
+
+            // =====================
+            // DAY OFF
+            // =====================
+
+            else if (
+                kode === "D"
+            ) {
+
+                dataCell.cell.styles.textColor =
+                    [245,158,11];
+            }
+
+            // =====================
+            // PENDING
+            // =====================
+
+            else if (
+                kode === "PD"
+            ) {
+
+                dataCell.cell.styles.textColor =
+                    [217,119,6];
+
+                dataCell.cell.styles.fontStyle =
+                    "bold";
+            }
+
+        },
+        didDrawCell: function(dataCell) {
+
+            if (
+                dataCell.section !== "body"
+            ) return;
+
+            const row =
+                rekap[
+                    dataCell.row.index
+                ];
+
+            const dayColumnStart = 3;
+
+            const dayColumnEnd =
+                3 + jumlahHari - 1;
+
+            if (
+                dataCell.column.index < dayColumnStart ||
+                dataCell.column.index > dayColumnEnd
+            ) {
+                return;
+            }
+
+            const hariIndex =
+                dataCell.column.index - 3;
+
+            const hariData =
+                row.harian?.[
+                    hariIndex
+                ];
+
+            const kode =
+                String(
+                    hariData?.kode || ""
+                )
+                .trim()
+                .toUpperCase();
+
+            if (
+                kode === "MP" ||
+                kode === "M" ||
+                kode === "P" ||
+                kode === "ML"
+            ) {
+
+                doc.setFont(
+                    "DejaVuSans",
+                    "normal"
+                );
+
+                doc.setFontSize(
+                    10
+                );
+
+                doc.setTextColor(
+                    22,
+                    163,
+                    74
+                );
+
+                doc.text(
+                    "✔",
+                    dataCell.cell.x +
+                    (
+                        dataCell.cell.width / 2
+                    ),
+                    dataCell.cell.y +
+                    (
+                        dataCell.cell.height / 2
+                    ) + 1.5,
+                    {
+                        align: "center"
+                    }
+                );
+            }
+
+        }
     });
 
     // =====================================
@@ -1355,7 +1648,6 @@ async function generateRekapPDF() {
         "pembimbing"
             ? "Pembimbing"
             : "Wali";
-
     doc.save(
         `Rekap_${modeLabel}_${namaBulan}_${tahun}.pdf`
     );

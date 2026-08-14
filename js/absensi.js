@@ -496,6 +496,159 @@ async function submitAbsensi() {
         window.__isSubmittingAbsensi = false;
     }
 }
+// =====================================================
+// CEK HARI AKTIF PKL
+// =====================================================
+// =====================================
+// CEK HARI AKTIF PKL
+// =====================================
+async function checkHariAktifPKL(user) {
+
+    try {
+
+        const today =
+            new Date();
+
+        const tanggal =
+            today.toISOString()
+            .split("T")[0];
+
+        const namaHari =
+            [
+                "minggu",
+                "senin",
+                "selasa",
+                "rabu",
+                "kamis",
+                "jumat",
+                "sabtu"
+            ][today.getDay()];
+
+        const lokasiId =
+            String(
+                user.lokasiId || ""
+            )
+            .trim()
+            .toUpperCase();
+
+        // =====================================
+        // HARI LIBUR
+        // =====================================
+
+        const {
+            data: liburData,
+            error: liburError
+        } = await window.supabaseClient
+            .from("hari_libur")
+            .select("*")
+            .eq(
+                "tanggal",
+                tanggal
+            );
+
+        if (liburError) {
+            throw liburError;
+        }
+
+        const liburAktif =
+            (liburData || [])
+            .find(item =>
+                isLiburBerlakuUntukLokasi(
+                    item,
+                    lokasiId
+                )
+            );
+
+        if (liburAktif) {
+
+            return {
+
+                aktif: false,
+
+                jenis:
+                    "LIBUR_NASIONAL",
+
+                namaLibur:
+                    liburAktif.nama_libur,
+
+                message:
+                    liburAktif.nama_libur
+            };
+        }
+
+        // =====================================
+        // KALENDER INDUSTRI
+        // =====================================
+
+        const {
+            data: kalender,
+            error: kalenderError
+        } = await window.supabaseClient
+            .from("kalender_industri")
+            .select("*")
+            .eq(
+                "lokasi_id",
+                lokasiId
+            )
+            .eq(
+                "aktif",
+                true
+            )
+            .maybeSingle();
+
+        if (kalenderError) {
+            throw kalenderError;
+        }
+
+        if (!kalender) {
+
+            return {
+                aktif: true
+            };
+        }
+
+        const hariAktif =
+            kalender[namaHari];
+
+        if (
+            hariAktif === false ||
+            hariAktif === 0
+        ) {
+
+            return {
+
+                aktif: false,
+
+                jenis:
+                    "LIBUR_INDUSTRI",
+
+                namaIndustri:
+                    kalender.nama_industri,
+
+                namaHari,
+
+                message:
+                    `${kalender.nama_industri} libur pada hari ${namaHari}`
+            };
+        }
+
+        return {
+            aktif: true
+        };
+
+    }
+    catch (error) {
+
+        console.error(
+            "checkHariAktifPKL:",
+            error
+        );
+
+        return {
+            aktif: true
+        };
+    }
+}
 
 async function initAbsenForm() {
 
@@ -509,10 +662,157 @@ async function initAbsenForm() {
             "Memeriksa status hari ini..."
         );
 
+        // =====================================
+        // CEK HARI AKTIF PKL
+        // =====================================
+
+        const hariAktif =
+            await checkHariAktifPKL(user);
+
+        if (!hariAktif.aktif) {
+
+            hideLoader();
+
+            // ==========================
+            // LIBUR NASIONAL
+            // ==========================
+
+            if (
+                hariAktif.jenis ===
+                "LIBUR_NASIONAL"
+            ) {
+
+                await Swal.fire({
+
+                    icon: "info",
+
+                    title:
+                        "Absensi Dinonaktifkan",
+
+                    html: `
+
+                        <div class="text-center">
+
+                            <div class="mb-3">
+                                <i
+                                    class="fa-solid fa-calendar-xmark text-red-500"
+                                    style="font-size:60px">
+                                </i>
+                            </div>
+
+                            <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+
+                                <div class="text-slate-500 text-sm mt-2">
+                                    Tanggal ${formatTanggalIndonesia(new Date())}
+                                </div>
+
+                                <div class="font-bold text-red-700 mb-2">
+                                    Hari Libur Nasional
+                                </div>
+
+                                <div class="text-slate-700">
+                                    ${hariAktif.namaLibur}
+                                </div>
+
+                            </div>
+
+                            <p class="mt-3 text-sm text-slate-500">
+                                Absensi tidak dapat dilakukan
+                                pada hari libur.
+                            </p>
+
+                        </div>
+
+                    `,
+
+                    confirmButtonText:
+                        "Kembali ke Dashboard",
+
+                    confirmButtonColor:
+                        "#4F46E5"
+                });
+            }
+
+            // ==========================
+            // LIBUR INDUSTRI
+            // ==========================
+
+            else if (
+                hariAktif.jenis ===
+                "LIBUR_INDUSTRI"
+            ) {
+
+                await Swal.fire({
+
+                    icon: "warning",
+
+                    title:
+                        "Absensi Dinonaktifkan",
+
+                    html: `
+
+                        <div class="text-center">
+
+                            <div class="mb-3">
+                                <i
+                                    class="fa-solid fa-building-circle-xmark text-orange-500"
+                                    style="font-size:60px">
+                                </i>
+                            </div>
+
+                            <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+
+                                <div class="font-bold text-orange-700 mb-2">
+                                    Hari Libur Industri
+                                </div>
+
+                                <div class="text-slate-700">
+                                    ${hariAktif.namaIndustri}
+                                </div>
+
+                            </div>
+
+                            <p class="mt-3 text-sm text-slate-500">
+                                Industri libur pada hari
+                                <b>${hariAktif.namaHari.toUpperCase()}</b>
+                            </p>
+
+                        </div>
+
+                    `,
+
+                    confirmButtonText:
+                        "Kembali ke Dashboard",
+
+                    confirmButtonColor:
+                        "#4F46E5"
+                });
+            }
+
+            stopCamera?.();
+
+            if (window.watchPositionId) {
+
+                navigator.geolocation.clearWatch(
+                    window.watchPositionId
+                );
+            }
+
+            navigateTo(
+                "page-user-dashboard"
+            );
+
+            return;
+        }
+
         const today =
             new Date()
                 .toISOString()
                 .split("T")[0];
+
+        // =====================================
+        // CEK STATUS HARIAN
+        // =====================================
 
         const {
             data: statusHarian,
@@ -520,68 +820,97 @@ async function initAbsenForm() {
         } = await window.supabaseClient
             .from("status_harian")
             .select("*")
-            .eq("username", user.username)
-            .eq("tanggal", today)
+            .eq(
+                "username",
+                user.username
+            )
+            .eq(
+                "tanggal",
+                today
+            )
             .maybeSingle();
 
         if (error) {
+
             throw error;
         }
 
         if (statusHarian) {
 
             const approval =
-                statusHarian.approval || "Pending";
+                String(
+                    statusHarian.approval || ""
+                )
+                .trim()
+                .toLowerCase();
 
             if (
-                approval === "Pending" ||
-                approval === "Approved"
+                approval === "pending" ||
+                approval === "approved"
             ) {
 
                 hideLoader();
 
-                Swal.fire({
+                await Swal.fire({
+
                     icon: "info",
-                    title: "Absensi Dinonaktifkan",
+
+                    title:
+                        "Absensi Dinonaktifkan",
+
                     html: `
-                        <div style="text-align:left">
-                            <p>Status Hari Ini :</p>
 
-                            <p>
-                                <b>
+                        <div class="text-left">
+
+                            <p class="mb-2">
+                                Status Hari Ini :
+                            </p>
+
+                            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3">
+
+                                <div class="font-bold text-indigo-700">
                                     ${statusHarian.status}
-                                </b>
-                            </p>
+                                </div>
 
-                            <p>
-                                Approval :
-                                <b>
-                                    ${approval}
-                                </b>
-                            </p>
+                                <div class="text-sm text-slate-600 mt-1">
+                                    Approval :
+                                    <b>${statusHarian.approval}</b>
+                                </div>
 
-                            ${
-                                statusHarian.keterangan
+                                ${
+                                    statusHarian.keterangan
                                     ? `
-                                        <p>
+                                        <div class="mt-2 text-sm">
                                             ${statusHarian.keterangan}
-                                        </p>
+                                        </div>
                                     `
                                     : ""
-                            }
+                                }
+
+                            </div>
+
                         </div>
-                    `
-                }).then(() => {
 
-                    navigateTo(
-                        "page-user-dashboard"
-                    );
+                    `,
 
+                    confirmButtonText:
+                        "Kembali ke Dashboard",
+
+                    confirmButtonColor:
+                        "#4F46E5"
                 });
+
+                navigateTo(
+                    "page-user-dashboard"
+                );
 
                 return;
             }
         }
+
+        // =====================================
+        // LOAD ABSENSI
+        // =====================================
 
         await loadUserLocation();
 
@@ -593,6 +922,14 @@ async function initAbsenForm() {
 
             stopCamera?.();
 
+            if (
+                window.watchPositionId
+            ) {
+
+                navigator.geolocation.clearWatch(
+                    window.watchPositionId
+                );
+            }
         };
 
     }
@@ -607,14 +944,11 @@ async function initAbsenForm() {
             "Gagal membuka halaman absensi",
             true
         );
-
     }
     finally {
 
         hideLoader();
-
     }
-
 }
 
 // ===============================

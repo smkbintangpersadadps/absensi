@@ -1403,3 +1403,23 @@ button:disabled {
         0 0 0 3px rgba(79, 70, 229, .15);
 
 }
+
+/* Libur Nasional */
+.rekap-libur-nasional {
+    background: #FEE2E2;
+    color: #DC2626;
+    border: 1px solid #FCA5A5;
+}
+
+/* Libur Industri */
+.rekap-libur-industri {
+    background: #DBEAFE;
+    color: #2563EB;
+    border: 1px solid #93C5FD;
+}
+
+.rekap-future {
+    background: transparent;
+    color: transparent;
+    border: none;
+}
