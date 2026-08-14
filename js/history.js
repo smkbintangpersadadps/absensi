@@ -329,6 +329,302 @@ async function loadAdminDashboardStats() {
 }
 
 //Riwayat Wali
+async function getWaliHistoryPerHari(mode, user) {
+
+    let siswa = [];
+
+    // =================================
+    // AMBIL SISWA
+    // =================================
+
+    if (mode === "wali") {
+
+        const { data, error } =
+            await window.supabaseClient
+                .from("users")
+                .select(`
+                    username,
+                    nama_lengkap,
+                    kategori,
+                    lokasi_id
+                `)
+                .eq("role", "siswa")
+                .eq(
+                    "kategori",
+                    user.kategori
+                );
+
+        if (error) throw error;
+
+        siswa = data || [];
+
+    } else {
+
+        const { data, error } =
+            await window.supabaseClient
+                .from("users")
+                .select(`
+                    username,
+                    nama_lengkap,
+                    kategori,
+                    lokasi_id
+                `)
+                .eq("role", "siswa")
+                .eq(
+                    "p_id",
+                    user.pId
+                );
+
+        if (error) throw error;
+
+        siswa = data || [];
+    }
+
+    const usernames =
+        siswa.map(s => s.username);
+
+    if (!usernames.length) {
+        return [];
+    }
+
+    // =================================
+    // LOKASI
+    // =================================
+
+    const lokasiIds =
+        [...new Set(
+            siswa
+                .map(s => s.lokasi_id)
+                .filter(Boolean)
+        )];
+
+    let lokasiMap = {};
+
+    if (lokasiIds.length) {
+
+        const {
+            data: lokasiData
+        } = await window.supabaseClient
+            .from("lokasi")
+            .select("*")
+            .in(
+                "lokasi_id",
+                lokasiIds
+            );
+
+        lokasiMap =
+            Object.fromEntries(
+                (lokasiData || [])
+                .map(l => [
+                    l.lokasi_id,
+                    l
+                ])
+            );
+    }
+
+    // =================================
+    // TANGGAL HARI INI (LOCAL)
+    // =================================
+
+    const today =
+        new Date()
+            .toLocaleDateString("sv-SE");
+
+    // =================================
+    // ABSENSI
+    // =================================
+
+    const {
+        data: absensiData,
+        error: absensiError
+    } = await window.supabaseClient
+        .from("absensi")
+        .select("*")
+        .in(
+            "username",
+            usernames
+        );
+
+    if (absensiError) {
+        throw absensiError;
+    }
+
+    // Filter hari ini di JS
+    const absensiHariIni =
+        (absensiData || []).filter(a => {
+
+            const tanggal =
+                new Date(a.waktu)
+                .toLocaleDateString("sv-SE");
+
+            return tanggal === today;
+        });
+
+    console.log(
+        "ABSENSI HARI INI",
+        absensiHariIni
+    );
+
+    // =================================
+    // STATUS HARIAN
+    // =================================
+
+    const {
+        data: statusData,
+        error: statusError
+    } = await window.supabaseClient
+        .from("status_harian")
+        .select("*")
+        .in(
+            "username",
+            usernames
+        )
+        .eq(
+            "tanggal",
+            today
+        );
+
+    if (statusError) {
+        throw statusError;
+    }
+
+    const statusMap =
+        Object.fromEntries(
+            (statusData || [])
+            .map(s => [
+                s.username,
+                s
+            ])
+        );
+
+    // =================================
+    // MAP ABSENSI
+    // =================================
+
+    const absensiMap = {};
+
+    absensiHariIni.forEach(a => {
+
+        if (!absensiMap[a.username]) {
+            absensiMap[a.username] = [];
+        }
+
+        absensiMap[a.username].push(a);
+    });
+
+    // =================================
+    // MERGE DATA
+    // =================================
+
+    return siswa.map(s => {
+
+        const lokasi =
+            lokasiMap[s.lokasi_id] || {};
+
+        const absensi =
+            absensiMap[s.username] || [];
+
+        const status =
+            statusMap[s.username];
+        
+        const masuk =
+            absensi.find(a => {
+
+                const tipe =
+                    String(a.tipe || "")
+                    .trim()
+                    .toLowerCase();
+
+                return tipe.includes("masuk");
+
+            });
+
+        const pulang =
+            absensi.find(a => {
+
+                const tipe =
+                    String(a.tipe || "")
+                    .trim()
+                    .toLowerCase();
+
+                return (
+                    tipe.includes("pulang") ||
+                    tipe.includes("keluar") ||
+                    tipe.includes("check out")
+                );
+
+            });
+
+        let keterangan =
+            "Belum Ada Keterangan";
+
+        if (masuk && pulang) {
+
+            keterangan =
+                "Hadir Lengkap";
+
+        } else if (masuk) {
+
+            keterangan =
+                "Sudah Masuk";
+
+        } else if (pulang) {
+
+            keterangan =
+                "Pulang Saja";
+
+        } else if (status) {
+
+            const approval =
+                String(status.approval || "")
+                .trim()
+                .toLowerCase();
+
+            if (approval === "pending") {
+
+                keterangan =
+                    `Pending ${status.status}`;
+
+            } else if (approval === "approved") {
+
+                keterangan =
+                    status.status;
+            }
+        }
+
+        return {
+
+            nama:
+                s.nama_lengkap,
+
+            kategori:
+                s.kategori,
+
+            industri:
+                lokasi.nama_industri || "-",
+
+            jamMasuk:
+                masuk
+                    ? formatJamOnly(
+                        masuk.waktu
+                    )
+                    : "-",
+
+            jamPulang:
+                pulang
+                    ? formatJamOnly(
+                        pulang.waktu
+                    )
+                    : "-",
+
+            keterangan
+
+        };
+
+    });
+
+}
+
 async function loadWaliHistory(useLoader = false) {
     try {
         const user = AppState.currentUser;
@@ -342,15 +638,11 @@ async function loadWaliHistory(useLoader = false) {
             showLoader("Memuat riwayat absensi...");
         }
 
-        const data = await ApiService.call({
-            action: "get_monitoring_dashboard",
-            mode: AppState.historyMode,
-            username: user.username,
-            kategori: user.kategori
-        });
-
-        const siswa = data.siswa || [];
-        const riwayat = data.riwayat || [];
+        const siswa =
+            await getWaliHistoryPerHari(
+                AppState.historyMode,
+                user
+            );
 
         const emptyBox = document.getElementById("wali-history-empty");
         const tableWrapper = document.getElementById("wali-history-table-wrapper");
@@ -416,7 +708,7 @@ async function loadWaliHistory(useLoader = false) {
             return;
         }
 
-        if (!riwayat.length) {
+        if (!siswa.length) {
 
             tbody.innerHTML = `
                 <tr>
@@ -428,38 +720,39 @@ async function loadWaliHistory(useLoader = false) {
 
             return;
         } else {
-            tbody.innerHTML = riwayat.map(r => `
-                <tr>
-                    <td>${r.timestamp || "-"}</td>
-                    <td>${r.nama || "-"}</td>
-                    <td>${r.kategori || "-"}</td>
-                    <td>${r.namaIndustri || "-"}</td>
-                    <td>
-                        <span class="px-2 py-1 rounded-full text-xs ${
-                            r.tipe === "Masuk"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-blue-100 text-blue-700"
-                        }">
-                            ${r.tipe || "-"}
-                        </span>
-                    </td>
-                    <td>${Math.round(r.jarak || 0)} m</td>
-                    <td>
-                        ${
-                            r.fotoUrl
-                                ? `<a href="${r.fotoUrl}" target="_blank" class="text-indigo-600 font-medium">Lihat</a>`
-                                : "-"
-                        }
-                    </td>
-                    <td>
-                        ${
-                            r.maps
-                                ? `<a href="${r.maps}" target="_blank" class="text-indigo-600 font-medium">Lihat</a>`
-                                : "-"
-                        }
-                    </td>
-                </tr>
-            `).join("");
+            console.log("DATA SISWA HISTORY", siswa);
+            tbody.innerHTML =
+                siswa.map(s => `
+
+                    <tr>
+
+                        <td>
+                            ${s.nama}
+                        </td>
+
+                        <td>
+                            ${s.kategori}
+                        </td>
+
+                        <td>
+                            ${s.industri}
+                        </td>
+
+                        <td>
+                            ${s.jamMasuk}
+                        </td>
+
+                        <td>
+                            ${s.jamPulang}
+                        </td>
+
+                        <td>
+                            ${s.keterangan}
+                        </td>
+
+                    </tr>
+
+                `).join("");
         }
 
         $("#wali-table").DataTable({
@@ -496,26 +789,68 @@ async function loadWaliHistory(useLoader = false) {
 }
 
 function setHistoryMode(mode) {
-    AppState.historyMode = mode;
 
-    const btnWali = document.getElementById("btn-history-mode-wali");
-    const btnPembimbing = document.getElementById("btn-history-mode-pembimbing");
+    AppState.historyMode =
+        mode;
 
-    btnWali?.classList.remove("bg-indigo-600", "text-white");
-    btnPembimbing?.classList.remove("bg-indigo-600", "text-white");
+    const btnWali =
+        document.getElementById(
+            "btn-history-mode-wali"
+        );
 
-    btnWali?.classList.add("bg-slate-100", "text-slate-700");
-    btnPembimbing?.classList.add("bg-slate-100", "text-slate-700");
+    const btnPembimbing =
+        document.getElementById(
+            "btn-history-mode-pembimbing"
+        );
+
+    btnWali?.classList.remove(
+        "bg-indigo-600",
+        "text-white"
+    );
+
+    btnPembimbing?.classList.remove(
+        "bg-indigo-600",
+        "text-white"
+    );
+
+    btnWali?.classList.add(
+        "bg-slate-100",
+        "text-slate-700"
+    );
+
+    btnPembimbing?.classList.add(
+        "bg-slate-100",
+        "text-slate-700"
+    );
 
     if (mode === "wali") {
-        btnWali?.classList.remove("bg-slate-100", "text-slate-700");
-        btnWali?.classList.add("bg-indigo-600", "text-white");
+
+        btnWali?.classList.remove(
+            "bg-slate-100",
+            "text-slate-700"
+        );
+
+        btnWali?.classList.add(
+            "bg-indigo-600",
+            "text-white"
+        );
+
     } else {
-        btnPembimbing?.classList.remove("bg-slate-100", "text-slate-700");
-        btnPembimbing?.classList.add("bg-indigo-600", "text-white");
+
+        btnPembimbing?.classList.remove(
+            "bg-slate-100",
+            "text-slate-700"
+        );
+
+        btnPembimbing?.classList.add(
+            "bg-indigo-600",
+            "text-white"
+        );
+
     }
 
-    loadWaliHistory?.(true);
+    HistoryService.load(true);
+
 }
 
 async function loadStatusHistory(useLoader = false) {
@@ -1532,6 +1867,500 @@ async function cancelStatusRequest(id) {
         hideLoader();
 
     }
+}
+
+//Riwayat Wali
+const HistoryService = {
+
+    async init(useLoader = true) {
+
+        const today =
+            new Date()
+            .toISOString()
+            .split("T")[0];
+
+        const dateEl =
+            document.getElementById(
+                "history-date"
+            );
+
+        if (
+            dateEl &&
+            !dateEl.value
+        ) {
+            dateEl.value =
+                today;
+        }
+
+        if (
+            !AppState.historyMode
+        ) {
+            AppState.historyMode =
+                "wali";
+        }
+
+        await this.load(
+            useLoader
+        );
+    },
+
+    async load(useLoader = false) {
+
+        try {
+
+            const user =
+                AppState.currentUser;
+
+            if (!user) return;
+
+            if (useLoader) {
+
+                showLoader(
+                    "Memuat riwayat absensi..."
+                );
+            }
+
+            const data =
+                await this.getData();
+
+            this.render(
+                data
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                "HistoryService:",
+                error
+            );
+
+            showToast(
+                "Gagal memuat riwayat",
+                true
+            );
+        }
+        finally {
+
+            hideLoader();
+
+        }
+
+    },
+
+    async getData() {
+
+        const user =
+            AppState.currentUser;
+
+        const selectedDate =
+            document.getElementById(
+                "history-date"
+            )?.value;
+
+        let siswa = [];
+
+        // =====================
+        // WALI
+        // =====================
+
+        if (
+            AppState.historyMode ===
+            "wali"
+        ) {
+
+            const {
+                data,
+                error
+            } = await window.supabaseClient
+                .from("users")
+                .select(`
+                    username,
+                    nama_lengkap,
+                    kategori,
+                    lokasi_id
+                `)
+                .eq("role", "siswa")
+                .eq(
+                    "kategori",
+                    user.kategori
+                );
+
+            if (error)
+                throw error;
+
+            siswa =
+                data || [];
+        }
+
+        // =====================
+        // PEMBIMBING
+        // =====================
+
+        else {
+
+            const {
+                data,
+                error
+            } = await window.supabaseClient
+                .from("users")
+                .select(`
+                    username,
+                    nama_lengkap,
+                    kategori,
+                    lokasi_id
+                `)
+                .eq("role", "siswa")
+                .eq(
+                    "p_id",
+                    user.pId
+                );
+
+            if (error)
+                throw error;
+
+            siswa =
+                data || [];
+        }
+
+        const usernames =
+            siswa.map(
+                s => s.username
+            );
+
+        if (!usernames.length) {
+
+            return {
+                siswa: []
+            };
+        }
+
+        // =====================
+        // ABSENSI
+        // =====================
+
+        const startDate =
+            `${selectedDate}T00:00:00`;
+
+        const endDate =
+            `${selectedDate}T23:59:59`;
+
+        const {
+            data: absensiData
+        } = await window.supabaseClient
+            .from("absensi")
+            .select("*")
+            .in(
+                "username",
+                usernames
+            )
+            .gte(
+                "waktu",
+                startDate
+            )
+            .lte(
+                "waktu",
+                endDate
+            );
+
+        // =====================
+        // STATUS HARIAN
+        // =====================
+
+        const {
+            data: statusData
+        } = await window.supabaseClient
+            .from("status_harian")
+            .select("*")
+            .in(
+                "username",
+                usernames
+            )
+            .eq(
+                "tanggal",
+                selectedDate
+            );
+
+        // =====================
+        // LOKASI
+        // =====================
+
+        const lokasiIds =
+            [
+                ...new Set(
+                    siswa
+                    .map(
+                        s => s.lokasi_id
+                    )
+                    .filter(Boolean)
+                )
+            ];
+
+        let lokasiMap = {};
+
+        if (
+            lokasiIds.length
+        ) {
+
+            const {
+                data: lokasiData
+            } = await window.supabaseClient
+                .from("lokasi")
+                .select("*")
+                .in(
+                    "lokasi_id",
+                    lokasiIds
+                );
+
+            lokasiMap =
+                Object.fromEntries(
+                    lokasiData.map(
+                        l => [
+                            l.lokasi_id,
+                            l
+                        ]
+                    )
+                );
+        }
+
+        // =====================
+        // MAP ABSENSI
+        // =====================
+
+        const absensiMap = {};
+
+        (absensiData || [])
+            .forEach(a => {
+
+                if (
+                    !absensiMap[
+                        a.username
+                    ]
+                ) {
+
+                    absensiMap[
+                        a.username
+                    ] = [];
+                }
+
+                absensiMap[
+                    a.username
+                ].push(a);
+
+            });
+
+        // =====================
+        // MAP STATUS
+        // =====================
+
+        const statusMap =
+            Object.fromEntries(
+
+                (statusData || [])
+                .map(s => [
+
+                    s.username,
+                    s
+
+                ])
+            );
+        // =====================
+        // MERGE
+        // =====================
+        const hasil =
+            siswa.map(s => {
+                const absensi =
+                    absensiMap[s.username] || [];
+                const status =
+                    statusMap[s.username];
+                const lokasi =
+                    lokasiMap[s.lokasi_id] || {};
+                // =====================
+                // ABSEN MASUK
+                // =====================
+                const masuk =
+                    absensi.find(a => {
+                        const tipe =
+                            String(a.tipe || "")
+                            .trim()
+                            .toLowerCase();
+                        return (
+                            tipe.includes("masuk") ||
+                            tipe.includes("check in") ||
+                            tipe === "in"
+                        );
+                    });
+                // =====================
+                // ABSEN PULANG
+                // =====================
+                const pulang =
+                    absensi.find(a => {
+                        const tipe =
+                            String(a.tipe || "")
+                            .trim()
+                            .toLowerCase();
+                        return (
+                            tipe.includes("pulang") ||
+                            tipe.includes("keluar") ||
+                            tipe.includes("check out") ||
+                            tipe.includes("checkout") ||
+                            tipe === "out"
+                        );
+                    });
+                // =====================
+                // KETERANGAN
+                // =====================
+                let keterangan =
+                    "Belum Absen";
+                if (status) {
+                    const approval =
+                        String(
+                            status.approval || ""
+                        )
+                        .trim()
+                        .toLowerCase();
+                    if (
+                        approval === "pending"
+                    ) {
+                        keterangan =
+                            `Pending ${status.status || ""}`;
+
+                    }
+                    else if (
+                        approval === "approved"
+                    ) {
+
+                        keterangan =
+                            status.status ||
+                            "Approved";
+                    }
+                }
+                if (masuk && pulang) {
+                    keterangan =
+                        "Masuk & Pulang";
+                }
+                else if (masuk) {
+                    keterangan =
+                        "Sudah Masuk";
+                }
+                else if (pulang) {
+                    keterangan =
+                        "Sudah Pulang";
+                }
+                return {
+                    username:
+                        s.username,
+                    nama:
+                        s.nama_lengkap || "-",
+                    kategori:
+                        s.kategori || "-",
+                    industri:
+                        lokasi.nama_industri || "-",
+                    jamMasuk:
+                        masuk
+                        ? formatJamOnly(
+                            masuk.waktu
+                        )
+                        : "-",
+                    jamPulang:
+                        pulang
+                        ? formatJamOnly(
+                            pulang.waktu
+                        )
+                        : "-",
+                    keterangan
+                };
+            });
+        return {
+            siswa: hasil
+        };
+    },
+    render(data) {
+        const siswa =
+            data.siswa || [];
+        const tbody =
+            document.getElementById(
+                "wali-riwayat-body"
+            );
+        if (!tbody) return;
+        if (
+            $.fn.DataTable.isDataTable(
+                "#wali-table"
+            )
+        ) {
+            $("#wali-table")
+                .DataTable()
+                .destroy();
+        }
+        if (!siswa.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6"
+                        class="text-center p-4">
+                        Tidak ada data siswa
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        tbody.innerHTML =
+            siswa.map(s => `
+                <tr>
+                    <td>
+                        ${s.nama}
+                    </td>
+                    <td>
+                        ${s.kategori}
+                    </td>
+                    <td>
+                        ${s.industri}
+                    </td>
+                    <td class="text-center">
+                        ${s.jamMasuk}
+                    </td>
+                    <td class="text-center">
+                        ${s.jamPulang}
+                    </td>
+                    <td>
+                        ${s.keterangan}
+                    </td>
+                </tr>
+            `).join("");
+        $("#wali-table").DataTable({
+            pageLength: 25,
+            ordering: true,
+            searching: true,
+            scrollX: true,
+            destroy: true,
+            language: {
+                search: "Cari:",
+                lengthMenu:
+                    "Tampilkan _MENU_ data",
+                info:
+                    "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                paginate: {
+                    next: "›",
+                    previous: "‹"
+                },
+                zeroRecords:
+                    "Data tidak ditemukan",
+                infoEmpty:
+                    "Tidak ada data"
+            }
+        });
+    }
+};
+
+function formatJamOnly(value) {
+    if (!value) return "-";
+    const d = new Date(value);
+    return d.toLocaleTimeString(
+        "id-ID",
+        {
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
 }
 
 

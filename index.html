@@ -709,6 +709,30 @@
                 <div id="wali-history-empty"
                     class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-700">
                 </div>
+                <div class="grid md:grid-cols-4 gap-3 mb-4">
+
+                    <div>
+                        <label class="text-sm text-slate-500">
+                            Tanggal
+                        </label>
+
+                        <input
+                            type="date"
+                            id="history-date"
+                            class="w-full border rounded-xl p-3">
+                    </div>
+
+                    <div class="flex items-end">
+                        <button
+                            onclick="HistoryService.load(true)"
+                            class="w-full bg-indigo-600 text-white p-3 rounded-xl">
+
+                            Tampilkan
+
+                        </button>
+                    </div>
+
+                </div>
 
                 <!-- TABLE -->
                 <div id="wali-history-table-wrapper" class="bg-white rounded-2xl p-4 shadow">
@@ -716,14 +740,12 @@
                         <table id="wali-table" class="w-full text-sm display">
                             <thead>
                                 <tr>
-                                    <th>Waktu</th>
                                     <th>Nama</th>
                                     <th>Kelas</th>
                                     <th>Industri</th>
-                                    <th>Tipe</th>
-                                    <th>Jarak</th>
-                                    <th>Foto</th>
-                                    <th>Maps</th>
+                                    <th>Jam Masuk</th>
+                                    <th>Jam Pulang</th>
+                                    <th>Keterangan</th>
                                 </tr>
                             </thead>
                             <tbody id="wali-riwayat-body"></tbody>
@@ -756,13 +778,11 @@
                             type="date"
                             class="w-full border rounded-xl p-3">
                     </div>
-                    <div>
-                        <button
-                            onclick="loadKepsekDashboard(true)"
-                            class="w-full h-[52px] bg-indigo-600 text-white rounded-xl font-semibold">
-                            Tampilkan
-                        </button>
-                    </div>
+                    <button
+                        onclick="KepsekDashboardService.load(true)"
+                        class="w-full h-[52px] bg-indigo-600 text-white rounded-xl font-semibold">
+                        Tampilkan
+                    </button>
                 </div>
                 <!-- SUMMARY -->
                 <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
@@ -967,7 +987,7 @@
                 </div>
                 <!-- TABLE -->
                 <div class="bg-white rounded-2xl p-4 shadow">
-                    <h3 class="font-bold mb-3">Monitoring Siswa</h3>
+                    <h3 class="font-bold mb-3">Data Siswa</h3>
                     <div class="w-full">
                         <table id="table-master-siswa" class="w-full text-sm display">
                             <thead>
@@ -986,6 +1006,77 @@
                 </div>
             </section>
 
+            <!-- MASTER LOKASI -->
+            <section id="page-master-lokasi" class="hidden-page">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold">
+                            Data Lokasi PKL
+                        </h1>
+                        <p class="text-slate-500">
+                            Kelola lokasi industri PKL
+                        </p>
+                    </div>
+                    <button
+                        onclick="loadMasterLokasi()"
+                        class="bg-indigo-600 text-white px-4 py-2 rounded-xl">
+                        <i class="fa-solid fa-rotate-right mr-2"></i>
+                        Refresh
+                    </button>
+                </div>
+                <!-- FILTER -->
+                <div class="bg-white rounded-2xl shadow p-5 mb-5">
+                    <div class="grid lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="text-sm font-semibold">
+                                Cari Industri
+                            </label>
+                            <input
+                                id="lokasi-search"
+                                type="text"
+                                placeholder="Nama Industri"
+                                class="w-full border rounded-xl px-3 py-2">
+                        </div>
+                        <div>
+                            <label class="text-sm font-semibold">
+                                Status
+                            </label>
+                            <select
+                                id="lokasi-filter-status"
+                                class="w-full border rounded-xl px-3 py-2">
+                                <option value="">
+                                    Semua Status
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-end">
+                            <button
+                                onclick="filterMasterLokasi()"
+                                class="w-full bg-indigo-600 text-white rounded-xl py-2">
+                                Terapkan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- TABLE -->
+                <div class="bg-white rounded-2xl p-4 shadow">
+                    <table
+                        id="table-master-lokasi"
+                        class="display w-full">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Industri</th>
+                                <th>Radius</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
             <!-- SISWA DASHBOARD -->
             <section id="page-user-dashboard" class="hidden-page p-4 space-y-4">
 
@@ -1816,6 +1907,76 @@
                     </div>
                 </div>
             </div>
+            <!-- MODAL EDIT LOKASI -->
+            <div
+                id="modal-edit-lokasi"
+                class="fixed inset-0 bg-black/50 hidden z-50">
+                <div
+                    class="bg-white max-w-3xl mx-auto mt-10 rounded-2xl p-6">
+                    <h3 class="font-bold text-lg mb-4">
+                        Edit Lokasi PKL
+                    </h3>
+                    <input type="hidden" id="edit-lokasi-id">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label>Nama Industri</label>
+                            <input
+                                id="edit-nama-industri"
+                                class="w-full border rounded-xl p-2">
+                        </div>
+                        <div>
+                            <label>Status</label>
+                            <select
+                                id="edit-status"
+                                class="w-full border rounded-xl p-2">
+                                <option value="true">
+                                    Aktif
+                                </option>
+                                <option value="false">
+                                    Nonaktif
+                                </option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Latitude</label>
+                            <input
+                                id="edit-latitude"
+                                class="w-full border rounded-xl p-2">
+                        </div>
+                        <div>
+                            <label>Longitude</label>
+                            <input
+                                id="edit-longitude"
+                                class="w-full border rounded-xl p-2">
+                        </div>
+                        <div>
+                            <label>Radius (meter)</label>
+                            <input
+                                id="edit-radius"
+                                type="number"
+                                class="w-full border rounded-xl p-2">
+                        </div>
+                        <div>
+                            <label>Alamat</label>
+                            <textarea
+                                id="edit-alamat"
+                                class="w-full border rounded-xl p-2"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 mt-6">
+                        <button
+                            onclick="closeEditLokasi()"
+                            class="px-4 py-2 bg-slate-200 rounded-xl">
+                            Batal
+                        </button>
+                        <button
+                            onclick="saveEditLokasi()"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-xl">
+                            Simpan
+                        </button>
+                    </div>
+                </div>
+            </div>
 
         <!-- BOTTOM NAV -->
         <div id="mobile-bottom-menu"
@@ -1876,6 +2037,7 @@
     <script src="js/rekap.js"></script>
     <script src="js/history.js"></script>
     <script src="js/dashboard.js"></script>
+    <script src="js/dashboardkepsek.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/absensi.js"></script>
     <script src="js/main.js"></script>

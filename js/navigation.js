@@ -96,7 +96,7 @@ function runPageLoader(pageId) {
             break;
 
         case "page-wali-history":
-            setHistoryMode?.(AppState.historyMode || "wali");
+            HistoryService.init(true);
             break;
         
         case "page-wali-approval":
@@ -130,11 +130,15 @@ function runPageLoader(pageId) {
             break;
         
         case "page-kepsek-dashboard":
-            loadKepsekDashboard?.(true);
+            KepsekDashboardService.init(true);
             break;
 
         case "page-master-siswa":
             loadMasterSiswa();
+            break;
+        
+        case "page-master-lokasi":
+            loadMasterLokasi();
             break;
 
         case "page-user-profile":
@@ -184,7 +188,7 @@ function buildMenu(user) {
             <a href="#" data-page="page-wali-history" onclick="navigateTo('page-wali-history')"
                 class="sidebar-link">
                 <i class="fa-solid fa-clock-rotate-left w-5"></i>
-                <span>Riwayat</span>
+                <span>Monitoring Harian</span>
             </a>
         `;
     }
@@ -207,6 +211,11 @@ function buildMenu(user) {
                 class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition">
                 <i class="fa-solid fa-user w-5"></i>
                 <span>Data Siswa</span>
+            </a>
+            <a href="#" onclick="navigateTo('page-master-lokasi')"
+                class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition">
+                <i class="fa-solid fa-building w-5"></i>
+                <span>Data Lokasi PKL</span>
             </a>
         `;
     }
@@ -317,7 +326,7 @@ function buildMobileBottomMenu(user) {
                 class="bottom-nav flex flex-col items-center text-xs text-gray-500 transition">
 
                 <i class="fa-solid fa-clock-rotate-left text-lg"></i>
-                <span>Riwayat</span>
+                <span>Monitoring Harian</span>
             </button>
         `;
     }

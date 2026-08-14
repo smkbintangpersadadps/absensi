@@ -62,6 +62,38 @@ async function getRekapBulanan({
 
         else {
 
+            // ============================
+            // Ambil semua kategori dulu
+            // ============================
+
+            const {
+                data: allKategoriData,
+                error: kategoriError
+            } = await window.supabaseClient
+                .from("users")
+                .select("kategori")
+                .eq("role", "siswa");
+
+            if (kategoriError) {
+                throw kategoriError;
+            }
+
+            const kategoriList = [
+                ...new Set(
+                    (allKategoriData || [])
+                        .map(s => s.kategori)
+                        .filter(Boolean)
+                )
+            ].sort();
+
+            // simpan global
+            AppState.kategoriRekapBulanan =
+                kategoriList;
+
+            // ============================
+            // Ambil data siswa sesuai filter
+            // ============================
+
             let query =
                 window.supabaseClient
                     .from("users")
@@ -381,13 +413,8 @@ async function getRekapBulanan({
         // KATEGORI FILTER KEPSEK
         // =====================================
 
-        const kategoriList = [
-            ...new Set(
-                siswa.map(
-                    s => s.kategori
-                )
-            )
-        ].sort();
+        const kategoriList =
+            AppState.kategoriRekapBulanan || [];
 
         return {
 
