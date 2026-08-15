@@ -1670,72 +1670,274 @@ function pilihModeSiswaOrtu() {
     });
 }
 
+function getTanggalLokalWITA(date = new Date()) {
+
+    return new Intl.DateTimeFormat(
+        "en-CA",
+        {
+            timeZone: "Asia/Makassar",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }
+    ).format(date);
+
+}
+
+function getBulanTahunWITA(date = new Date()) {
+
+    const parts =
+        new Intl.DateTimeFormat(
+            "en-US",
+            {
+                timeZone: "Asia/Makassar",
+                year: "numeric",
+                month: "numeric"
+            }
+        ).formatToParts(date);
+
+    let tahun = 0;
+    let bulan = 0;
+
+    parts.forEach(part => {
+
+        if (part.type === "year") {
+            tahun = Number(part.value);
+        }
+
+        if (part.type === "month") {
+            bulan = Number(part.value) - 1;
+        }
+
+    });
+
+    return {
+        tahun,
+        bulan
+    };
+
+}
 
 async function loadUserDashboardStats() {
 
     try {
 
-        const user = AppState.currentUser;
+        const user =
+            AppState.currentUser;
 
         if (!user) return;
 
-        // ======================
-        // LOAD LOKASI PKL
-        // ======================
+        // =====================================================
+        // HELPER
+        // =====================================================
 
-        if (!AppState.currentUserLocation && user.lokasiId) {
+        const getTanggalWITA = (value) => {
+
+            if (!value) return null;
+
+            const date =
+                new Date(value);
+
+            if (isNaN(date.getTime())) {
+                return null;
+            }
+
+            return new Intl.DateTimeFormat(
+                "en-CA",
+                {
+                    timeZone: "Asia/Makassar",
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit"
+                }
+            ).format(date);
+        };
+
+
+        const getJamWITA = (value) => {
+
+            if (!value) return "-";
+
+            const date =
+                new Date(value);
+
+            if (isNaN(date.getTime())) {
+                return "-";
+            }
+
+            return new Intl.DateTimeFormat(
+                "id-ID",
+                {
+                    timeZone: "Asia/Makassar",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: false
+                }
+            ).format(date);
+
+        };
+
+
+        const getTanggalIndonesia = (value) => {
+
+            if (!value) return "-";
+
+            const date =
+                new Date(value);
+
+            if (isNaN(date.getTime())) {
+                return "-";
+            }
+
+            return new Intl.DateTimeFormat(
+                "id-ID",
+                {
+                    timeZone: "Asia/Makassar",
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric"
+                }
+            ).format(date);
+
+        };
+
+
+        // =====================================================
+        // LOAD LOKASI PKL
+        // =====================================================
+
+        if (
+            !AppState.currentUserLocation &&
+            user.lokasiId
+        ) {
+
             await loadUserLocation();
+
         }
 
-        // =========================
+
+        // =====================================================
         // PEMBIMBING
-        // =========================
+        // =====================================================
 
         await loadPembimbingSiswa();
 
-        // ======================
+
+        // =====================================================
         // AMBIL DATA ABSENSI
-        // ======================
+        // =====================================================
 
         const {
             data: riwayat,
             error
-        } = await window.supabaseClient
-            .from("absensi")
-            .select("*")
-            .eq("username", user.username)
-            .order("waktu", {
-                ascending: false
-            });
+        } =
+            await window.supabaseClient
+                .from("absensi")
+                .select("*")
+                .eq(
+                    "username",
+                    user.username
+                )
+                .order(
+                    "waktu",
+                    {
+                        ascending: false
+                    }
+                );
+
 
         if (error) {
             throw error;
         }
 
-        // ======================
-        // HARI INI
-        // ======================
+
+        const dataAbsensi =
+            riwayat || [];
+
+
+        // =====================================================
+        // DEBUG DATA
+        // =====================================================
+
+        console.log(
+            "Dashboard Absensi:",
+            dataAbsensi
+        );
+
+
+        // =====================================================
+        // TANGGAL HARI INI - WITA
+        // =====================================================
 
         const today =
-            new Date()
-                .toISOString()
-                .split("T")[0];
+            getTanggalWITA(
+                new Date()
+            );
+
+
+        console.log(
+            "Tanggal hari ini WITA:",
+            today
+        );
+
+
+        // =====================================================
+        // ABSENSI HARI INI
+        // =====================================================
 
         const absenHariIni =
-            (riwayat || []).filter(r =>
-                r.waktu &&
-                r.waktu.startsWith(today)
+            dataAbsensi.filter(
+                r => {
+
+                    const tanggal =
+                        getTanggalWITA(
+                            r.waktu
+                        );
+
+                    return (
+                        tanggal === today
+                    );
+
+                }
             );
+
+
+        // =====================================================
+        // MASUK HARI INI
+        // =====================================================
 
         const masuk =
             absenHariIni.find(
-                r => r.tipe === "Masuk"
+                r =>
+                    String(
+                        r.tipe || ""
+                    )
+                    .trim()
+                    .toLowerCase() ===
+                    "masuk"
             );
+
+
+        // =====================================================
+        // PULANG HARI INI
+        // =====================================================
 
         const pulang =
             absenHariIni.find(
-                r => r.tipe === "Pulang"
+                r =>
+                    String(
+                        r.tipe || ""
+                    )
+                    .trim()
+                    .toLowerCase() ===
+                    "pulang"
             );
+
+
+        // =====================================================
+        // STATUS HARI INI
+        // =====================================================
 
         const hariIni = {
 
@@ -1746,88 +1948,261 @@ async function loadUserDashboardStats() {
 
             masuk:
                 masuk
-                    ? new Date(masuk.waktu)
-                        .toLocaleTimeString(
-                            "id-ID",
-                            {
-                                hour: "2-digit",
-                                minute: "2-digit"
-                            }
-                        )
+                    ? getJamWITA(
+                        masuk.waktu
+                    )
                     : "-",
 
             pulang:
                 pulang
-                    ? new Date(pulang.waktu)
-                        .toLocaleTimeString(
-                            "id-ID",
-                            {
-                                hour: "2-digit",
-                                minute: "2-digit"
-                            }
-                        )
+                    ? getJamWITA(
+                        pulang.waktu
+                    )
                     : "-"
 
         };
 
-        // ======================
-        // BULAN INI
-        // ======================
 
-        const now = new Date();
+        console.log(
+            "Absensi hari ini:",
+            absenHariIni
+        );
 
-        const bulan =
-            now.getMonth();
+
+        // =====================================================
+        // BULAN DAN TAHUN SEKARANG - WITA
+        // =====================================================
+
+        const sekarang =
+            new Date();
+
+
+        const parts =
+            new Intl.DateTimeFormat(
+                "en-US",
+                {
+                    timeZone:
+                        "Asia/Makassar",
+                    year:
+                        "numeric",
+                    month:
+                        "numeric"
+                }
+            )
+            .formatToParts(
+                sekarang
+            );
+
 
         const tahun =
-            now.getFullYear();
+            Number(
+                parts.find(
+                    p =>
+                        p.type ===
+                        "year"
+                )?.value
+            );
+
+
+        const bulan =
+            Number(
+                parts.find(
+                    p =>
+                        p.type ===
+                        "month"
+                )?.value
+            );
+
+
+        console.log(
+            "Periode dashboard:",
+            {
+                bulan,
+                tahun
+            }
+        );
+
+
+        // =====================================================
+        // FILTER ABSENSI BULAN INI
+        // =====================================================
 
         const bulanIni =
-            (riwayat || []).filter(r => {
+            dataAbsensi.filter(
+                r => {
 
-                if (!r.waktu) return false;
+                    if (!r.waktu) {
+                        return false;
+                    }
 
-                const d =
-                    new Date(r.waktu);
+                    const date =
+                        new Date(
+                            r.waktu
+                        );
 
-                return (
-                    d.getMonth() === bulan &&
-                    d.getFullYear() === tahun
-                );
+                    if (
+                        isNaN(
+                            date.getTime()
+                        )
+                    ) {
+                        return false;
+                    }
 
-            });
+
+                    const parts =
+                        new Intl.DateTimeFormat(
+                            "en-US",
+                            {
+                                timeZone:
+                                    "Asia/Makassar",
+                                year:
+                                    "numeric",
+                                month:
+                                    "numeric"
+                            }
+                        )
+                        .formatToParts(
+                            date
+                        );
+
+
+                    const rowTahun =
+                        Number(
+                            parts.find(
+                                p =>
+                                    p.type ===
+                                    "year"
+                            )?.value
+                        );
+
+
+                    const rowBulan =
+                        Number(
+                            parts.find(
+                                p =>
+                                    p.type ===
+                                    "month"
+                            )?.value
+                        );
+
+
+                    return (
+                        rowTahun === tahun &&
+                        rowBulan === bulan
+                    );
+
+                }
+            );
+
+
+        console.log(
+            "Absensi bulan ini:",
+            bulanIni
+        );
+
+
+        // =====================================================
+        // TOTAL RECORD MASUK
+        // =====================================================
 
         const totalMasuk =
             bulanIni.filter(
-                r => r.tipe === "Masuk"
+                r =>
+                    String(
+                        r.tipe || ""
+                    )
+                    .trim()
+                    .toLowerCase() ===
+                    "masuk"
             ).length;
+
+
+        // =====================================================
+        // TOTAL RECORD PULANG
+        // =====================================================
 
         const totalPulang =
             bulanIni.filter(
-                r => r.tipe === "Pulang"
+                r =>
+                    String(
+                        r.tipe || ""
+                    )
+                    .trim()
+                    .toLowerCase() ===
+                    "pulang"
             ).length;
 
-        const hariMasuk =
-            new Set(
-                bulanIni
-                    .filter(
-                        r => r.tipe === "Masuk"
+
+        // =====================================================
+        // HARI HADIR
+        //
+        // PENTING:
+        // Menggunakan SET agar 2 record Masuk
+        // pada tanggal yang sama hanya dihitung
+        // sebagai 1 hari hadir.
+        // =====================================================
+
+        const tanggalHadir =
+            new Set();
+
+
+        bulanIni
+            .filter(
+                r =>
+                    String(
+                        r.tipe || ""
                     )
-                    .map(
-                        r => r.waktu.substring(0, 10)
-                    )
+                    .trim()
+                    .toLowerCase() ===
+                    "masuk"
+            )
+            .forEach(
+                r => {
+
+                    const tanggal =
+                        getTanggalWITA(
+                            r.waktu
+                        );
+
+                    if (tanggal) {
+
+                        tanggalHadir.add(
+                            tanggal
+                        );
+
+                    }
+
+                }
             );
 
+
         const totalHadir =
-            hariMasuk.size;
+            tanggalHadir.size;
+
+
+        console.log(
+            "Tanggal hadir unik:",
+            Array.from(
+                tanggalHadir
+            )
+        );
+
+
+        // =====================================================
+        // PROGRESS KEHADIRAN
+        // =====================================================
 
         const progress =
             Math.min(
                 Math.round(
-                    (totalHadir / 22) * 100
+                    (
+                        totalHadir /
+                        22
+                    ) * 100
                 ),
                 100
             );
+
 
         const ringkasan = {
 
@@ -1841,18 +2216,22 @@ async function loadUserDashboardStats() {
 
         };
 
-        // ======================
+
+        // =====================================================
         // LAST ABSEN
-        // ======================
+        // =====================================================
 
-        let last = null;
+        let last =
+            null;
 
-        if (riwayat && riwayat.length > 0) {
 
-            const row = riwayat[0];
+        if (
+            dataAbsensi.length > 0
+        ) {
 
-            const dt =
-                new Date(row.waktu);
+            const row =
+                dataAbsensi[0];
+
 
             last = {
 
@@ -1860,129 +2239,173 @@ async function loadUserDashboardStats() {
                     row.tipe,
 
                 tanggal:
-                    dt.toLocaleDateString(
-                        "id-ID"
+                    getTanggalIndonesia(
+                        row.waktu
                     ),
 
                 jam:
-                    dt.toLocaleTimeString(
-                        "id-ID"
+                    getJamWITA(
+                        row.waktu
                     ),
 
                 jarak:
-                    row.jarak || 0
+                    Number(
+                        row.jarak || 0
+                    )
 
             };
 
         }
 
-        // ======================
-        // HELPER
-        // ======================
 
-        const setText = (id, val) => {
+        // =====================================================
+        // HELPER UI
+        // =====================================================
 
-            const el =
-                document.getElementById(id);
+        const setText =
+            (
+                id,
+                val
+            ) => {
 
-            if (el) {
-                el.innerText = val;
-            }
+                const el =
+                    document.getElementById(
+                        id
+                    );
 
-        };
+                if (el) {
 
-        const setHTML = (id, val) => {
+                    el.innerText =
+                        val;
 
-            const el =
-                document.getElementById(id);
+                }
 
-            if (el) {
-                el.innerHTML = val;
-            }
+            };
 
-        };
 
-        const setWidth = (id, val) => {
+        const setHTML =
+            (
+                id,
+                val
+            ) => {
 
-            const el =
-                document.getElementById(id);
+                const el =
+                    document.getElementById(
+                        id
+                    );
 
-            if (el) {
-                el.style.width = val;
-            }
+                if (el) {
 
-        };
+                    el.innerHTML =
+                        val;
 
-        // ======================
+                }
+
+            };
+
+
+        const setWidth =
+            (
+                id,
+                val
+            ) => {
+
+                const el =
+                    document.getElementById(
+                        id
+                    );
+
+                if (el) {
+
+                    el.style.width =
+                        val;
+
+                }
+
+            };
+
+
+        // =====================================================
         // STATUS HARI INI
-        // ======================
+        // =====================================================
 
         setText(
             "ui-status-hari",
             hariIni.status
         );
 
+
         setText(
             "ui-masuk",
             hariIni.masuk
         );
+
 
         setText(
             "ui-pulang",
             hariIni.pulang
         );
 
-        // ======================
+
+        // =====================================================
         // DATA SISWA
-        // ======================
+        // =====================================================
 
         setText(
             "ui-user-name",
             user.nama
         );
 
+
         setText(
             "ui-user-kategori",
             user.kategori || "-"
         );
 
-        // ======================
+
+        // =====================================================
         // RINGKASAN
-        // ======================
+        // =====================================================
 
         setText(
             "ui-total-hadir",
             ringkasan.totalHadir
         );
 
+
         setText(
             "ui-total-masuk",
             ringkasan.totalMasuk
         );
+
 
         setText(
             "ui-total-pulang",
             ringkasan.totalPulang
         );
 
+
         setWidth(
             "ui-progress-kehadiran",
             `${ringkasan.progress}%`
         );
+
 
         setText(
             "ui-persentase",
             `${ringkasan.progress}%`
         );
 
-        // ======================
+
+        // =====================================================
         // LOKASI PKL
-        // ======================
+        // =====================================================
 
         const lokasiEl =
             document.getElementById(
                 "ui-user-lokasi"
             );
+
 
         if (
             lokasiEl &&
@@ -1992,31 +2415,32 @@ async function loadUserDashboardStats() {
             const lokasi =
                 AppState.currentUserLocation;
 
+
             lokasiEl.innerHTML = `
                 <i class="fa-solid fa-location-dot"></i>
                 ${lokasi.namaIndustri}
             `;
 
+
             lokasiEl.href =
                 `https://www.google.com/maps?q=${lokasi.lat},${lokasi.lng}`;
 
+
             lokasiEl.target =
                 "_blank";
+
         }
 
-        // ======================
-        // PEMBIMBING
-        // ======================
 
-        // setText(
-        //     "ui-user-pembina",
-        //     user.pembimbingNama || "-"
-        // );
+        // =====================================================
+        // PEMBIMBING / WHATSAPP
+        // =====================================================
 
         const waEl =
             document.getElementById(
                 "ui-user-wa-pembina"
             );
+
 
         if (
             waEl &&
@@ -2029,20 +2453,30 @@ async function loadUserDashboardStats() {
                     ""
                 );
 
-            if (wa.startsWith("08")) {
+
+            if (
+                wa.startsWith("08")
+            ) {
+
                 wa =
                     "62" +
                     wa.substring(1);
+
             }
+
 
             waEl.href =
                 `https://wa.me/${wa}`;
+
 
             waEl.classList.remove(
                 "hidden"
             );
 
-        } else if (waEl) {
+        }
+        else if (
+            waEl
+        ) {
 
             waEl.classList.add(
                 "hidden"
@@ -2050,25 +2484,42 @@ async function loadUserDashboardStats() {
 
         }
 
-        // ======================
+
+        // =====================================================
         // LAST ABSEN
-        // ======================
+        // =====================================================
 
         if (last) {
 
             setHTML(
                 "ui-last-absen",
+
                 `
-                <p><b>${last.tipe}</b></p>
-                <p>${last.tanggal} ${last.jam}</p>
-                <p>${Math.round(last.jarak)} meter</p>
+                <p>
+                    <b>
+                        ${last.tipe}
+                    </b>
+                </p>
+
+                <p>
+                    ${last.tanggal}
+                    ${last.jam}
+                </p>
+
+                <p>
+                    ${Math.round(
+                        last.jarak
+                    )} meter
+                </p>
                 `
             );
 
-        } else {
+        }
+        else {
 
             setHTML(
                 "ui-last-absen",
+
                 `
                 <p>
                     Belum ada riwayat absensi
@@ -2077,6 +2528,33 @@ async function loadUserDashboardStats() {
             );
 
         }
+
+
+        // =====================================================
+        // DEBUG RINGKASAN
+        // =====================================================
+
+        console.log(
+            "RINGKASAN DASHBOARD:",
+            {
+                totalHadir:
+                    ringkasan.totalHadir,
+
+                totalMasuk:
+                    ringkasan.totalMasuk,
+
+                totalPulang:
+                    ringkasan.totalPulang,
+
+                tanggalHadir:
+                    Array.from(
+                        tanggalHadir
+                    ),
+
+                progress:
+                    ringkasan.progress
+            }
+        );
 
     }
     catch (err) {
