@@ -1975,39 +1975,178 @@ async function compressImage(file, options = {}) {
 // ===============================
 // PREVIEW BUKTI STATUS KEHADIRAN
 // ===============================
+// function previewApprovalBukti(url) {
+//     Swal.fire({
+//         title: "Bukti Pengajuan",
+//         imageUrl: url,
+//         imageAlt: "Bukti Pengajuan",
+//         confirmButtonText: "Tutup",
+//         confirmButtonColor: "#4f46e5",
+//         imageWidth: 500,
+//         didOpen: () => {
+//             const img =
+//                 Swal.getImage();
+//             if (img) {
+//                 img.onerror = () => {
+//                     Swal.update({
+//                         icon: "info",
+//                         imageUrl: "",
+//                         html: `
+//                             <div class="text-center py-4">
+//                                 <i class="fa-solid fa-image text-5xl text-slate-300 mb-3"></i>
+//                                 <div class="font-semibold text-slate-700">
+//                                     Bukti Tidak Tersedia
+//                                 </div>
+//                                 <div class="text-sm text-slate-500 mt-2">
+//                                     File bukti telah dihapus otomatis oleh sistem
+//                                     atau sudah tidak tersedia.
+//                                 </div>
+//                             </div>
+//                         `
+//                     });
+//                 };
+//             }
+//         }
+//     });
+// }
 function previewApprovalBukti(url) {
+
+    if (!url) {
+
+        Swal.fire({
+
+            icon: "warning",
+
+            title: "Bukti Tidak Tersedia",
+
+            text:
+                "Tidak terdapat file bukti pengajuan.",
+
+            confirmButtonText:
+                "Tutup",
+
+            confirmButtonColor:
+                "#4f46e5"
+
+        });
+
+        return;
+    }
+
+
+    // =====================================================
+    // GOOGLE DRIVE / SUPABASE
+    // =====================================================
+
+    const imageUrl =
+        getBuktiImageUrl(url);
+
+
+    if (!imageUrl) {
+
+        Swal.fire({
+
+            icon: "warning",
+
+            title: "Bukti Tidak Tersedia",
+
+            text:
+                "URL bukti tidak valid.",
+
+            confirmButtonColor:
+                "#4f46e5"
+
+        });
+
+        return;
+    }
+
+
     Swal.fire({
-        title: "Bukti Pengajuan",
-        imageUrl: url,
-        imageAlt: "Bukti Pengajuan",
-        confirmButtonText: "Tutup",
-        confirmButtonColor: "#4f46e5",
-        imageWidth: 500,
+
+        title:
+            "Bukti Pengajuan",
+
+        imageUrl:
+            imageUrl,
+
+        imageAlt:
+            "Bukti Pengajuan",
+
+        confirmButtonText:
+            "Tutup",
+
+        confirmButtonColor:
+            "#4f46e5",
+
+        imageWidth:
+            500,
+
         didOpen: () => {
+
             const img =
                 Swal.getImage();
-            if (img) {
-                img.onerror = () => {
-                    Swal.update({
-                        icon: "info",
-                        imageUrl: "",
-                        html: `
-                            <div class="text-center py-4">
-                                <i class="fa-solid fa-image text-5xl text-slate-300 mb-3"></i>
-                                <div class="font-semibold text-slate-700">
-                                    Bukti Tidak Tersedia
-                                </div>
-                                <div class="text-sm text-slate-500 mt-2">
-                                    File bukti telah dihapus otomatis oleh sistem
-                                    atau sudah tidak tersedia.
-                                </div>
-                            </div>
-                        `
-                    });
-                };
+
+
+            if (!img) {
+                return;
             }
+
+
+            img.onerror = () => {
+
+                Swal.update({
+
+                    icon:
+                        "info",
+
+                    imageUrl:
+                        "",
+
+                    html: `
+
+                        <div class="text-center py-4">
+
+                            <i
+                                class="
+                                    fa-solid
+                                    fa-image
+                                    text-5xl
+                                    text-slate-300
+                                    mb-3
+                                ">
+                            </i>
+
+                            <div
+                                class="
+                                    font-semibold
+                                    text-slate-700
+                                ">
+                                Bukti Tidak Tersedia
+                            </div>
+
+                            <div
+                                class="
+                                    text-sm
+                                    text-slate-500
+                                    mt-2
+                                ">
+                                File bukti telah dihapus
+                                atau sudah tidak tersedia.
+                            </div>
+
+                        </div>
+
+                    `
+
+                });
+
+            };
+
         }
+
     });
+
 }
 
 // ===============================
@@ -2562,4 +2701,170 @@ function resetStatusHarianForm() {
         document.getElementById("status-photo-preview");
     preview.src = "";
     preview.classList.add("hidden-page");
+}
+
+async function previewStatusPhoto(event) {
+    const file =
+        event?.target?.files?.[0];
+    if (!file) {
+        return;
+    }
+    // =====================================================
+    // VALIDASI FILE
+    // =====================================================
+    if (!file.type.startsWith("image/")) {
+        showToast(
+            "File harus berupa gambar.",
+            true
+        );
+        event.target.value = "";
+        return;
+    }
+    // =====================================================
+    // BATAS FILE ASLI
+    // =====================================================
+    const maxOriginalSize =
+        10 * 1024 * 1024; // 10 MB
+    if (
+        file.size >
+        maxOriginalSize
+    ) {
+        showToast(
+            "Ukuran foto asli maksimal 10 MB.",
+            true
+        );
+        event.target.value = "";
+        return;
+    }
+    showLoader(
+        "Mengoptimalkan foto..."
+    );
+    try {
+        // =================================================
+        // KOMPRESI AWAL
+        // =================================================
+        let compressed =
+            await compressImage(
+                file,
+                {
+                    maxWidth: 1280,
+                    quality: 0.70
+                }
+            );
+        // =================================================
+        // TARGET UKURAN
+        //
+        // Target maksimal 400 KB
+        // =================================================
+        const targetSize =
+            400 * 1024;
+        // =================================================
+        // KOMPRESI ULANG JIKA MASIH BESAR
+        // =================================================
+        if (
+            compressed.length >
+            targetSize
+        ) {
+            compressed =
+                await compressImage(
+                    file,
+                    {
+                        maxWidth: 1152,
+                        quality: 0.60
+                    }
+                );
+        }
+        // =================================================
+        // JIKA MASIH BESAR
+        // =================================================
+        if (
+            compressed.length >
+            targetSize
+        ) {
+            compressed =
+                await compressImage(
+                    file,
+                    {
+                        maxWidth: 1024,
+                        quality: 0.50
+                    }
+                );
+        }
+        // =================================================
+        // VALIDASI HASIL
+        // =================================================
+        if (!compressed) {
+            throw new Error(
+                "Hasil kompresi kosong."
+            );
+        }
+        // =================================================
+        // CEK UKURAN AKHIR
+        // =================================================
+        const finalSize =
+            compressed.length;
+        console.log(
+            "Foto status:",
+            {
+                originalSize:
+                    `${(
+                        file.size /
+                        1024
+                    ).toFixed(1)} KB`,
+                compressedSize:
+                    `${(
+                        finalSize /
+                        1024
+                    ).toFixed(1)} KB`
+            }
+        );
+        // =================================================
+        // PREVIEW
+        // =================================================
+        const preview =
+            document.getElementById(
+                "status-photo-preview"
+            );
+        if (preview) {
+            preview.src =
+                compressed;
+            preview.classList.remove(
+                "hidden-page"
+            );
+        }
+        // =================================================
+        // SIMPAN HASIL KOMPRESI
+        //
+        // BUKAN FILE ASLI
+        // =================================================
+        statusPhoto =
+            compressed;
+        // =================================================
+        // INFO OPSIONAL
+        // =================================================
+        console.log(
+            `Foto berhasil dikompres: ${
+                (
+                    finalSize /
+                    1024
+                ).toFixed(1)
+            } KB`
+        );
+    }
+    catch (err) {
+
+        console.error(
+            "Compress status photo error:",
+            err
+        );
+        statusPhoto =
+            null;
+        showToast(
+            "Gagal mengoptimalkan foto.",
+            true
+        );
+    }
+    finally {
+        hideLoader();
+    }
 }

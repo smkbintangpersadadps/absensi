@@ -860,78 +860,116 @@ async function loadStatusHistory(useLoader = false) {
     }
 }
 
+function getBuktiImageUrl(url) {
+
+    if (!url) {
+        return "";
+    }
+
+    const originalUrl =
+        String(url).trim();
+
+    if (!originalUrl) {
+        return "";
+    }
+
+    // =====================================================
+    // SUPABASE STORAGE
+    // =====================================================
+
+    if (
+        originalUrl.includes("supabase.co/storage/")
+    ) {
+
+        console.log(
+            "Bukti menggunakan Supabase Storage"
+        );
+
+        return originalUrl;
+    }
+
+
+    // =====================================================
+    // GOOGLE DRIVE
+    // =====================================================
+
+    if (
+        originalUrl.includes("drive.google.com")
+    ) {
+
+        console.log(
+            "Bukti menggunakan Google Drive"
+        );
+
+        return convertDriveUrl(
+            originalUrl
+        );
+    }
+
+
+    // =====================================================
+    // URL LAIN
+    // =====================================================
+
+    return originalUrl;
+}
+
 //Preview Riwayat Status
 function previewStatusBukti(url) {
     if (!url) {
         Swal.fire({
             icon: "warning",
             title: "Bukti Tidak Tersedia",
-            text: "File bukti tidak ditemukan."
+            text: "File bukti pengajuan tidak ditemukan.",
+            confirmButtonText: "Tutup",
+            confirmButtonColor: "#4f46e5"
         });
         return;
     }
+    const imageUrl =
+        getPreviewImageUrl(url);
     Swal.fire({
         title: "Bukti Pengajuan",
-        width: 650,
-        showCloseButton: true,
-        showConfirmButton: false,
-        html: `
-            <div class="text-center">
-                <img
-                    src="${url}"
-                    onerror="
-                        this.style.display='none';
-                        document.getElementById('status-bukti-expired').style.display='flex';
-                    "
-                    style="
-                        max-width:100%;
-                        max-height:450px;
-                        border-radius:12px;
-                        border:1px solid #e2e8f0;
-                        box-shadow:0 8px 24px rgba(0,0,0,.15);
-                    "
-                >
-                <div
-                    id="status-bukti-expired"
-                    style="
-                        display:none;
-                        flex-direction:column;
-                        align-items:center;
-                        justify-content:center;
-                        padding:30px;
-                        border:2px dashed #cbd5e1;
-                        border-radius:12px;
-                        background:#f8fafc;
-                    ">
-                    <i
-                        class="fa-solid fa-image"
-                        style="
-                            font-size:48px;
-                            color:#94a3b8;
-                            margin-bottom:12px;
-                        ">
-                    </i>
-                    <div
-                        style="
-                            font-size:15px;
-                            font-weight:600;
-                            color:#334155;
-                            margin-bottom:6px;
-                        ">
-                        Bukti Tidak Tersedia
-                    </div>
-                    <div
-                        style="
-                            font-size:12px;
-                            color:#64748b;
-                            line-height:1.6;
-                        ">
-                        File bukti telah dihapus otomatis
-                        oleh sistem penyimpanan.
-                    </div>
-                </div>
-            </div>
-        `
+        imageUrl: imageUrl,
+        imageAlt: "Bukti Pengajuan",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#4f46e5",
+        imageWidth: 500,
+        didOpen: () => {
+            const img =
+                Swal.getImage();
+            if (!img) {
+                return;
+            }
+            img.onerror = () => {
+                Swal.update({
+                    icon: "info",
+                    imageUrl: "",
+                    html: `
+                        <div class="text-center py-4">
+                            <i
+                                class="fa-solid fa-image
+                                       text-5xl
+                                       text-slate-300
+                                       mb-3">
+                            </i>
+                            <div
+                                class="font-semibold
+                                       text-slate-700">
+                                Bukti Tidak Tersedia
+                            </div>
+                            <div
+                                class="text-sm
+                                       text-slate-500
+                                       mt-2">
+                                File bukti telah dihapus
+                                atau sudah tidak tersedia.
+                            </div>
+                        </div>
+                    `
+                });
+            };
+        }
     });
 }
 
