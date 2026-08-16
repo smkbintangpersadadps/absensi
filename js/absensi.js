@@ -266,26 +266,71 @@ buttons.forEach(btn => {
     btn.addEventListener("click", () => {
 
         buttons.forEach(b => {
+
             b.classList.remove(
                 "active-masuk",
                 "active-pulang"
             );
+
         });
 
-        const value = btn.dataset.value;
 
-        if (value === "Masuk") {
-            btn.classList.add("active-masuk");
-        } else {
-            btn.classList.add("active-pulang");
+        const value =
+            btn.dataset.value;
+
+
+        if (
+            value === "Masuk"
+        ) {
+
+            btn.classList.add(
+                "active-masuk"
+            );
+
+        }
+        else {
+
+            btn.classList.add(
+                "active-pulang"
+            );
+
         }
 
-        document.getElementById("absen-tipe").value =
+
+        const input =
+            document.getElementById(
+                "absen-tipe"
+            );
+
+
+        input.value =
             value;
+
+
+        console.log(
+            "Tipe absensi dipilih:",
+            value
+        );
+
     });
 
 });
+//CEK WITA
+function getTodayWITA() {
 
+    return new Intl.DateTimeFormat(
+        "en-CA",
+        {
+            timeZone: "Asia/Makassar",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }
+    ).format(new Date());
+
+}
+
+//SUBMIT ABSEN
 async function submitAbsensi() {
 
     const user = AppState.currentUser;
@@ -311,113 +356,246 @@ async function submitAbsensi() {
     }
 
     const tipe =
-        document.getElementById("absen-tipe").value;
+        document.getElementById("absen-tipe")?.value;
 
     if (!tipe) {
         showToast("Pilih tipe absensi", true);
         return;
     }
 
-    // ===============================
-    // VALIDASI ABSEN PULANG
-    // WAJIB SUDAH ABSEN MASUK
-    // ===============================
+    // =====================================================
+    // CEGAH DOUBLE SUBMIT
+    // =====================================================
 
-    if (tipe === "Pulang") {
-
-        const today =
-            new Date()
-                .toISOString()
-                .split("T")[0];
-
-        const {
-            data: absenMasuk,
-            error: masukError
-        } = await window.supabaseClient
-            .from("absensi")
-            .select("id,waktu")
-            .eq("username", user.username)
-            .eq("tipe", "Masuk")
-            .gte("waktu", `${today}T00:00:00`)
-            .lte("waktu", `${today}T23:59:59`)
-            .limit(1);
-
-        if (masukError) {
-            throw masukError;
-        }
-
-        if (!absenMasuk || absenMasuk.length === 0) {
-
-            Swal.fire({
-                icon: "warning",
-                title: "Absen Masuk Belum Ada",
-                text: "Anda harus melakukan Absen Masuk terlebih dahulu sebelum Absen Pulang."
-            });
-
-            return;
-        }
-    }
-
-    const jarak = calculateDistance(
-        AppState.currentLocation.lat,
-        AppState.currentLocation.lng,
-        AppState.currentUserLocation.lat,
-        AppState.currentUserLocation.lng
-    );
-
-    if (jarak > AppState.currentUserLocation.radius) {
-
-        showToast(
-            `Anda berada di luar radius absensi (${Math.round(jarak)} m)`,
-            true
-        );
-
+    if (window.__isSubmittingAbsensi) {
         return;
     }
-
-    if (window.__isSubmittingAbsensi) return;
 
     window.__isSubmittingAbsensi = true;
 
     try {
 
-        // ===============================
-        // CEK DUPLIKAT HARI INI
-        // ===============================
+        // =====================================================
+        // TANGGAL HARI INI - WITA
+        // =====================================================
+
+        const now = new Date();
 
         const today =
-            new Date().toISOString().split("T")[0];
+            now.toLocaleDateString(
+                "en-CA",
+                {
+                    timeZone: "Asia/Makassar"
+                }
+            );
+
+        const startWITA =
+            new Date(
+                `${today}T00:00:00+08:00`
+            );
+
+        const endWITA =
+            new Date(
+                `${today}T23:59:59.999+08:00`
+            );
+
+        const startUTC =
+            startWITA.toISOString();
+
+        const endUTC =
+            endWITA.toISOString();
+
+        console.log(
+            "Tanggal absensi:",
+            {
+                today,
+                startUTC,
+                endUTC
+            }
+        );
+
+        // =====================================================
+        // VALIDASI ABSEN MASUK / PULANG
+        // =====================================================
+
+        showLoader("Memeriksa absensi hari ini...");
 
         const {
-            data: existing,
+            data: absensiHariIni,
             error: cekError
         } = await window.supabaseClient
             .from("absensi")
-            .select("id")
-            .eq("username", user.username)
-            .eq("tipe", tipe)
-            .gte("waktu", `${today}T00:00:00`)
-            .lte("waktu", `${today}T23:59:59`);
+            .select("id,waktu,tipe")
+            .eq(
+                "username",
+                user.username
+            )
+            .gte(
+                "waktu",
+                startUTC
+            )
+            .lte(
+                "waktu",
+                endUTC
+            )
+            .order(
+                "waktu",
+                {
+                    ascending: true
+                }
+            );
 
         if (cekError) {
             throw cekError;
         }
 
-        if (existing.length > 0) {
+        console.log(
+            "Absensi hari ini:",
+            absensiHariIni
+        );
+
+        // =====================================================
+        // CEK APAKAH SUDAH ABSEN MASUK
+        // =====================================================
+
+        const sudahMasuk =
+            (absensiHariIni || []).some(
+                row =>
+                    String(row.tipe)
+                        .trim()
+                        .toLowerCase() ===
+                    "masuk"
+            );
+
+        // =====================================================
+        // CEK APAKAH SUDAH ABSEN PULANG
+        // =====================================================
+
+        const sudahPulang =
+            (absensiHariIni || []).some(
+                row =>
+                    String(row.tipe)
+                        .trim()
+                        .toLowerCase() ===
+                    "pulang"
+            );
+
+        // =====================================================
+        // VALIDASI PILIHAN TIPE
+        // =====================================================
+
+        if (
+            tipe === "Masuk" &&
+            sudahMasuk
+        ) {
+
+            hideLoader();
+
+            await Swal.fire({
+
+                icon: "info",
+
+                title: "Sudah Absen Masuk",
+
+                text:
+                    "Anda sudah melakukan Absen Masuk hari ini.",
+
+                confirmButtonText: "OK",
+
+                confirmButtonColor: "#4F46E5"
+
+            });
+
+            return;
+        }
+
+        if (
+            tipe === "Pulang" &&
+            !sudahMasuk
+        ) {
+
+            hideLoader();
+
+            await Swal.fire({
+
+                icon: "warning",
+
+                title: "Absen Masuk Belum Ada",
+
+                text:
+                    "Anda harus melakukan Absen Masuk terlebih dahulu sebelum Absen Pulang.",
+
+                confirmButtonText: "OK",
+
+                confirmButtonColor: "#4F46E5"
+
+            });
+
+            return;
+        }
+
+        if (
+            tipe === "Pulang" &&
+            sudahPulang
+        ) {
+
+            hideLoader();
+
+            await Swal.fire({
+
+                icon: "info",
+
+                title: "Sudah Absen Pulang",
+
+                text:
+                    "Anda sudah melakukan Absen Pulang hari ini.",
+
+                confirmButtonText: "OK",
+
+                confirmButtonColor: "#4F46E5"
+
+            });
+
+            return;
+        }
+
+        // =====================================================
+        // VALIDASI LOKASI
+        // =====================================================
+
+        const jarak =
+            calculateDistance(
+                AppState.currentLocation.lat,
+                AppState.currentLocation.lng,
+                AppState.currentUserLocation.lat,
+                AppState.currentUserLocation.lng
+            );
+
+        console.log(
+            "Jarak absensi:",
+            jarak
+        );
+
+        if (
+            jarak >
+            AppState.currentUserLocation.radius
+        ) {
+
+            hideLoader();
 
             showToast(
-                `Anda sudah melakukan absen ${tipe} hari ini`,
+                `Anda berada di luar radius absensi (${Math.round(jarak)} m)`,
                 true
             );
 
             return;
         }
 
-        // ===============================
+        // =====================================================
         // UPLOAD FOTO
-        // ===============================
+        // =====================================================
 
-        showLoader("Upload foto...");
+        showLoader("Mengupload foto...");
 
         const fotoUrl =
             await uploadFotoAbsensi(
@@ -425,54 +603,151 @@ async function submitAbsensi() {
                 user.username
             );
 
-        // ===============================
+        if (!fotoUrl) {
+            throw new Error(
+                "Foto absensi gagal diupload."
+            );
+        }
+
+        console.log(
+            "Foto berhasil diupload:",
+            fotoUrl
+        );
+
+        // =====================================================
         // SIMPAN ABSENSI
-        // ===============================
+        // =====================================================
 
         showLoader("Menyimpan absensi...");
 
         const mapsUrl =
             `https://www.google.com/maps?q=${AppState.currentLocation.lat},${AppState.currentLocation.lng}`;
 
-        const now = new Date().toISOString();
-
         const {
+            data: insertedData,
             error: insertError
         } = await window.supabaseClient
             .from("absensi")
             .insert([{
-                username: user.username,
-                nama_lengkap: user.nama,
-                kategori: user.kategori,
-                lokasi_id: user.lokasiId,
-                nama_industri: AppState.currentUserLocation.namaIndustri,
-                tipe: tipe,
-                foto_url: fotoUrl,
-                latitude: AppState.currentLocation.lat,
-                longitude: AppState.currentLocation.lng,
-                jarak: Math.round(jarak),
-                maps_url: mapsUrl
-            }]);
+
+                username:
+                    user.username,
+
+                nama_lengkap:
+                    user.nama,
+
+                kategori:
+                    user.kategori,
+
+                lokasi_id:
+                    user.lokasiId,
+
+                nama_industri:
+                    AppState.currentUserLocation
+                        .namaIndustri,
+
+                tipe:
+                    tipe,
+
+                foto_url:
+                    fotoUrl,
+
+                latitude:
+                    AppState.currentLocation
+                        .lat,
+
+                longitude:
+                    AppState.currentLocation
+                        .lng,
+
+                jarak:
+                    Math.round(jarak),
+
+                maps_url:
+                    mapsUrl
+
+            }])
+            .select()
+            .single();
 
         if (insertError) {
             throw insertError;
         }
 
-        Swal.fire({
+        console.log(
+            "Absensi berhasil disimpan:",
+            insertedData
+        );
+
+        // =====================================================
+        // MATIKAN LOADER TERLEBIH DAHULU
+        // =====================================================
+
+        hideLoader();
+
+        // Beri sedikit waktu agar DOM selesai
+        // memperbarui tampilan loader
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    100
+                )
+        );
+
+        // =====================================================
+        // NOTIFIKASI BERHASIL
+        // =====================================================
+
+        await Swal.fire({
+
             icon: "success",
+
             title: "Berhasil",
-            text: `Absen ${tipe} berhasil disimpan`,
-            timer: 2000,
-            showConfirmButton: false
+
+            text:
+                `Absen ${tipe} berhasil disimpan.`,
+
+            timer: 1800,
+
+            showConfirmButton: false,
+
+            allowOutsideClick: false
+
         });
+
+        // =====================================================
+        // RESET
+        // =====================================================
 
         resetAbsensi();
 
         stopCamera?.();
 
-        setTimeout(() => {
-            goToDashboardByRole();
-        }, 1500);
+        if (
+            window.watchPositionId
+        ) {
+
+            navigator.geolocation.clearWatch(
+                window.watchPositionId
+            );
+
+            window.watchPositionId =
+                null;
+        }
+
+        // =====================================================
+        // KE DASHBOARD
+        // =====================================================
+
+        setTimeout(
+            () => {
+
+                goToDashboardByRole();
+
+            },
+            100
+        );
 
     }
     catch (error) {
@@ -482,8 +757,22 @@ async function submitAbsensi() {
             error
         );
 
+        // =====================================================
+        // PASTIKAN LOADER MATI SAAT ERROR
+        // =====================================================
+
+        hideLoader();
+
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    100
+                )
+        );
+
         showToast(
-            error.message ||
+            error?.message ||
             "Gagal menyimpan absensi",
             true
         );
@@ -491,9 +780,14 @@ async function submitAbsensi() {
     }
     finally {
 
+        // =====================================================
+        // PASTIKAN LOADER SELALU MATI
+        // =====================================================
+
         hideLoader();
 
-        window.__isSubmittingAbsensi = false;
+        window.__isSubmittingAbsensi =
+            false;
     }
 }
 // =====================================================
