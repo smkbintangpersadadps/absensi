@@ -499,19 +499,35 @@ async function submitAbsensi() {
 // =====================================================
 // CEK HARI AKTIF PKL
 // =====================================================
-// =====================================
-// CEK HARI AKTIF PKL
-// =====================================
 async function checkHariAktifPKL(user) {
 
     try {
 
-        const today =
-            new Date();
+        // =====================================
+        // TANGGAL LOKAL INDONESIA
+        // =====================================
+
+        const now = new Date();
+
+        const tahun =
+            now.getFullYear();
+
+        const bulan =
+            String(
+                now.getMonth() + 1
+            ).padStart(2, "0");
+
+        const hari =
+            String(
+                now.getDate()
+            ).padStart(2, "0");
 
         const tanggal =
-            today.toISOString()
-            .split("T")[0];
+            `${tahun}-${bulan}-${hari}`;
+
+        // =====================================
+        // NAMA HARI
+        // =====================================
 
         const namaHari =
             [
@@ -522,42 +538,65 @@ async function checkHariAktifPKL(user) {
                 "kamis",
                 "jumat",
                 "sabtu"
-            ][today.getDay()];
+            ][
+                now.getDay()
+            ];
+
+        // =====================================
+        // LOKASI PKL
+        // =====================================
 
         const lokasiId =
             String(
-                user.lokasiId || ""
+                user?.lokasiId || ""
             )
             .trim()
             .toUpperCase();
 
+        if (!lokasiId) {
+
+            console.warn(
+                "Lokasi PKL tidak ditemukan"
+            );
+
+            return {
+                aktif: true
+            };
+        }
+
         // =====================================
-        // HARI LIBUR
+        // CEK LIBUR NASIONAL
         // =====================================
 
         const {
             data: liburData,
             error: liburError
-        } = await window.supabaseClient
-            .from("hari_libur")
-            .select("*")
-            .eq(
-                "tanggal",
-                tanggal
-            );
+        } =
+            await window.supabaseClient
+                .from("hari_libur")
+                .select("*")
+                .eq(
+                    "tanggal",
+                    tanggal
+                );
 
         if (liburError) {
             throw liburError;
         }
 
+        // =====================================
+        // FILTER LIBUR SESUAI LOKASI
+        // =====================================
+
         const liburAktif =
             (liburData || [])
-            .find(item =>
-                isLiburBerlakuUntukLokasi(
-                    item,
-                    lokasiId
-                )
-            );
+                .find(
+                    item =>
+                        isLiburBerlakuUntukLokasi(
+                            item,
+                            lokasiId
+                        )
+                );
 
         if (liburAktif) {
 
@@ -571,48 +610,83 @@ async function checkHariAktifPKL(user) {
                 namaLibur:
                     liburAktif.nama_libur,
 
+                tanggal:
+
+                    tanggal,
+
+                namaHari:
+
+                    namaHari,
+
                 message:
                     liburAktif.nama_libur
+
             };
         }
 
         // =====================================
-        // KALENDER INDUSTRI
+        // LOAD KALENDER INDUSTRI
         // =====================================
 
         const {
             data: kalender,
             error: kalenderError
-        } = await window.supabaseClient
-            .from("kalender_industri")
-            .select("*")
-            .eq(
-                "lokasi_id",
-                lokasiId
-            )
-            .eq(
-                "aktif",
-                true
-            )
-            .maybeSingle();
+        } =
+            await window.supabaseClient
+                .from("kalender_industri")
+                .select("*")
+                .eq(
+                    "lokasi_id",
+                    lokasiId
+                )
+                .eq(
+                    "aktif",
+                    true
+                )
+                .maybeSingle();
 
         if (kalenderError) {
             throw kalenderError;
         }
 
+        // =====================================
+        // JIKA BELUM ADA KALENDER
+        // =====================================
+
         if (!kalender) {
 
             return {
-                aktif: true
+
+                aktif: true,
+
+                tanggal:
+
+                    tanggal,
+
+                namaHari:
+
+                    namaHari
+
             };
         }
 
-        const hariAktif =
+        // =====================================
+        // CEK HARI AKTIF
+        // =====================================
+
+        const nilaiHari =
             kalender[namaHari];
 
+        // =====================================
+        // LIBUR INDUSTRI
+        // =====================================
+
         if (
-            hariAktif === false ||
-            hariAktif === 0
+            nilaiHari === false ||
+            nilaiHari === 0 ||
+            String(
+                nilaiHari
+            ).toLowerCase() === "false"
         ) {
 
             return {
@@ -625,15 +699,35 @@ async function checkHariAktifPKL(user) {
                 namaIndustri:
                     kalender.nama_industri,
 
-                namaHari,
+                namaHari:
+                    namaHari,
+
+                tanggal:
+                    tanggal,
 
                 message:
                     `${kalender.nama_industri} libur pada hari ${namaHari}`
+
             };
         }
 
+        // =====================================
+        // HARI AKTIF
+        // =====================================
+
         return {
-            aktif: true
+
+            aktif: true,
+
+            tanggal:
+                tanggal,
+
+            namaHari:
+                namaHari,
+
+            lokasiId:
+                lokasiId
+
         };
 
     }
@@ -644,19 +738,33 @@ async function checkHariAktifPKL(user) {
             error
         );
 
+        // Jika terjadi error pada pengecekan
+        // jangan membuat siswa kehilangan
+        // akses absensi.
+
         return {
+
             aktif: true
+
         };
     }
 }
 
+// =====================================================
+// BUKA HALAMAN ABSEN
+// =====================================================
 async function initAbsenForm() {
 
-    const user = AppState.currentUser;
+    const user =
+        AppState.currentUser;
 
     if (!user) return;
 
     try {
+
+        // =====================================
+        // LOADING
+        // =====================================
 
         showLoader(
             "Memeriksa status hari ini..."
@@ -667,15 +775,23 @@ async function initAbsenForm() {
         // =====================================
 
         const hariAktif =
-            await checkHariAktifPKL(user);
+            await checkHariAktifPKL(
+                user
+            );
 
-        if (!hariAktif.aktif) {
+        // =====================================
+        // JIKA HARI TIDAK AKTIF
+        // =====================================
+
+        if (
+            !hariAktif.aktif
+        ) {
 
             hideLoader();
 
-            // ==========================
+            // =================================
             // LIBUR NASIONAL
-            // ==========================
+            // =================================
 
             if (
                 hariAktif.jenis ===
@@ -684,7 +800,8 @@ async function initAbsenForm() {
 
                 await Swal.fire({
 
-                    icon: "info",
+                    icon:
+                        "info",
 
                     title:
                         "Absensi Dinonaktifkan",
@@ -694,31 +811,57 @@ async function initAbsenForm() {
                         <div class="text-center">
 
                             <div class="mb-3">
+
                                 <i
                                     class="fa-solid fa-calendar-xmark text-red-500"
                                     style="font-size:60px">
                                 </i>
+
                             </div>
 
-                            <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+                            <div
+                                class="bg-red-50 border border-red-200 rounded-xl p-4"
+                            >
 
-                                <div class="text-slate-500 text-sm mt-2">
-                                    Tanggal ${formatTanggalIndonesia(new Date())}
+                                <div
+                                    class="text-slate-500 text-sm mt-2"
+                                >
+
+                                    Tanggal
+                                    ${formatTanggalIndonesia(
+                                        new Date()
+                                    )}
+
                                 </div>
 
-                                <div class="font-bold text-red-700 mb-2">
+                                <div
+                                    class="font-bold text-red-700 mb-2"
+                                >
+
                                     Hari Libur Nasional
+
                                 </div>
 
-                                <div class="text-slate-700">
-                                    ${hariAktif.namaLibur}
+                                <div
+                                    class="text-slate-700"
+                                >
+
+                                    ${
+                                        hariAktif.namaLibur ||
+                                        "-"
+                                    }
+
                                 </div>
 
                             </div>
 
-                            <p class="mt-3 text-sm text-slate-500">
+                            <p
+                                class="mt-3 text-sm text-slate-500"
+                            >
+
                                 Absensi tidak dapat dilakukan
                                 pada hari libur.
+
                             </p>
 
                         </div>
@@ -730,12 +873,14 @@ async function initAbsenForm() {
 
                     confirmButtonColor:
                         "#4F46E5"
+
                 });
+
             }
 
-            // ==========================
+            // =================================
             // LIBUR INDUSTRI
-            // ==========================
+            // =================================
 
             else if (
                 hariAktif.jenis ===
@@ -744,7 +889,8 @@ async function initAbsenForm() {
 
                 await Swal.fire({
 
-                    icon: "warning",
+                    icon:
+                        "warning",
 
                     title:
                         "Absensi Dinonaktifkan",
@@ -754,27 +900,54 @@ async function initAbsenForm() {
                         <div class="text-center">
 
                             <div class="mb-3">
+
                                 <i
                                     class="fa-solid fa-building-circle-xmark text-orange-500"
                                     style="font-size:60px">
                                 </i>
+
                             </div>
 
-                            <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                            <div
+                                class="bg-orange-50 border border-orange-200 rounded-xl p-4"
+                            >
 
-                                <div class="font-bold text-orange-700 mb-2">
+                                <div
+                                    class="font-bold text-orange-700 mb-2"
+                                >
+
                                     Hari Libur Industri
+
                                 </div>
 
-                                <div class="text-slate-700">
-                                    ${hariAktif.namaIndustri}
+                                <div
+                                    class="text-slate-700"
+                                >
+
+                                    ${
+                                        hariAktif.namaIndustri ||
+                                        "-"
+                                    }
+
                                 </div>
 
                             </div>
 
-                            <p class="mt-3 text-sm text-slate-500">
+                            <p
+                                class="mt-3 text-sm text-slate-500"
+                            >
+
                                 Industri libur pada hari
-                                <b>${hariAktif.namaHari.toUpperCase()}</b>
+
+                                <b>
+                                    ${
+                                        (
+                                            hariAktif.namaHari ||
+                                            ""
+                                        ).toUpperCase()
+                                    }
+                                </b>
+
                             </p>
 
                         </div>
@@ -786,17 +959,45 @@ async function initAbsenForm() {
 
                     confirmButtonColor:
                         "#4F46E5"
+
                 });
+
             }
 
-            stopCamera?.();
+            // =================================
+            // STOP CAMERA
+            // =================================
 
-            if (window.watchPositionId) {
+            if (
+                typeof stopCamera ===
+                "function"
+            ) {
 
-                navigator.geolocation.clearWatch(
-                    window.watchPositionId
-                );
+                stopCamera();
+
             }
+
+            // =================================
+            // STOP GPS
+            // =================================
+
+            if (
+                window.watchPositionId
+            ) {
+
+                navigator
+                    .geolocation
+                    .clearWatch(
+                        window.watchPositionId
+                    );
+
+                window.watchPositionId =
+                    null;
+            }
+
+            // =================================
+            // KEMBALI DASHBOARD
+            // =================================
 
             navigateTo(
                 "page-user-dashboard"
@@ -805,10 +1006,41 @@ async function initAbsenForm() {
             return;
         }
 
+        // =====================================
+        // TANGGAL HARI INI
+        // =====================================
+        //
+        // PENTING:
+        // Jangan gunakan:
+        //
+        // new Date().toISOString()
+        //
+        // karena hasilnya UTC.
+        //
+        // Gunakan tanggal lokal.
+        // =====================================
+
+        const now =
+            new Date();
+
         const today =
-            new Date()
-                .toISOString()
-                .split("T")[0];
+            [
+                now.getFullYear(),
+
+                String(
+                    now.getMonth() + 1
+                ).padStart(2, "0"),
+
+                String(
+                    now.getDate()
+                ).padStart(2, "0")
+
+            ].join("-");
+
+        console.log(
+            "Tanggal lokal hari ini:",
+            today
+        );
 
         // =====================================
         // CEK STATUS HARIAN
@@ -816,44 +1048,68 @@ async function initAbsenForm() {
 
         const {
             data: statusHarian,
-            error
-        } = await window.supabaseClient
-            .from("status_harian")
-            .select("*")
-            .eq(
-                "username",
-                user.username
-            )
-            .eq(
-                "tanggal",
-                today
-            )
-            .maybeSingle();
+            error: statusError
+        } =
+            await window.supabaseClient
+                .from("status_harian")
+                .select("*")
+                .eq(
+                    "username",
+                    user.username
+                )
+                .eq(
+                    "tanggal",
+                    today
+                )
+                .maybeSingle();
 
-        if (error) {
+        if (statusError) {
 
-            throw error;
+            console.error(
+                "Status harian error:",
+                statusError
+            );
+
+            throw statusError;
         }
+
+        console.log(
+            "Status hari ini:",
+            statusHarian
+        );
+
+        // =====================================
+        // JIKA ADA STATUS HARI INI
+        // =====================================
 
         if (statusHarian) {
 
             const approval =
                 String(
-                    statusHarian.approval || ""
+                    statusHarian.approval ||
+                    ""
                 )
                 .trim()
                 .toLowerCase();
 
+            // =================================
+            // PENDING / APPROVED
+            // =================================
+
             if (
-                approval === "pending" ||
-                approval === "approved"
+                approval ===
+                    "pending" ||
+
+                approval ===
+                    "approved"
             ) {
 
                 hideLoader();
 
                 await Swal.fire({
 
-                    icon: "info",
+                    icon:
+                        "info",
 
                     title:
                         "Absensi Dinonaktifkan",
@@ -863,26 +1119,55 @@ async function initAbsenForm() {
                         <div class="text-left">
 
                             <p class="mb-2">
-                                Status Hari Ini :
+
+                                Status Hari Ini:
+
                             </p>
 
-                            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3">
+                            <div
+                                class="bg-indigo-50 border border-indigo-200 rounded-xl p-3"
+                            >
 
-                                <div class="font-bold text-indigo-700">
-                                    ${statusHarian.status}
+                                <div
+                                    class="font-bold text-indigo-700"
+                                >
+
+                                    ${
+                                        statusHarian.status ||
+                                        "-"
+                                    }
+
                                 </div>
 
-                                <div class="text-sm text-slate-600 mt-1">
-                                    Approval :
-                                    <b>${statusHarian.approval}</b>
+                                <div
+                                    class="text-sm text-slate-600 mt-1"
+                                >
+
+                                    Approval:
+
+                                    <b>
+                                        ${
+                                            statusHarian.approval ||
+                                            "-"
+                                        }
+                                    </b>
+
                                 </div>
 
                                 ${
                                     statusHarian.keterangan
                                     ? `
-                                        <div class="mt-2 text-sm">
-                                            ${statusHarian.keterangan}
+
+                                        <div
+                                            class="mt-2 text-sm"
+                                        >
+
+                                            ${
+                                                statusHarian.keterangan
+                                            }
+
                                         </div>
+
                                     `
                                     : ""
                                 }
@@ -898,6 +1183,7 @@ async function initAbsenForm() {
 
                     confirmButtonColor:
                         "#4F46E5"
+
                 });
 
                 navigateTo(
@@ -906,30 +1192,78 @@ async function initAbsenForm() {
 
                 return;
             }
+
+            // =================================
+            // STATUS DITOLAK
+            // =================================
+            //
+            // Jika approval = Rejected,
+            // siswa tetap boleh melakukan
+            // absensi.
+            // =================================
+
+            if (
+                approval ===
+                    "rejected" ||
+                approval ===
+                    "ditolak"
+            ) {
+
+                console.log(
+                    "Status ditolak, siswa tetap dapat absen."
+                );
+
+            }
+
         }
 
         // =====================================
-        // LOAD ABSENSI
+        // LOAD LOKASI PKL
         // =====================================
 
         await loadUserLocation();
 
+        // =====================================
+        // START CAMERA
+        // =====================================
+
         startCamera();
+
+        // =====================================
+        // START GPS
+        // =====================================
 
         startGPS();
 
+        // =====================================
+        // CLEANUP
+        // =====================================
+
         pageCleanup = () => {
 
-            stopCamera?.();
+            if (
+                typeof stopCamera ===
+                "function"
+            ) {
+
+                stopCamera();
+
+            }
 
             if (
                 window.watchPositionId
             ) {
 
-                navigator.geolocation.clearWatch(
-                    window.watchPositionId
-                );
+                navigator
+                    .geolocation
+                    .clearWatch(
+                        window.watchPositionId
+                    );
+
+                window.watchPositionId =
+                    null;
             }
+
         };
 
     }
@@ -941,14 +1275,18 @@ async function initAbsenForm() {
         );
 
         showToast(
+            error.message ||
             "Gagal membuka halaman absensi",
             true
         );
+
     }
     finally {
 
         hideLoader();
+
     }
+
 }
 
 // ===============================

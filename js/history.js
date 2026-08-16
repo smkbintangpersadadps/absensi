@@ -1874,10 +1874,14 @@ const HistoryService = {
 
     async init(useLoader = true) {
 
+        const now = new Date();
+
         const today =
-            new Date()
-            .toISOString()
-            .split("T")[0];
+            `${now.getFullYear()}-${String(
+                now.getMonth() + 1
+            ).padStart(2, "0")}-${String(
+                now.getDate()
+            ).padStart(2, "0")}`;
 
         const dateEl =
             document.getElementById(
@@ -2039,14 +2043,19 @@ const HistoryService = {
         // ABSENSI
         // =====================
 
+        // =====================
+        // ABSENSI
+        // =====================
+
         const startDate =
-            `${selectedDate}T00:00:00`;
+            `${selectedDate}T00:00:00+08:00`;
 
         const endDate =
-            `${selectedDate}T23:59:59`;
+            `${selectedDate}T23:59:59.999+08:00`;
 
         const {
-            data: absensiData
+            data: absensiData,
+            error: absensiError
         } = await window.supabaseClient
             .from("absensi")
             .select("*")
@@ -2062,6 +2071,10 @@ const HistoryService = {
                 "waktu",
                 endDate
             );
+
+        if (absensiError) {
+            throw absensiError;
+        }
 
         // =====================
         // STATUS HARIAN

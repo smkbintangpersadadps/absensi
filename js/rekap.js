@@ -8,11 +8,80 @@ async function getRekapBulanan({
 
     try {
 
-        let siswa = [];
+        // =========================================================
+        // TIMEZONE SISTEM
+        // =========================================================
 
-        // =====================================
-        // AMBIL SISWA
-        // =====================================
+        const TIMEZONE = "Asia/Makassar";
+
+
+        // =========================================================
+        // HELPER
+        // =========================================================
+
+        function getTanggalWITA(dateValue) {
+
+            if (!dateValue) {
+                return null;
+            }
+
+            const date = new Date(dateValue);
+
+            if (Number.isNaN(date.getTime())) {
+                return null;
+            }
+
+            return date.toLocaleDateString(
+                "en-CA",
+                {
+                    timeZone: TIMEZONE
+                }
+            );
+        }
+
+
+        // =========================================================
+        // TANGGAL SEKARANG WITA
+        // =========================================================
+
+        function getTanggalSekarangWITA() {
+
+            return getTanggalWITA(new Date());
+
+        }
+
+
+        // =========================================================
+        // CEK HARI LIBUR INDUSTRI
+        // =========================================================
+
+        function isHariLiburIndustri(
+            kalender,
+            namaHari
+        ) {
+
+            if (!kalender) {
+                return false;
+            }
+
+            const value = kalender[namaHari];
+
+            return (
+                value === false ||
+                value === 0 ||
+                String(value)
+                    .trim()
+                    .toLowerCase() === "false" ||
+                String(value)
+                    .trim()
+                    .toLowerCase() === "0"
+            );
+        }
+
+
+        // =========================================================
+        // AMBIL DATA SISWA
+        // =========================================================
 
         let querySiswa =
             window.supabaseClient
@@ -21,9 +90,18 @@ async function getRekapBulanan({
                     username,
                     nama_lengkap,
                     kategori,
-                    lokasi_id
+                    lokasi_id,
+                    p_id
                 `)
-                .eq("role", "siswa");
+                .eq(
+                    "role",
+                    "siswa"
+                );
+
+
+        // =========================================================
+        // MODE WALI
+        // =========================================================
 
         if (mode === "wali") {
 
@@ -33,7 +111,14 @@ async function getRekapBulanan({
                     user.kategori
                 );
 
-        } else if (mode === "pembimbing") {
+        }
+
+
+        // =========================================================
+        // MODE PEMBIMBING
+        // =========================================================
+
+        else if (mode === "pembimbing") {
 
             querySiswa =
                 querySiswa.eq(
@@ -41,7 +126,14 @@ async function getRekapBulanan({
                     user.pId
                 );
 
-        } else {
+        }
+
+
+        // =========================================================
+        // MODE ADMIN / KEPALA SEKOLAH
+        // =========================================================
+
+        else {
 
             if (
                 filterKategori &&
@@ -53,30 +145,47 @@ async function getRekapBulanan({
                         "kategori",
                         filterKategori
                     );
+
             }
+
         }
+
+
+        // =========================================================
+        // EXECUTE QUERY SISWA
+        // =========================================================
 
         const {
             data: siswaData,
             error: siswaError
-        } = await querySiswa;
+        } =
+            await querySiswa;
+
 
         if (siswaError) {
             throw siswaError;
         }
 
-        siswa = siswaData || [];
 
-        // =====================================
-        // TANGGAL
-        // =====================================
+        const siswa =
+            siswaData || [];
+
+
+        // =========================================================
+        // JUMLAH HARI DALAM BULAN
+        // =========================================================
 
         const jumlahHari =
             new Date(
-                tahun,
-                bulan,
+                Number(tahun),
+                Number(bulan),
                 0
             ).getDate();
+
+
+        // =========================================================
+        // FORMAT TANGGAL
+        // =========================================================
 
         const startDate =
             `${tahun}-${String(bulan).padStart(2, "0")}-01`;
@@ -84,224 +193,556 @@ async function getRekapBulanan({
         const endDate =
             `${tahun}-${String(bulan).padStart(2, "0")}-${String(jumlahHari).padStart(2, "0")}`;
 
+
+        // =========================================================
+        // DAFTAR USERNAME
+        // =========================================================
+
         const usernames =
             siswa.map(
                 s => s.username
             );
 
+
+        // =========================================================
+        // JIKA TIDAK ADA SISWA
+        // =========================================================
+
         if (!usernames.length) {
 
             return {
+
                 rekap: [],
+
                 jumlahHari,
+
                 kategoriList: []
+
             };
+
         }
 
-        // =====================================
-        // ABSENSI
-        // =====================================
+
+        // =========================================================
+        // AWAL BULAN WITA
+        // =========================================================
+
+        const startWITA =
+            new Date(
+                `${startDate}T00:00:00+08:00`
+            );
+
+
+        // =========================================================
+        // BULAN BERIKUTNYA
+        // =========================================================
+
+        let nextMonth =
+            Number(bulan) + 1;
+
+        let nextYear =
+            Number(tahun);
+
+
+        if (nextMonth > 12) {
+
+            nextMonth = 1;
+
+            nextYear++;
+
+        }
+
+
+        const nextMonthDate =
+            `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
+
+
+        // =========================================================
+        // BATAS EXCLUSIVE
+        // =========================================================
+
+        const endExclusiveWITA =
+            new Date(
+                `${nextMonthDate}T00:00:00+08:00`
+            );
+
+
+        const startUTC =
+            startWITA.toISOString();
+
+        const endExclusiveUTC =
+            endExclusiveWITA.toISOString();
+
+
+        console.log(
+            "REKAP BULAN",
+            {
+                startDate,
+                endDate,
+                startWITA:
+                    startWITA.toString(),
+                endWITA:
+                    endExclusiveWITA.toString(),
+                startUTC,
+                endExclusiveUTC
+            }
+        );
+
+
+        // =========================================================
+        // AMBIL DATA ABSENSI
+        // =========================================================
 
         const {
             data: absensiData,
             error: absensiError
-        } = await window.supabaseClient
-            .from("absensi")
-            .select(`
-                username,
-                waktu,
-                tipe
-            `)
-            .in(
-                "username",
-                usernames
-            )
-            .gte(
-                "waktu",
-                `${startDate}T00:00:00`
-            )
-            .lte(
-                "waktu",
-                `${endDate}T23:59:59`
-            );
+        } =
+            await window.supabaseClient
+                .from("absensi")
+                .select(`
+                    username,
+                    waktu,
+                    tipe
+                `)
+                .in(
+                    "username",
+                    usernames
+                )
+                .gte(
+                    "waktu",
+                    startUTC
+                )
+                .lt(
+                    "waktu",
+                    endExclusiveUTC
+                );
+
 
         if (absensiError) {
             throw absensiError;
         }
 
-        // =====================================
-        // STATUS HARIAN
-        // =====================================
+
+        // =========================================================
+        // AMBIL STATUS HARIAN
+        // =========================================================
 
         const {
             data: statusData,
             error: statusError
-        } = await window.supabaseClient
-            .from("status_harian")
-            .select("*")
-            .in(
-                "username",
-                usernames
-            )
-            .gte(
-                "tanggal",
-                startDate
-            )
-            .lte(
-                "tanggal",
-                endDate
-            );
+        } =
+            await window.supabaseClient
+                .from("status_harian")
+                .select("*")
+                .in(
+                    "username",
+                    usernames
+                )
+                .gte(
+                    "tanggal",
+                    startDate
+                )
+                .lte(
+                    "tanggal",
+                    endDate
+                );
+
 
         if (statusError) {
             throw statusError;
         }
 
-        // =====================================
-        // HARI LIBUR
-        // =====================================
+
+        // =========================================================
+        // AMBIL HARI LIBUR
+        // =========================================================
 
         const {
             data: hariLiburData,
             error: hariLiburError
-        } = await window.supabaseClient
-            .from("hari_libur")
-            .select("*")
-            .gte("tanggal", startDate)
-            .lte("tanggal", endDate);
+        } =
+            await window.supabaseClient
+                .from("hari_libur")
+                .select("*")
+                .gte(
+                    "tanggal",
+                    startDate
+                )
+                .lte(
+                    "tanggal",
+                    endDate
+                );
+
 
         if (hariLiburError) {
             throw hariLiburError;
         }
 
-        // =====================================
-        // KALENDER INDUSTRI
-        // =====================================
+
+        // =========================================================
+        // AMBIL KALENDER INDUSTRI
+        // =========================================================
 
         const lokasiIds = [
             ...new Set(
                 siswa
                     .map(
-                        s => s.lokasi_id
+                        s =>
+                            s.lokasi_id
                     )
                     .filter(Boolean)
             )
         ];
 
-        const {
-            data: kalenderData,
-            error: kalenderError
-        } = await window.supabaseClient
-            .from("kalender_industri")
-            .select("*")
-            .in(
-                "lokasi_id",
-                lokasiIds
-            );
 
-        if (kalenderError) {
-            throw kalenderError;
+        let kalenderData = [];
+
+
+        if (lokasiIds.length) {
+
+            const {
+                data,
+                error
+            } =
+                await window.supabaseClient
+                    .from(
+                        "kalender_industri"
+                    )
+                    .select("*")
+                    .in(
+                        "lokasi_id",
+                        lokasiIds
+                    );
+
+
+            if (error) {
+                throw error;
+            }
+
+
+            kalenderData =
+                data || [];
+
         }
 
-        // =====================================
+
+        // =========================================================
         // MAP ABSENSI
-        // =====================================
+        // =========================================================
+        //
+        // Sekarang tidak lagi hanya true.
+        //
+        // Struktur:
+        //
+        // {
+        //     masuk: true,
+        //     pulang: true
+        // }
+        //
+        // Dengan demikian:
+        //
+        // Masuk saja       = M
+        // Masuk + Pulang   = MP
+        //
+        // =========================================================
 
         const absensiMap = {};
 
-        (absensiData || []).forEach(a => {
 
-            const tanggal =
-                String(a.waktu)
-                .substring(0, 10);
+        (
+            absensiData || []
+        ).forEach(
+            a => {
 
-            const key =
-                `${a.username}_${tanggal}`;
+                const tanggal =
+                    getTanggalWITA(
+                        a.waktu
+                    );
 
-            if (
-                a.tipe === "Masuk"
-            ) {
 
-                absensiMap[key] = true;
+                if (!tanggal) {
+                    return;
+                }
+
+
+                const username =
+                    String(
+                        a.username || ""
+                    )
+                    .trim();
+
+
+                if (!username) {
+                    return;
+                }
+
+
+                const key =
+                    `${username}_${tanggal}`;
+
+
+                if (!absensiMap[key]) {
+
+                    absensiMap[key] = {
+
+                        masuk: false,
+
+                        pulang: false
+
+                    };
+
+                }
+
+
+                const tipe =
+                    String(
+                        a.tipe || ""
+                    )
+                    .trim()
+                    .toLowerCase();
+
+
+                // =================================================
+                // MASUK
+                // =================================================
+
+                if (
+                    tipe === "masuk"
+                ) {
+
+                    absensiMap[key].masuk =
+                        true;
+
+                }
+
+
+                // =================================================
+                // PULANG
+                // =================================================
+
+                else if (
+                    tipe === "pulang"
+                ) {
+
+                    absensiMap[key].pulang =
+                        true;
+
+                }
+
             }
-        });
+        );
 
-        // =====================================
-        // MAP STATUS
-        // =====================================
+
+        // =========================================================
+        // DEBUG ABSENSI
+        // =========================================================
+
+        console.log(
+            "ABSENSI DATA:",
+            absensiData
+        );
+
+        console.log(
+            "ABSENSI MAP:",
+            absensiMap
+        );
+
+
+        // =========================================================
+        // MAP STATUS HARIAN
+        // =========================================================
 
         const statusMap = {};
 
-        (statusData || []).forEach(s => {
 
-            const key =
-                `${s.username}_${s.tanggal}`;
+        (
+            statusData || []
+        ).forEach(
+            s => {
 
-            statusMap[key] = s;
-        });
+                const tanggal =
+                    String(
+                        s.tanggal || ""
+                    )
+                    .substring(
+                        0,
+                        10
+                    );
 
-        // =====================================
-        // MAP LIBUR
-        // =====================================
+
+                if (!tanggal) {
+                    return;
+                }
+
+
+                const username =
+                    String(
+                        s.username || ""
+                    )
+                    .trim();
+
+
+                if (!username) {
+                    return;
+                }
+
+
+                const key =
+                    `${username}_${tanggal}`;
+
+
+                statusMap[key] =
+                    s;
+
+            }
+        );
+
+
+        // =========================================================
+        // MAP HARI LIBUR
+        // =========================================================
 
         const hariLiburMap = {};
 
-            (hariLiburData || []).forEach(item => {
 
-                if (
-                    !hariLiburMap[item.tanggal]
-                ) {
+        (
+            hariLiburData || []
+        ).forEach(
+            item => {
 
-                    hariLiburMap[item.tanggal] = [];
+                const tanggal =
+                    String(
+                        item.tanggal || ""
+                    )
+                    .substring(
+                        0,
+                        10
+                    );
+
+
+                if (!tanggal) {
+                    return;
                 }
 
-                hariLiburMap[item.tanggal]
-                    .push(item);
-            });
 
-        // =====================================
+                if (
+                    !hariLiburMap[tanggal]
+                ) {
+
+                    hariLiburMap[tanggal] =
+                        [];
+
+                }
+
+
+                hariLiburMap[tanggal]
+                    .push(
+                        item
+                    );
+
+            }
+        );
+
+
+        // =========================================================
         // MAP KALENDER INDUSTRI
-        // =====================================
+        // =========================================================
 
         const kalenderMap = {};
 
-        (kalenderData || []).forEach(item => {
 
-            kalenderMap[item.lokasi_id] =
-                item;
-        });
+        (
+            kalenderData || []
+        ).forEach(
+            item => {
 
-        // =====================================
-        // REKAP
-        // =====================================
-        // =====================================
-        // TANGGAL HARI INI
-        // =====================================
+                const lokasiId =
+                    String(
+                        item.lokasi_id || ""
+                    )
+                    .trim()
+                    .toUpperCase();
 
-        const now = new Date();
 
-        const currentYear =
-            now.getFullYear();
+                if (!lokasiId) {
+                    return;
+                }
 
-        const currentMonth =
-            now.getMonth() + 1;
 
-        const currentDay =
-            now.getDate();
-            
+                kalenderMap[lokasiId] =
+                    item;
+
+            }
+        );
+
+
+        // =========================================================
+        // TANGGAL SEKARANG WITA
+        // =========================================================
+
+        const todayWITA =
+            getTanggalSekarangWITA();
+
+
+        console.log(
+            "TODAY WITA:",
+            todayWITA
+        );
+
+
+        // =========================================================
+        // REKAP SISWA
+        // =========================================================
+
         const rekap =
             siswa.map(
                 siswaItem => {
 
                     const harian = [];
 
+
                     let totalHadir = 0;
+
                     let totalDayOff = 0;
+
                     let totalIzin = 0;
+
                     let totalSakit = 0;
+
                     let totalPending = 0;
+
                     let totalBelum = 0;
+
                     let totalLiburNasional = 0;
+
                     let totalLiburIndustri = 0;
+
+                    let totalWFH = 0;
+
+                    let totalLupaAbsen = 0;
+
+
+                    // =================================================
+                    // NORMALISASI LOKASI
+                    // =================================================
+
+                    const lokasiId =
+                        String(
+                            siswaItem.lokasi_id || ""
+                        )
+                        .trim()
+                        .toUpperCase();
+
+
+                    const kalender =
+                        kalenderMap[
+                            lokasiId
+                        ];
+
+
+                    // =================================================
+                    // LOOP SETIAP HARI
+                    // =================================================
 
                     for (
                         let hari = 1;
@@ -312,15 +753,27 @@ async function getRekapBulanan({
                         const tanggal =
                             `${tahun}-${String(bulan).padStart(2, "0")}-${String(hari).padStart(2, "0")}`;
 
+
                         const key =
                             `${siswaItem.username}_${tanggal}`;
 
+
+                        // =================================================
+                        // TANGGAL
+                        // =================================================
+
                         const currentDate =
                             new Date(
-                                tahun,
-                                bulan - 1,
-                                hari
+                                Date.UTC(
+                                    Number(tahun),
+                                    Number(bulan) - 1,
+                                    hari,
+                                    12,
+                                    0,
+                                    0
+                                )
                             );
+
 
                         const namaHari =
                             [
@@ -331,190 +784,448 @@ async function getRekapBulanan({
                                 "kamis",
                                 "jumat",
                                 "sabtu"
-                            ][currentDate.getDay()];
-
-                        const kalender =
-                            kalenderMap[
-                                siswaItem.lokasi_id
+                            ][
+                                currentDate.getUTCDay()
                             ];
 
-                        // =====================================
-                        // CEK TANGGAL MASA DEPAN
-                        // =====================================
+
+                        // =================================================
+                        // TANGGAL MASA DEPAN
+                        // =================================================
 
                         const isFutureDate =
-                            tahun === currentYear &&
-                            bulan === currentMonth &&
-                            hari > currentDay;
+                            tanggal >
+                            todayWITA;
+
 
                         if (isFutureDate) {
 
                             harian.push({
+
                                 kode: "",
-                                label: "Belum Berjalan"
+
+                                label:
+                                    "Belum Berjalan"
+
                             });
 
                             continue;
+
                         }
 
-                        let kode = "-";
-                        let label = "Belum";
 
-                        // =====================
-                        // LIBUR NASIONAL
-                        // =====================
+                        // =================================================
+                        // DEFAULT
+                        // =================================================
 
-                        const daftarLibur =
-                            hariLiburMap[tanggal] || [];
+                        let kode =
+                            "-";
 
-                        const liburAktif =
-                            daftarLibur.find(item =>
-                                isLiburBerlakuUntukLokasi(
-                                    item,
-                                    siswaItem.lokasi_id
-                                )
+                        let label =
+                            "Belum";
+
+
+                        // =================================================
+                        // DATA ABSENSI
+                        // =================================================
+
+                        const absensi =
+                            absensiMap[key] ||
+                            null;
+
+
+                        const adaMasuk =
+                            Boolean(
+                                absensi?.masuk
                             );
 
-                        if (liburAktif) {
 
-                            kode = "LN";
+                        const adaPulang =
+                            Boolean(
+                                absensi?.pulang
+                            );
 
-                            label =
-                                liburAktif.nama_libur;
 
-                            totalLiburNasional++;
-                        }
+                        // =================================================
+                        // DATA STATUS
+                        // =================================================
 
-                        // =====================
-                        // LIBUR INDUSTRI
-                        // =====================
+                        const status =
+                            statusMap[key] ||
+                            null;
 
-                        else if (
-                            kalender &&
-                            (
-                                kalender[namaHari] === false ||
-                                kalender[namaHari] === 0
-                            )
-                        ) {
 
-                            kode = "LI";
+                        let approval =
+                            "";
 
-                            label =
-                                "Libur Industri";
+                        let statusValue =
+                            "";
 
-                            totalLiburIndustri++;
-                        }
 
-                        // =====================
-                        // HADIR
-                        // =====================
+                        if (status) {
 
-                        else if (
-                            absensiMap[key]
-                        ) {
-
-                            kode = "MP";
-
-                            label =
-                                "Masuk & Pulang";
-
-                            totalHadir++;
-                        }
-
-                        // =====================
-                        // STATUS HARIAN
-                        // =====================
-
-                        else if (
-                            statusMap[key]
-                        ) {
-
-                            const status =
-                                statusMap[key];
-
-                            const approval =
+                            approval =
                                 String(
                                     status.approval || ""
                                 )
                                 .trim()
                                 .toLowerCase();
 
-                            if (
-                                approval === "pending"
+
+                            statusValue =
+                                String(
+                                    status.status || ""
+                                )
+                                .trim()
+                                .toLowerCase();
+
+                        }
+
+
+                        // =================================================
+                        // LIBUR NASIONAL
+                        // =================================================
+
+                        const daftarLibur =
+                            hariLiburMap[
+                                tanggal
+                            ] || [];
+
+
+                        const liburAktif =
+                            daftarLibur.find(
+                                item =>
+                                    isLiburBerlakuUntukLokasi(
+                                        item,
+                                        lokasiId
+                                    )
+                            );
+
+
+                        if (liburAktif) {
+
+                            kode =
+                                "LN";
+
+                            label =
+                                liburAktif.nama_libur;
+
+                            totalLiburNasional++;
+
+                        }
+
+
+                        // =================================================
+                        // LIBUR INDUSTRI
+                        // =================================================
+
+                        else if (
+                            isHariLiburIndustri(
+                                kalender,
+                                namaHari
+                            )
+                        ) {
+
+                            kode =
+                                "LI";
+
+                            label =
+                                "Libur Industri";
+
+                            totalLiburIndustri++;
+
+                        }
+
+
+                        // =================================================
+                        // STATUS PENDING
+                        // =================================================
+
+                        else if (
+                            approval ===
+                            "pending"
+                        ) {
+
+                            kode =
+                                "PD";
+
+                            label =
+                                "Pending";
+
+                            totalPending++;
+
+                        }
+
+
+                        // =================================================
+                        // STATUS APPROVED
+                        // =================================================
+
+                        else if (
+                            approval ===
+                            "approved"
+                        ) {
+
+                            switch (
+                                statusValue
                             ) {
 
-                                kode = "PD";
+                                // =====================================
+                                // LUPA ABSEN
+                                // =====================================
 
-                                label = "Pending";
+                                case "lupa absen":
 
-                                totalPending++;
-                            }
+                                    /*
+                                     * Jika sudah ada Masuk:
+                                     *
+                                     * M + Lupa Absen
+                                     * = ML
+                                     */
 
-                            else if (
-                                approval === "approved"
-                            ) {
+                                    if (
+                                        adaMasuk
+                                    ) {
 
-                                switch (
-                                    status.status
-                                ) {
+                                        kode =
+                                            "ML";
 
-                                    case "Izin":
+                                        label =
+                                            "Masuk + Lupa Absen";
 
-                                        kode = "I";
-                                        label = "Izin";
+                                    }
 
-                                        totalIzin++;
+                                    else {
 
-                                        break;
+                                        kode =
+                                            "LA";
 
-                                    case "Sakit":
+                                        label =
+                                            "Lupa Absen";
 
-                                        kode = "S";
-                                        label = "Sakit";
+                                    }
 
-                                        totalSakit++;
 
-                                        break;
+                                    totalLupaAbsen++;
 
-                                    case "Day Off":
+                                    totalHadir++;
 
-                                        kode = "D";
-                                        label = "Day Off";
+                                    break;
 
-                                        totalDayOff++;
 
-                                        break;
+                                // =====================================
+                                // WFH
+                                // =====================================
 
-                                    default:
+                                case "wfh":
+
+                                    kode =
+                                        "W";
+
+                                    label =
+                                        "WFH";
+
+                                    totalWFH++;
+
+                                    totalHadir++;
+
+                                    break;
+
+
+                                // =====================================
+                                // IZIN
+                                // =====================================
+
+                                case "izin":
+
+                                    kode =
+                                        "I";
+
+                                    label =
+                                        "Izin";
+
+                                    totalIzin++;
+
+                                    break;
+
+
+                                // =====================================
+                                // SAKIT
+                                // =====================================
+
+                                case "sakit":
+
+                                    kode =
+                                        "S";
+
+                                    label =
+                                        "Sakit";
+
+                                    totalSakit++;
+
+                                    break;
+
+
+                                // =====================================
+                                // DAY OFF
+                                // =====================================
+
+                                case "day off":
+
+                                    kode =
+                                        "D";
+
+                                    label =
+                                        "Day Off";
+
+                                    totalDayOff++;
+
+                                    break;
+
+
+                                // =====================================
+                                // STATUS TIDAK DIKENAL
+                                // =====================================
+
+                                default:
+
+                                    /*
+                                     * Jika status approved
+                                     * tidak dikenal, tetap
+                                     * prioritaskan absensi.
+                                     */
+
+                                    if (
+                                        adaMasuk &&
+                                        adaPulang
+                                    ) {
+
+                                        kode =
+                                            "MP";
+
+                                        label =
+                                            "Masuk & Pulang";
+
+                                        totalHadir++;
+
+                                    }
+
+                                    else if (
+                                        adaMasuk
+                                    ) {
+
+                                        kode =
+                                            "M";
+
+                                        label =
+                                            "Masuk";
+
+                                        totalHadir++;
+
+                                    }
+
+                                    else {
+
+                                        kode =
+                                            "-";
+
+                                        label =
+                                            "Belum";
 
                                         totalBelum++;
 
-                                        break;
-                                }
+                                    }
+
+                                    break;
+
                             }
 
-                            else {
-
-                                totalBelum++;
-                            }
                         }
 
-                        // =====================
+
+                        // =================================================
+                        // TIDAK ADA STATUS APPROVED
+                        // =================================================
+
+                        else if (
+                            adaMasuk &&
+                            adaPulang
+                        ) {
+
+                            // =============================================
+                            // MASUK + PULANG
+                            // =============================================
+
+                            kode =
+                                "MP";
+
+                            label =
+                                "Masuk & Pulang";
+
+                            totalHadir++;
+
+                        }
+
+
+                        // =================================================
+                        // MASUK SAJA
+                        // =================================================
+
+                        else if (
+                            adaMasuk
+                        ) {
+
+                            kode =
+                                "M";
+
+                            label =
+                                "Masuk";
+
+                            totalHadir++;
+
+                        }
+
+
+                        // =================================================
                         // BELUM ABSEN
-                        // =====================
+                        // =================================================
 
                         else {
 
+                            kode =
+                                "-";
+
+                            label =
+                                "Belum";
+
                             totalBelum++;
+
                         }
 
+
+                        // =================================================
+                        // SIMPAN DATA HARIAN
+                        // =================================================
+
                         harian.push({
+
                             kode,
+
                             label
+
                         });
+
                     }
 
+
+                    // =================================================
+                    // RETURN SISWA
+                    // =================================================
+
                     return {
+
+                        username:
+                            siswaItem.username,
 
                         nama:
                             siswaItem.nama_lengkap,
@@ -522,32 +1233,73 @@ async function getRekapBulanan({
                         kategori:
                             siswaItem.kategori,
 
+                        lokasi_id:
+                            siswaItem.lokasi_id,
+
                         harian,
 
                         totalHadir,
+
                         totalDayOff,
+
                         totalIzin,
+
                         totalSakit,
+
                         totalPending,
+
                         totalBelum,
+
                         totalLiburNasional,
-                        totalLiburIndustri
+
+                        totalLiburIndustri,
+
+                        totalWFH,
+
+                        totalLupaAbsen
+
                     };
+
                 }
             );
 
+
+        // =========================================================
+        // KATEGORI LIST
+        // =========================================================
+
         const kategoriList = [
             ...new Set(
-                siswa.map(
-                    s => s.kategori
-                )
+                siswa
+                    .map(
+                        s =>
+                            s.kategori
+                    )
+                    .filter(Boolean)
             )
         ].sort();
+
+
+        // =========================================================
+        // DEBUG
+        // =========================================================
+
+        console.log(
+            "REKAP BULANAN:",
+            rekap
+        );
+
+
+        // =========================================================
+        // RETURN
+        // =========================================================
 
         return {
 
             rekap,
+
             jumlahHari,
+
             kategoriList
 
         };
@@ -561,7 +1313,9 @@ async function getRekapBulanan({
         );
 
         throw error;
+
     }
+
 }
 
 function getRekapBadgeClass(kode) {
