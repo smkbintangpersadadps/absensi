@@ -50,7 +50,7 @@
                     SMK Bintang Persada Denpasar
                 </h1>
                 <p class="text-sm text-slate-500 mt-1">
-                    Sistem Absensi PKL
+                    Sistem Absensi
                 </p>
                 <div class="mt-3 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-medium">
                     SMKBP • Smart Attendance Realtime
@@ -136,7 +136,7 @@
             </form>
             <!-- FOOTER -->
             <p class="text-center text-xs text-slate-400 mt-6">
-                © Absensi PKL SMK Bintang Persada
+                © Absensi SMK Bintang Persada
             </p>
         </div>
     </section>
@@ -184,7 +184,7 @@
                     <img src="Logo.png" alt="Logo Sekolah">
                 </div>
                 <div>
-                    <h1>Absensi PKL</h1>
+                    <h1>Absensi</h1>
                     <p>SMKBP • Smart Attendance</p>
                 </div>
             </div>
@@ -323,16 +323,16 @@
                     </div>
                 </div>
                 <!-- TOGGLE MODE -->
-                <div class="bg-white rounded-2xl p-2 shadow">
+                <div class="bg-white rounded-2xl p-2 shadow hidden">
                     <div class="grid grid-cols-2 gap-2">
-                        <!-- MODE WALI -->
+                        
                         <button
                             id="btn-mode-wali"
                             onclick="setMonitoringMode('wali')"
                             class="p-3 rounded-xl bg-indigo-600 text-white text-sm font-medium transition">
                             Wali Kelas
                         </button>
-                        <!-- MODE PEMBIMBING -->
+                        
                         <button
                             id="btn-mode-pembimbing"
                             onclick="setMonitoringMode('pembimbing')"
@@ -432,13 +432,13 @@
                     </p>
                 </div>
                 <div class="bg-white rounded-2xl p-4 shadow grid md:grid-cols-5 gap-3">
-                    <div>
-                        <label class="text-sm text-slate-500">Mode</label>
-                        <select id="rekap-mode" class="w-full border rounded-xl p-3">
+                    <!-- <div>
+                        <label class="text-sm text-slate-500 hidden">Mode</label>
+                        <select id="rekap-mode" class="w-full border rounded-xl p-3 hidden">
                             <option value="wali">Wali Kelas</option>
                             <option value="pembimbing">Pembimbing PKL</option>
                         </select>
-                    </div>
+                    </div> -->
                     <div id="rekap-kategori-wrapper" class="hidden">
                         <label class="text-sm text-slate-500">Kategori / Kelas</label>
                         <select id="rekap-kategori"
@@ -494,9 +494,7 @@
                         <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-700">D = Day Off</span>
                         <span class="px-2 py-1 rounded-full bg-indigo-100 text-indigo-700">I = Izin</span>
                         <span class="px-2 py-1 rounded-full bg-red-100 text-red-700">S = Sakit</span>
-                        <span class="px-2 py-1 rounded-full bg-purple-100 text-purple-700">LI = Libur Industri</span>
                         <span class="px-2 py-1 rounded-full bg-slate-200 text-slate-700">LA = Lupa Absen</span>
-                        <span class="px-2 py-1 rounded-full bg-blue-200 text-slate-700">W = WFH</span>
                         <span class="px-2 py-1 rounded-full bg-orange-100 text-orange-700">PD = Pending</span>
                         <span class="px-2 py-1 rounded-full bg-slate-100 text-slate-500">- = Belum Konfirmasi</span>
                     </div>
@@ -523,7 +521,7 @@
                         Setujui atau tolak pengajuan Day Off / Izin / Sakit siswa.
                     </p>
                 </div>
-                <div class="bg-white rounded-2xl p-2 shadow">
+                <div class="bg-white rounded-2xl p-2 shadow hidden">
                     <div class="grid grid-cols-2 gap-2">
                         <button id="btn-approval-mode-wali"
                             onclick="setApprovalMode('wali')"
@@ -976,9 +974,6 @@
                                 <option value="Libur Nasional">
                                     Libur Nasional
                                 </option>
-                                <option value="Libur Industri">
-                                    Libur Industri
-                                </option>
                                 <option value="Libur Khusus">
                                     Libur Khusus
                                 </option>
@@ -1059,7 +1054,7 @@
                             href="#"
                             target="_blank"
                             class="text-indigo-600 hover:underline">
-                            Lokasi PKL
+                            Lokasi
                         </a>
                     </div>
                     <!-- PEMBIMBING -->
@@ -1240,7 +1235,7 @@
                         Riwayat Pengajuan Status
                     </h2>
                     <p class="text-sm text-slate-500">
-                        Daftar pengajuan Day Off, Izin, Sakit, atau Libur Industri.
+                        Daftar pengajuan Day Off, Izin, Sakit, Dispensasi atau Lupa Absen.
                     </p>
                 </div>
                 <div id="status-history-list" class="space-y-3"></div>
@@ -1252,7 +1247,7 @@
                         Konfirmasi Kehadiran
                     </h2>
                     <p class="text-sm text-slate-500">
-                        Gunakan jika hari ini libur/day off/izin/sakit.
+                        Gunakan jika hari ini izin/sakit/dispen/lupa absen.
                     </p>
                 </div>
                 <div class="bg-white rounded-2xl p-4 shadow space-y-4">
@@ -1267,11 +1262,8 @@
                         <select id="status-tipe"
                             class="w-full border rounded-xl p-3">
                             <option value="">Pilih Status</option>
-                            <option value="Day Off">Day Off</option>
-                            <option value="Libur Industri">Libur Industri</option>
                             <option value="Izin">Izin</option>
                             <option value="Sakit">Sakit</option>
-                            <option value="WFH">WFH</option>
                             <option value="Lupa Absen">Lupa Absen</option>
                         </select>
                     </div>
@@ -1484,7 +1476,7 @@
                         </div>
                         <div class="py-3">
                             <div class="text-xs text-gray-400">
-                                Lokasi PKL
+                                Lokasi
                             </div>
                             <div
                                 id="profile-lokasi"
@@ -1921,9 +1913,6 @@
                                     <option value="Libur Nasional">
                                         Libur Nasional
                                     </option>
-                                    <option value="Libur Industri">
-                                        Libur Industri
-                                    </option>
                                     <option value="Libur Khusus">
                                         Libur Khusus
                                     </option>
@@ -2022,7 +2011,7 @@
         <footer class="footer-fixed">
             <div class="max-w-5xl mx-auto px-4 py-3 text-center text-xs text-gray-500">
                 <p class="font-semibold text-slate-700">
-                    © 2026 Sistem Absensi PKL
+                    © 2026 Sistem Absensi
                 </p>
                 <p class="text-slate-500">
                     SMK Bintang Persada Denpasar • Versi 2.0

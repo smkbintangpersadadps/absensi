@@ -613,7 +613,7 @@ async function getRekapBulanan({
                             );
                         if (liburAktif) {
                             kode =
-                                "LN";
+                                "L";
                             label =
                                 liburAktif.nama_libur;
                             totalLiburNasional++;
@@ -907,7 +907,7 @@ function getRekapBadgeClass(kode) {
         // ======================
         // BARU
         // ======================
-        case "LN":
+        case "L":
             return "rekap-libur-nasional";
         case "LI":
             return "rekap-libur-industri"; 
@@ -1551,7 +1551,7 @@ async function generateRekapPDF() {
             // LIBUR NASIONAL
             // =====================
             else if (
-                kode === "LN"
+                kode === "L"
             ) {
                 dataCell.cell.styles.fillColor =
                     [254,243,199];
@@ -1566,8 +1566,14 @@ async function generateRekapPDF() {
             else if (
                 kode === "I"
             ) {
+                dataCell.cell.styles.fillColor =
+                    [207,250,254]; // cyan-100 / biru toska muda
+
                 dataCell.cell.styles.textColor =
-                    [96,165,250];
+                    [220,38,38]; // merah-600
+
+                dataCell.cell.styles.fontStyle =
+                    "bold";
             }
             // =====================
             // SAKIT
@@ -1575,9 +1581,14 @@ async function generateRekapPDF() {
             else if (
                 kode === "S"
             ) {
+                dataCell.cell.styles.fillColor =
+                    [207,250,254]; // cyan-100 / biru toska muda
 
                 dataCell.cell.styles.textColor =
-                    [245,158,11];
+                    [220,38,38]; // merah-600
+
+                dataCell.cell.styles.fontStyle =
+                    "bold";
             }
             // =====================
             // DAY OFF
@@ -1600,6 +1611,26 @@ async function generateRekapPDF() {
                 dataCell.cell.styles.fontStyle =
                     "bold";
             }
+            // =====================
+            // =====================
+            // TIDAK HADIR / TANPA KETERANGAN
+            // =====================
+            else if (
+                kode === "-"
+            ) {
+                dataCell.cell.text =
+                    ["TK"];
+
+                dataCell.cell.styles.fillColor =
+                    [254,202,202]; // merah muda-merah
+
+                dataCell.cell.styles.textColor =
+                    [0,0,0]; // hitam
+
+                dataCell.cell.styles.fontStyle =
+                    "bold";
+            }
+            
         },
         didDrawCell: function(dataCell) {
             if (
@@ -1672,7 +1703,7 @@ async function generateRekapPDF() {
         doc.lastAutoTable.finalY + 20;
     doc.setFontSize(10);
     doc.text(
-        "Keterangan: ✔=Hadir | D=Day Off | I=Izin | S=Sakit | LA=Lupa Absen | W=WFH | PD=Pending",
+        "Keterangan: ✔=Hadir | (-)=Minggu | TK=Tanpa Keterangan | I=Izin | S=Sakit | D=Dispen | LA=Lupa Absen | PD=Pending | L=Libur Nasional",
         14,
         doc.lastAutoTable.finalY + 10
     );
