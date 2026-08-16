@@ -1,7 +1,6 @@
 window.AppState = {
     currentUser: null,
     appSettings: null,
-
     // target lokasi absensi siswa
     currentUserLocation: null,
     monitoringMode: "wali",
@@ -10,15 +9,11 @@ window.AppState = {
     approvalMode: "wali", // 👈 tambah ini
     masterSiswa: [],
     masterSiswaFiltered: [],
-    
-
     // camera
     cameraStream: null,
     currentPhotoBase64: null,
-
     // posisi GPS realtime user
     currentLocation: null,
-
     // cache
     riwayat: []
 };

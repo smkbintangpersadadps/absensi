@@ -1,6 +1,6 @@
-// function showToast(message, isError = false) {
-//   alert(message);
-// }
+// =====================================
+// HELPER SHOW TOAST
+// =====================================
 function showToast(message, isError = false) {
     Swal.fire({
         toast: true,
@@ -13,16 +13,22 @@ function showToast(message, isError = false) {
     });
 }
 
+// =====================================
+// HELPER SHOW LOADER
+// =====================================
 function showLoader(text = "Loading...") {
   console.log(text);
 }
 
+// =====================================
+// HELPER HIDE LOADER
+// =====================================
 function hideLoader() {}
+
 
 // ===============================
 // DATE HELPER
 // ===============================
-
 function parseDateID(dateStr) {
     if (!dateStr) return new Date();
 
@@ -32,6 +38,9 @@ function parseDateID(dateStr) {
     return new Date(`${y}-${m}-${d}T${timePart || "00:00:00"}`);
 }
 
+// =====================================
+// HELPER FORMAT TODAY
+// =====================================
 function formatTodayID() {
     const now = new Date();
     const d = String(now.getDate()).padStart(2, "0");
@@ -41,41 +50,38 @@ function formatTodayID() {
     return `${d}/${m}/${y}`;
 }
 
+// =====================================
+// HELPER LIBUR
+// =====================================
 function isLiburBerlakuUntukLokasi(
     libur,
     lokasiId
 ) {
-
     const berlaku =
         String(
             libur?.berlaku || ""
         )
         .trim()
         .toUpperCase();
-
     const lokasi =
         String(
             lokasiId || ""
         )
         .trim()
         .toUpperCase();
-
     if (!berlaku) {
         return false;
     }
-
     // Berlaku untuk semua
     if (berlaku === "ALL") {
         return true;
     }
-
     const lokasiList =
         berlaku
         .split(",")
         .map(x =>
             x.trim().toUpperCase()
         );
-
     return lokasiList.includes(
         lokasi
     );

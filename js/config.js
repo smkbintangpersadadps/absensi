@@ -1,7 +1,6 @@
 // ===============================
 // CONFIG APP
 // ===============================
-
 const CONFIG = {
     IS_PREVIEW: false, // true = pakai dummy data
     GAS_URL: "https://script.google.com/macros/s/AKfycbxzqxuxfVhSx2W0gn5dBzC-jVs1xKBhs1PKejEOqCwUJhY0daCtzfI4STZYrId4zDcV/exec",
@@ -16,11 +15,6 @@ const CONFIG = {
 // ===============================
 // GLOBAL STATE
 // ===============================
-
-// ===============================
-// DUMMY DATA (Preview Mode)
-// ===============================
-
 const DummyData = {
     users: [
         {
@@ -38,6 +32,5 @@ const DummyData = {
             kategori: 'Karyawan'
         }
     ],
-
     riwayat: []
 };

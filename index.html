@@ -4,35 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SMKBP • Smart Attendance</title>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" href="Logo.png">
-
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    
-    <link rel="stylesheet"
-        href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
-    
-    <!-- <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-table@1.22.5/dist/bootstrap-table.min.css"> -->
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"> 
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
 </head>
 
 <body class="bg-slate-100">
-
     <img
         id="logo-sekolah"
         src="Logo.png"
         style="display:none">
-
     <!-- TOAST -->
     <div id="toast" class="fixed top-6 right-6 opacity-0 z-50"></div>
-
     <!-- LOADER -->
     <div id="global-loader" class="hidden-page">
         <div class="loader-box">
@@ -77,7 +64,6 @@
                     </label>
                     <div class="relative">
                         <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-
                         <input id="login-username"
                             type="text"
                             placeholder="Masukkan username"
@@ -157,68 +143,12 @@
 
     <!-- ================= MAIN APP ================= -->
     <div id="layout-main" class="hidden-page min-h-screen flex flex-col">
-
-        <!-- SIDEBAR -->
-        <!-- <aside id="sidebar"
-            class="fixed left-0 top-0 h-full w-72 bg-white shadow-lg p-6
-            hidden md:flex flex-col">
-
-            <div class="mb-8">
-                <h2 id="nav-user-name" class="font-bold text-lg"></h2>
-                <p id="nav-user-role"
-                    class="text-sm text-slate-500 capitalize"></p>
-
-                <p id="nav-user-kategori"
-                    class="hidden-page text-sm text-indigo-600 mt-1"></p>
-            </div>
-
-            <nav id="nav-menu" class="space-y-2"></nav>
-
-            <div class="mt-auto pt-6">
-    <button onclick="logout()"
-        class="w-full bg-red-500 text-white p-3 rounded-xl shadow-md active:scale-95 transition">
-        ⏻ Logout
-    </button>
-</div>
-        </aside> -->
-        <!-- <aside id="sidebar"
-            class="fixed left-0 top-0 h-full w-72 bg-white shadow-xl p-5 hidden md:flex flex-col">
-
-
-            <div class="bg-gradient-to-br from-indigo-600 to-blue-500 rounded-3xl p-5 text-white shadow-lg mb-6">
-
-                <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-2xl font-bold mb-4">
-                    <span id="nav-user-avatar-desktop">A</span>
-                </div>
-
-                <h2 id="nav-user-name" class="font-bold text-lg leading-tight"></h2>
-
-                <p id="nav-user-role" class="text-sm text-indigo-100 mt-1"></p>
-
-                <p id="nav-user-kategori"
-                    class="text-sm text-white/90 mt-1"></p>
-            </div>
-
-            <nav id="nav-menu" class="space-y-2 flex-1"></nav>
-
-
-            <div class="pt-6">
-                <button onclick="logout()"
-                    class="w-full bg-red-500 hover:bg-red-600 text-white p-3 rounded-2xl shadow-md active:scale-95 transition font-medium">
-                    ⏻ Logout
-                </button>
-            </div>
-
-        </aside> -->
         <header id="desktop-topbar" class="desktop-topbar hidden md:flex">
-
             <div class="topbar-page-info">
                 <h1 id="topbar-title">Dashboard</h1>
                 <p id="topbar-subtitle">Monitoring absensi siswa bimbingan</p>
             </div>
-
             <div class="topbar-actions">
-
                 <!-- JAM -->
                 <div class="topbar-clock">
                     <i class="fa-regular fa-clock"></i>
@@ -227,31 +157,27 @@
                         <span id="topbar-date">-</span>
                     </div>
                 </div>
-
                 <!-- NOTIFIKASI IZIN -->
                 <button class="topbar-notif" title="Pengajuan izin">
                     <i class="fa-solid fa-bell"></i>
                     <span id="izin-badge">0</span>
                 </button>
-
                 <!-- FOTO GURU -->
                 <div class="topbar-profile">
                     <img id="topbar-user-photo"
                         src="https://ui-avatars.com/api/?name=Guru&background=2563eb&color=fff"
                         alt="Foto Guru">
-
                     <div>
                         <strong id="topbar-user-name">Guru</strong>
                         <span id="topbar-user-role">Pembimbing</span>
                     </div>
                 </div>
-
             </div>
-
         </header>
+
+        <!-- SIDEBAR -->
         <aside id="sidebar"
             class="fixed left-0 top-0 h-full w-72 shadow-2xl p-5 hidden md:flex flex-col">
-
             <!-- BRAND -->
             <div class="sidebar-brand">
                 <div class="brand-icon">
@@ -262,23 +188,7 @@
                     <p>SMKBP • Smart Attendance</p>
                 </div>
             </div>
-
-            <!-- PROFILE CARD -->
-            <!-- <div class="sidebar-profile">
-                <div class="profile-glow"></div>
-
-                <div class="profile-avatar">
-                    <span id="nav-user-avatar-desktop">A</span>
-                </div>
-
-                <h2 id="nav-user-name"></h2>
-                <p id="nav-user-role"></p>
-                <span id="nav-user-kategori"></span>
-            </div> -->
-
-            <!-- MENU -->
             <nav id="nav-menu" class="sidebar-menu flex-1"></nav>
-
             <!-- LOGOUT -->
             <div class="pt-6">
                 <button onclick="logout()" class="sidebar-logout">
@@ -286,7 +196,6 @@
                     Logout
                 </button>
             </div>
-
         </aside>
 
         <!-- CONTENT -->
@@ -295,19 +204,16 @@
     bg-white/95 backdrop-blur-md
     shadow-sm border-b
     p-4 flex items-center justify-between">
-
     <!-- USER INFO -->
     <div class="flex items-center gap-3">
 
         <div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold">
             <span id="nav-user-avatar">U</span>
         </div>
-
         <div>
             <p class="font-bold" id="nav-user-name-mobile">User</p>
             <p class="text-xs text-gray-500" id="nav-user-role-mobile"></p>
         </div>
-
     </div>
 
     <!-- LOGOUT -->
@@ -315,96 +221,76 @@
         class="text-red-500 text-xl p-2 rounded-full hover:bg-red-50 transition">
         <i class="fa-solid fa-power-off"></i>
     </button>
-
 </div>
         <main class="p-4 md:ml-72 md:p-8">
-
             <!-- ADMIN DASHBOARD -->
             <section id="page-admin-dashboard" class="hidden-page">
                 <h1 class="text-2xl font-bold mb-6">
                     Dashboard Admin
                 </h1>
-
                 <div class="grid grid-cols-3 gap-4">
                     <div class="card-stat">
                         <h3>Total Peserta</h3>
                         <p id="stat-total-peserta">0</p>
                     </div>
-
                     <div class="card-stat">
                         <h3>Total Riwayat</h3>
                         <p id="stat-total-riwayat">0</p>
                     </div>
-
                     <div class="card-stat">
                         <h3>Absen Hari Ini</h3>
                         <p id="stat-absen-today">0</p>
                     </div>
                 </div>
             </section>
-
             <!-- KELOLA USER -->
             <section id="page-admin-users" class="hidden-page">
                 <h1 class="text-2xl font-bold mb-6">
                     Kelola User
                 </h1>
-
                 <form id="form-add-user"
                     onsubmit="handleAddUser(event)"
                     class="bg-white p-6 rounded-xl mb-6 space-y-3">
-
                     <input id="add-nama"
                         placeholder="Nama Lengkap"
                         class="input-field">
-
                     <input id="add-username"
                         placeholder="Username"
                         class="input-field">
-
                     <input id="add-password"
                         placeholder="Password"
                         class="input-field">
-
                     <input id="add-kategori"
                         placeholder="Kategori / Kelas"
                         class="input-field">
-
                     <select id="add-role" class="input-field">
                         <option value="siswa">Siswa</option>
                         <option value="wali">Wali / Pembimbing</option>
                     </select>
-
                     <button class="btn-primary">
                         Tambah User
                     </button>
                 </form>
-
                 <table class="table-main">
                     <tbody id="table-users-body"></tbody>
                 </table>
             </section>
-
             <!-- SETTINGS -->
             <section id="page-admin-settings" class="hidden-page">
                 <h1 class="text-2xl font-bold mb-6">
                     Pengaturan Lokasi
                 </h1>
-
                 <form onsubmit="handleSaveLocationSettings(event)"
                     class="space-y-3">
-
                     <input id="set-lat"
                         class="input-field"
                         placeholder="Latitude">
-
                     <input id="set-lng"
                         class="input-field"
                         placeholder="Longitude">
-
                     <input id="set-radius"
                         class="input-field"
                         placeholder="Radius Meter">
-
                     <button class="btn-primary">
                         Simpan
                     </button>
@@ -438,56 +324,42 @@
                 </div>
                 <!-- TOGGLE MODE -->
                 <div class="bg-white rounded-2xl p-2 shadow">
-
                     <div class="grid grid-cols-2 gap-2">
-
                         <!-- MODE WALI -->
                         <button
                             id="btn-mode-wali"
                             onclick="setMonitoringMode('wali')"
                             class="p-3 rounded-xl bg-indigo-600 text-white text-sm font-medium transition">
-
                             Wali Kelas
-
                         </button>
-
                         <!-- MODE PEMBIMBING -->
                         <button
                             id="btn-mode-pembimbing"
                             onclick="setMonitoringMode('pembimbing')"
                             class="p-3 rounded-xl bg-slate-100 text-slate-700 text-sm font-medium transition">
-
                             Pembimbing PKL
-
                         </button>
-
                     </div>
-
                 </div>
                 <div id="wali-dashboard-content" class="space-y-4">
-
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <div class="bg-white rounded-2xl p-4 shadow text-center">
                             <p class="text-xs text-gray-500">Total Siswa</p>
                             <h3 id="wali-total-siswa" class="text-2xl font-bold">0</h3>
                         </div>
-
                         <div class="bg-white rounded-2xl p-4 shadow text-center">
                             <p class="text-xs text-gray-500">Sudah Hadir</p>
                             <h3 id="wali-sudah-hadir" class="text-2xl font-bold text-green-600">0</h3>
                         </div>
-
                         <div class="bg-white rounded-2xl p-4 shadow text-center">
                             <p class="text-xs text-gray-500">Belum Hadir</p>
                             <h3 id="wali-belum-hadir" class="text-2xl font-bold text-red-600">0</h3>
                         </div>
-
                         <div class="bg-white rounded-2xl p-4 shadow text-center">
                             <p class="text-xs text-gray-500">Status Khusus</p>
                             <h3 id="wali-status-khusus" class="text-2xl font-bold text-amber-600">0</h3>
                         </div>
                     </div>
-
                     <div class="grid md:grid-cols-4 gap-4">
                         <!-- BELUM HADIR -->
                         <div class="bg-white rounded-2xl p-4 shadow self-start">
@@ -502,7 +374,6 @@
                             </div>
                             <div id="wali-belum-list" class="space-y-2"></div>
                         </div>
-
                         <!-- SUDAH HADIR -->
                         <div class="bg-white rounded-2xl p-4 shadow self-start">
                             <div class="flex items-center justify-between mb-3">
@@ -522,13 +393,11 @@
                                 <h3 class="font-bold text-orange-600">
                                     Menunggu Approval
                                 </h3>
-
                                 <span id="wali-pending-count"
                                     class="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700">
                                     0 siswa
                                 </span>
                             </div>
-
                             <div id="wali-pending-list" class="space-y-2"></div>
                         </div>
                         <!-- STATUS KEHADIRAN -->
@@ -547,11 +416,9 @@
                         </div>
                     </div>
                 </div>
-
                 <div id="wali-dashboard-empty"
                     class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-700">
                 </div>
-
             </section>
 
             <!--REKAP SECTION-->
@@ -646,7 +513,6 @@
                     </div>
                 </div>
             </section>
-
             <!--APPROVAL-->
             <section id="page-wali-approval" class="hidden-page p-4 space-y-4">
                 <div class="bg-white rounded-2xl p-4 shadow">
@@ -664,7 +530,6 @@
                             class="p-3 rounded-xl bg-indigo-600 text-white text-sm font-medium">
                             Wali Kelas
                         </button>
-
                         <button id="btn-approval-mode-pembimbing"
                             onclick="setApprovalMode('pembimbing')"
                             class="p-3 rounded-xl bg-slate-100 text-slate-700 text-sm font-medium">
@@ -674,9 +539,7 @@
                 </div>
                 <div id="approval-list" class="space-y-3"></div>
             </section>
-
             <section id="page-wali-history" class="hidden-page p-4 space-y-4">
-
                 <div class="bg-white rounded-2xl p-4 shadow">
                     <h2 class="text-lg font-bold text-slate-800">
                         Riwayat Absensi Siswa
@@ -685,7 +548,6 @@
                         Data absensi siswa berdasarkan mode Wali Kelas / Pembimbing PKL
                     </p>
                 </div>
-
                 <!-- TOGGLE MODE RIWAYAT -->
                 <div class="bg-white rounded-2xl p-2 shadow">
                     <div class="grid grid-cols-2 gap-2">
@@ -695,7 +557,6 @@
                             class="p-3 rounded-xl bg-indigo-600 text-white text-sm font-medium transition">
                             Wali Kelas
                         </button>
-
                         <button
                             id="btn-history-mode-pembimbing"
                             onclick="setHistoryMode('pembimbing')"
@@ -704,36 +565,28 @@
                         </button>
                     </div>
                 </div>
-
                 <!-- EMPTY STATE -->
                 <div id="wali-history-empty"
                     class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-700">
                 </div>
                 <div class="grid md:grid-cols-4 gap-3 mb-4">
-
                     <div>
                         <label class="text-sm text-slate-500">
                             Tanggal
                         </label>
-
                         <input
                             type="date"
                             id="history-date"
                             class="w-full border rounded-xl p-3">
                     </div>
-
                     <div class="flex items-end">
                         <button
                             onclick="HistoryService.load(true)"
                             class="w-full bg-indigo-600 text-white p-3 rounded-xl">
-
                             Tampilkan
-
                         </button>
                     </div>
-
                 </div>
-
                 <!-- TABLE -->
                 <div id="wali-history-table-wrapper" class="bg-white rounded-2xl p-4 shadow">
                     <div class="w-full">
@@ -752,7 +605,6 @@
                         </table>
                     </div>
                 </div>
-
             </section>
 
             <!--KEPSEK Dashboard-->
@@ -807,7 +659,6 @@
                         <h3 id="kepsek-total-status"
                             class="text-2xl font-bold text-amber-600">0</h3>
                     </div>
-
                     <div class="bg-white rounded-2xl p-4 shadow text-center">
                         <p class="text-xs text-gray-500">Pending Approval</p>
                         <h3 id="kepsek-total-pending"
@@ -828,7 +679,6 @@
                         </h5>
                     </div>
                     <div class="grid lg:grid-cols-5 md:grid-cols-2 grid-cols-1 gap-4">
-
                         <!-- Search -->
                         <div>
                             <label class="text-sm font-semibold text-slate-600 mb-1 block">
@@ -891,8 +741,8 @@
                                     <th>Kelas</th>
                                     <th>Industri</th>
                                     <th>Jam Masuk</th>
-                                    <th>Status</th>
-                                    <th>Maps</th>
+                                    <th>Jam Pulang</th>
+                                    <th>Keterangan</th>
                                 </tr>
                             </thead>
                             <tbody id="kepsek-table-body"></tbody>
@@ -1049,7 +899,6 @@
                                 </option>
                             </select>
                         </div>
-
                         <div class="flex items-end">
                             <button
                                 onclick="filterMasterLokasi()"
@@ -1077,294 +926,312 @@
                     </table>
                 </div>
             </section>
+            <!-- MASTER DATA LIBUR -->
+            <section id="page-kepsek-hari-libur" class="hidden-page">
+                <!-- HEADER -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-800">
+                            Data Hari Libur
+                        </h1>
+                        <p class="text-sm text-slate-500 mt-1">
+                            Kelola hari libur nasional dan libur khusus untuk siswa PKL.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onclick="openModalHariLibur()"
+                        class="btn-primary flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i>
+                        Tambah Hari Libur
+                    </button>
+                </div>
+                <!-- FILTER -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- TAHUN -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">
+                                Tahun
+                            </label>
+                            <select
+                                id="filter-libur-tahun"
+                                class="input-field"
+                                onchange="loadHariLibur()">
+                                <!-- Diisi JavaScript -->
+                            </select>
+                        </div>
+                        <!-- JENIS -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">
+                                Jenis
+                            </label>
+                            <select
+                                id="filter-libur-jenis"
+                                class="input-field"
+                                onchange="loadHariLibur()">
+                                <option value="ALL">
+                                    Semua Jenis
+                                </option>
+                                <option value="Libur Nasional">
+                                    Libur Nasional
+                                </option>
+                                <option value="Libur Industri">
+                                    Libur Industri
+                                </option>
+                                <option value="Libur Khusus">
+                                    Libur Khusus
+                                </option>
+                            </select>
+                        </div>
+                        <!-- SEARCH -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">
+                                Cari
+                            </label>
+                            <input
+                                type="text"
+                                id="search-libur"
+                                class="input-field"
+                                placeholder="Cari nama libur..."
+                                oninput="filterHariLiburTable()">
+                        </div>
+                    </div>
+                </div>
+                <!-- TABLE -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-semibold text-slate-600">
+                                        No
+                                    </th>
+                                    <th class="px-4 py-3 text-left font-semibold text-slate-600">
+                                        Tanggal
+                                    </th>
+                                    <th class="px-4 py-3 text-left font-semibold text-slate-600">
+                                        Nama Libur
+                                    </th>
+                                    <th class="px-4 py-3 text-left font-semibold text-slate-600">
+                                        Jenis
+                                    </th>
+                                    <th class="px-4 py-3 text-left font-semibold text-slate-600">
+                                        Berlaku
+                                    </th>
+                                    <th class="px-4 py-3 text-center font-semibold text-slate-600">
+                                        Aksi
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody
+                                id="table-hari-libur"
+                                class="divide-y divide-slate-100">
+                                <tr>
+                                    <td
+                                        colspan="6"
+                                        class="px-4 py-8 text-center text-slate-400">
+                                        Belum ada data.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
             <!-- SISWA DASHBOARD -->
             <section id="page-user-dashboard" class="hidden-page p-4 space-y-4">
-
                 <!-- HEADER -->
                 <div class="bg-white rounded-2xl p-4 shadow">
-
                     <h2 class="text-lg font-bold text-slate-800">
                         Halo,
                         <span id="ui-user-name">Siswa</span>
                         👋
                     </h2>
-
                     <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
-
                         <span id="ui-user-kategori"
                             class="px-2 py-1 rounded-full bg-blue-50 text-blue-700 font-medium">
                             PKL
                         </span>
-
                         <span class="text-gray-400">•</span>
-
                         <a id="ui-user-lokasi"
                             href="#"
                             target="_blank"
                             class="text-indigo-600 hover:underline">
-
                             Lokasi PKL
-
                         </a>
-
                     </div>
-
                     <!-- PEMBIMBING -->
                     <div class="mt-3">
-
                         <div
                             class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-sm font-medium">
-
                             <i class="fa-solid fa-user-tie text-indigo-500"></i>
-
                             <strong>
                                 <span id="ui-user-pembina">-</span>
                             </strong>
-
                         </div>
-
                         <!-- WA -->
                         <div class="mt-2">
-
                             <a id="ui-user-wa-pembina"
                                 href="#"
                                 target="_blank"
                                 class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
                                 bg-green-50 text-green-700 text-sm font-medium
                                 hover:bg-green-100 transition">
-
                                 <i class="fa-brands fa-whatsapp"></i>
-
                                 <span>
                                     Hubungi Pembimbing
                                 </span>
-
                             </a>
-
                         </div>
-
                     </div>
-
                 </div>
-
                 <!-- STATUS HARI INI -->
                 <div class="bg-indigo-600 text-white rounded-2xl p-4 shadow">
-
                     <p class="text-sm opacity-80">
                         Status Hari Ini
                     </p>
-
                     <h3 class="text-2xl font-bold" id="ui-status-hari">
                         -
                     </h3>
-
                     <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
-
                         <div>
                             Masuk:
                             <b id="ui-masuk">-</b>
                         </div>
-
                         <div>
                             Pulang:
                             <b id="ui-pulang">-</b>
                         </div>
-
                     </div>
-
                 </div>
-
                 <!-- MENU UTAMA -->
                 <div class="bg-white rounded-2xl p-4 shadow">
-
                     <h3 class="font-bold text-slate-700 mb-4">
                         Menu Utama
                     </h3>
-
                     <div class="grid grid-cols-3 gap-4">
-
                         <!-- ABSENSI -->
                         <button
                             onclick="navigateTo('page-user-absen')"
                             class="flex flex-col items-center">
-
                             <div class="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center">
-
                                 <i class="fa-solid fa-camera text-green-600 text-xl"></i>
-
                             </div>
-
                             <span class="text-xs mt-2">
                                 Absen
                             </span>
-
                         </button>
-
                         <!-- PENGAJUAN -->
                         <button
                             onclick="navigateTo('page-user-status')"
                             class="flex flex-col items-center">
-
                             <div class="w-14 h-14 rounded-2xl bg-yellow-100 flex items-center justify-center">
                                 <i class="fa-solid fa-file-signature text-yellow-600 text-xl"></i>
                             </div>
-
                             <span class="text-xs mt-2 text-center">
                                 Pengajuan
                             </span>
-
                         </button>
-
                         <!-- STATUS -->
                         <button
                             onclick="navigateTo('page-user-status-history')"
                             class="flex flex-col items-center">
-
                             <div class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center">
-
                                 <i class="fa-solid fa-calendar-check text-blue-600 text-xl"></i>
-
                             </div>
-
                             <span class="text-xs mt-2">
                                 Status
                             </span>
-
                         </button>
-
                         <!-- RIWAYAT -->
                         <button
                             onclick="navigateTo('page-history')"
                             class="flex flex-col items-center">
-
                             <div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center">
-
                                 <i class="fa-solid fa-clock-rotate-left text-orange-600 text-xl"></i>
-
                             </div>
-
                             <span class="text-xs mt-2">
                                 Riwayat
                             </span>
-
                         </button>
-
                         <!-- PROFIL -->
                         <button
                             onclick="navigateTo('page-user-profile')"
                             class="flex flex-col items-center">
-
                             <div class="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center">
-
                                 <i class="fa-solid fa-user text-purple-600 text-xl"></i>
-
                             </div>
-
                             <span class="text-xs mt-2">
                                 Profil
                             </span>
-
                         </button>
-
                     </div>
-
                 </div>
-
                 <!-- RINGKASAN BULAN -->
                 <div class="bg-white rounded-2xl p-4 shadow">
-
                     <h3 class="font-bold mb-3">
                         Ringkasan Bulan Ini
                     </h3>
-
                     <div class="grid grid-cols-3 text-center">
-
                         <div>
-
                             <p class="text-xl font-bold"
                                 id="ui-total-hadir">
                                 0
                             </p>
-
                             <p class="text-xs text-gray-500">
                                 Hadir
                             </p>
-
                         </div>
-
                         <div>
-
                             <p class="text-xl font-bold"
                                 id="ui-total-masuk">
                                 0
                             </p>
-
                             <p class="text-xs text-gray-500">
                                 Masuk
                             </p>
-
                         </div>
-
                         <div>
-
                             <p class="text-xl font-bold"
                                 id="ui-total-pulang">
                                 0
                             </p>
-
                             <p class="text-xs text-gray-500">
                                 Pulang
                             </p>
-
                         </div>
-
                     </div>
-
                 </div>
 
                 <!-- PROGRESS -->
                 <div class="bg-white rounded-2xl p-4 shadow">
-
                     <h3 class="font-bold mb-2">
                         Progress Kehadiran
                     </h3>
-
                     <div class="w-full bg-gray-200 rounded-full h-3">
-
                         <div id="ui-progress-kehadiran"
                             class="bg-green-500 h-3 rounded-full transition-all">
                         </div>
-
                     </div>
-
                     <p class="text-sm mt-2 text-gray-600">
-
                         <span id="ui-persentase">
                             0%
                         </span>
-
                         tercapai
-
                     </p>
-
                 </div>
-
                 <!-- LAST ABSEN -->
                 <div class="bg-white rounded-2xl p-4 shadow">
-
                     <h3 class="font-bold mb-2">
                         Absen Terakhir
                     </h3>
-
                     <div id="ui-last-absen"
                         class="text-sm text-gray-600">
-
                         -
-
                     </div>
-
                 </div>
-
             </section>
             <!--HISTORY STATUS-->
             <section id="page-user-status-history" class="hidden-page p-4 space-y-4">
@@ -1469,53 +1336,32 @@
                 </div>
             </section>
 
-            
-
             <!-- ABSENSI -->
             <section id="page-user-absen" class="hidden-page">
                 <h1 class="text-2xl font-bold mb-6">
                     Mulai Absensi
                 </h1>
-
-                <!-- <select id="absen-tipe" class="input-field">
-                    <option value="Masuk">Masuk</option>
-                    <option value="Pulang">Pulang</option>
-                </select> -->
                 <div class="absen-toggle">
-
                     <button
                         type="button"
                         class="absen-btn active-masuk"
                         data-value="Masuk">
-
                         <i class="fa-solid fa-right-to-bracket"></i>
                         Masuk
-
                     </button>
-
                     <button
                         type="button"
                         class="absen-btn"
                         data-value="Pulang">
-
                         <i class="fa-solid fa-right-from-bracket"></i>
                         Pulang
-
                     </button>
-
                 </div>
-
                 <input
                     type="hidden"
                     id="absen-tipe"
                     value="Masuk">
                 <br>
-
-                <!-- <input type="hidden" id="absen-tipe" value="Masuk"> -->
-
-                <!-- <video id="kamera-video"
-                    autoplay
-                    class="rounded-xl w-full max-w-md"></video> -->
                 <video id="kamera-video"
                     autoplay
                     muted
@@ -1523,12 +1369,9 @@
                     webkit-playsinline
                     class="rounded-xl w-full max-w-md">
                 </video>
-
                 <img id="kamera-preview"
                     class="hidden-page rounded-xl w-full max-w-md">
-
                 <canvas id="kamera-canvas" class="hidden-page"></canvas>
-
                 <div class="mt-4 flex gap-3">
                     <button id="btn-snap"
                         onclick="takeSnapshot()"
@@ -1536,7 +1379,6 @@
                         Ambil Foto
                     </button>
                     
-
                     <button id="btn-retake"
                         onclick="retakeSnapshot()"
                         class="hidden-page btn-secondary">
@@ -1553,23 +1395,19 @@
                     <p class="text-xs text-slate-400 mt-2 text-center">
                         Gunakan jika Kamera atau GPS mengalami masalah
                     </p>
-
                 <div class="mt-4">
                     <p>Status GPS:
                         <span id="gps-status"></span>
                     </p>
-
                     <p>Jarak:
                         <span id="gps-distance"></span>
                     </p>
                 </div>
-
                 <button id="btn-submit-absen"
                     onclick="submitAbsensi()"
                     class="btn-primary mt-6">
                     Kirim Absensi
                 </button>
-
                 <p id="submit-warning"
                     class="text-rose-500 mt-3"></p>
             </section>
@@ -1579,10 +1417,6 @@
                 <h1 class="text-2xl font-bold mb-6">
                     Riwayat Absensi
                 </h1>
-
-                <!-- <table class="table-main">
-                    <tbody id="table-history-body"></tbody>
-                </table> -->
                 <div id="student-history-filter"
                     class="bg-white rounded-2xl p-4 shadow mb-4">
                     <div class="grid grid-cols-2 gap-3">
@@ -1829,15 +1663,14 @@
                                 </p>
                             </div>
                             <button
-                                onclick="closeEditSiswaModal()"
+                                onclick="closeEditSiswa()"
                                 class="text-white text-xl">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
                         </div>
                     </div>
                     <!-- Body -->
-                    <div class="p-6 space-y-4">
-                        
+                    <div class="p-6 space-y-4">                        
                         <div class="grid md:grid-cols-2 gap-4">
                             <input type="hidden" id="edit-username">
                         <div>
@@ -1868,7 +1701,6 @@
                                 readonly
                                 class="w-full mt-2 border rounded-xl px-3 py-2 bg-slate-100">
                         </div>
-                        
                         <div class="grid md:grid-cols-2 gap-4">
                             <div>
                                 <label class="font-semibold text-slate-600">
@@ -1888,7 +1720,6 @@
                                     class="w-full mt-2 border rounded-xl px-3 py-2">
                                 </select>
                             </div>
-
                         </div>
                     </div>
                     <!-- Footer -->
@@ -1977,6 +1808,211 @@
                     </div>
                 </div>
             </div>
+            <!-- MODAL EDIT LIBUR -->
+            <div
+                id="modal-hari-libur"
+                class="fixed inset-0 hidden items-center justify-center bg-black/40 p-4"
+            >
+                <div
+                    class="modal-hari-libur-box bg-white rounded-2xl shadow-xl"
+                >
+                    <!-- ========================= -->
+                    <!-- HEADER -->
+                    <!-- ========================= -->
+                    <div class="flex items-center justify-between px-5 py-4 border-b">
+                        <div>
+                            <h2
+                                id="modal-hari-libur-title"
+                                class="text-lg font-bold text-slate-800"
+                            >
+                                Tambah Hari Libur
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-1">
+                                Kelola data hari libur
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="closeModalHariLibur()"
+                            class="w-8 h-8 rounded-full
+                                flex items-center justify-center
+                                text-slate-400
+                                hover:bg-slate-100
+                                hover:text-slate-700"
+                        >
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <!-- ========================= -->
+                    <!-- BODY -->
+                    <!-- ========================= -->
+                    <div class="modal-hari-libur-body px-5 py-4">
+                        <form id="form-hari-libur">
+                            <input
+                                type="hidden"
+                                id="hari-libur-id"
+                            >
+                            <!-- TANGGAL -->
+                            <div class="mb-4">
+                                <label
+                                    for="hari-libur-tanggal"
+                                    class="block text-sm font-medium text-slate-700 mb-1"
+                                >
+                                    Tanggal
+                                </label>
+                                <input
+                                    type="date"
+                                    id="hari-libur-tanggal"
+                                    required
+                                    class="w-full px-3 py-2.5
+                                        border border-slate-300
+                                        rounded-xl
+                                        text-sm
+                                        focus:outline-none
+                                        focus:ring-2
+                                        focus:ring-indigo-500"
+                                >
+                            </div>
+                            <!-- NAMA LIBUR -->
+                            <div class="mb-4">
+                                <label
+                                    for="hari-libur-nama"
+                                    class="block text-sm font-medium text-slate-700 mb-1"
+                                >
+                                    Nama Libur
+                                </label>
+                                <input
+                                    type="text"
+                                    id="hari-libur-nama"
+                                    required
+                                    maxlength="150"
+                                    placeholder="Contoh: Hari Kemerdekaan RI"
+                                    class="w-full px-3 py-2.5
+                                        border border-slate-300
+                                        rounded-xl
+                                        text-sm
+                                        focus:outline-none
+                                        focus:ring-2
+                                        focus:ring-indigo-500"
+                                >
+                            </div>
+                            <!-- JENIS -->
+                            <div class="mb-4">
+                                <label
+                                    for="hari-libur-jenis"
+                                    class="block text-sm font-medium text-slate-700 mb-1"
+                                >
+                                    Jenis Libur
+                                </label>
+                                <select
+                                    id="hari-libur-jenis"
+                                    required
+                                    class="w-full px-3 py-2.5
+                                        border border-slate-300
+                                        rounded-xl
+                                        text-sm
+                                        focus:outline-none
+                                        focus:ring-2
+                                        focus:ring-indigo-500"
+                                >
+                                    <option value="">
+                                        Pilih Jenis Libur
+                                    </option>
+                                    <option value="Libur Nasional">
+                                        Libur Nasional
+                                    </option>
+                                    <option value="Libur Industri">
+                                        Libur Industri
+                                    </option>
+                                    <option value="Libur Khusus">
+                                        Libur Khusus
+                                    </option>
+                                </select>
+                            </div>
+                            <!-- BERLAKU -->
+                            <div class="mb-2">
+                                <label
+                                    class="block text-sm font-medium text-slate-700 mb-2"
+                                >
+                                    Berlaku Untuk
+                                </label>
+                                <div class="space-y-2">
+                                    <!-- SEMUA LOKASI -->
+                                    <label
+                                        class="flex items-center gap-2
+                                            p-3
+                                            rounded-xl
+                                            border border-slate-200
+                                            hover:bg-slate-50
+                                            cursor-pointer"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            id="hari-libur-all"
+                                            value="ALL"
+                                            onchange="toggleSemuaLokasiHariLibur()"
+                                            class="w-4 h-4 text-indigo-600"
+                                        >
+                                        <span class="text-sm text-slate-700">
+                                            Semua Lokasi
+                                        </span>
+                                    </label>
+                                    <!-- DROPDOWN LOKASI -->
+                                    <select
+                                        id="hari-libur-lokasi"
+                                        multiple
+                                        class="w-full px-3 py-2.5
+                                            border border-slate-300
+                                            rounded-xl
+                                            text-sm
+                                            min-h-[110px]"
+                                    >
+                                    </select>
+                                    <p class="text-xs text-slate-500">
+                                        Tekan Ctrl untuk memilih beberapa lokasi.
+                                        Jika memilih "Semua Lokasi", pilihan lokasi diabaikan.
+                                    </p>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- ========================= -->
+                    <!-- FOOTER -->
+                    <!-- ========================= -->
+                    <div class="modal-hari-libur-footer px-5 pb-4">
+                        <div class="flex gap-2">
+                            <button
+                                type="button"
+                                onclick="closeModalHariLibur()"
+                                class="flex-1
+                                    px-4 py-2.5
+                                    rounded-xl
+                                    border border-slate-300
+                                    text-slate-700
+                                    text-sm font-medium
+                                    hover:bg-slate-50"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="button"
+                                id="btn-save-hari-libur"
+                                onclick="saveHariLibur()"
+                                class="flex-1
+                                    px-4 py-2.5
+                                    rounded-xl
+                                    bg-indigo-600
+                                    text-white
+                                    text-sm font-medium
+                                    hover:bg-indigo-700"
+                            >
+                                <i class="fa-solid fa-save mr-1"></i>
+                                Simpan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         <!-- BOTTOM NAV -->
         <div id="mobile-bottom-menu"
@@ -1988,39 +2024,29 @@
                 <p class="font-semibold text-slate-700">
                     © 2026 Sistem Absensi PKL
                 </p>
-
                 <p class="text-slate-500">
-                    SMK Bintang Persada Denpasar • Versi 1.5
+                    SMK Bintang Persada Denpasar • Versi 2.0
                 </p>
             </div>
         </footer>
         <!-- LOADING OVERLAY -->
-
     </div>
     
-    
 <div id="loadingOverlay" class="loading-overlay">
-
   <div class="loading-box">
-
     <div class="spinner"></div>
-
     <div class="loading-text">
       Memeriksa data...
     </div>
-
   </div>
-
 </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap-table@1.22.5/dist/bootstrap-table.min.js"></script> -->
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <!-- JS -->
@@ -2028,7 +2054,6 @@
     <script src="js/config.js"></script>
     <script src="js/supabase.js"></script>
     <script src="js/state.js"></script>
-
     <script src="js/api.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/state.js"></script>
