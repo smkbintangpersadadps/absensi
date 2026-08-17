@@ -428,7 +428,7 @@
                         Rekap Absensi Bulanan
                     </h2>
                     <p class="text-sm text-slate-500">
-                        Rekap kehadiran siswa termasuk Day Off, Izin, Sakit, dan Pending Approval.
+                        Rekap kehadiran siswa termasuk Dispen, Izin, Sakit, dan Pending Approval.
                     </p>
                 </div>
                 <div class="bg-white rounded-2xl p-4 shadow grid md:grid-cols-5 gap-3">
@@ -491,7 +491,7 @@
                         <span class="px-2 py-1 rounded-full bg-green-100 text-green-700">MP = Masuk & Pulang</span>
                         <span class="px-2 py-1 rounded-full bg-blue-100 text-blue-700">M = Masuk</span>
                         <span class="px-2 py-1 rounded-full bg-pink-100 text-sky-700">ML = Masuk & Lupa Absen</span>
-                        <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-700">D = Day Off</span>
+                        <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-700">D = Dispensasi</span>
                         <span class="px-2 py-1 rounded-full bg-indigo-100 text-indigo-700">I = Izin</span>
                         <span class="px-2 py-1 rounded-full bg-red-100 text-red-700">S = Sakit</span>
                         <span class="px-2 py-1 rounded-full bg-slate-200 text-slate-700">LA = Lupa Absen</span>
@@ -648,7 +648,7 @@
                         <p class="text-xs text-gray-500">Belum Hadir</p>
                         <h3 id="kepsek-total-belum" class="text-2xl font-bold text-red-600">0</h3>
                     </div>
-                    <div class="bg-white rounded-2xl p-4 shadow text-center">
+                    <div class="bg-white rounded-2xl p-4 shadow text-center hidden">
                         <p class="text-xs text-gray-500">Industri PKL</p>
                         <h3 id="kepsek-total-industri" class="text-2xl font-bold text-indigo-600">0</h3>
                     </div>
@@ -665,7 +665,7 @@
                 </div>
                 <!-- REKAP INDUSTRI -->
                 <div class="bg-white rounded-2xl p-4 shadow">
-                    <h3 class="font-bold mb-3">Rekap Kehadiran per Industri</h3>
+                    <h3 class="font-bold mb-3">Rekap Kehadiran</h3>
                     <div id="kepsek-rekap-industri" class="grid md:grid-cols-2 gap-3"></div>
                 </div>
                 <!-- FILTER -->
@@ -844,7 +844,7 @@
                                     <th>Nama</th>
                                     <th>Kategori</th>
                                     <th>Industri</th>
-                                    <th>Pembimbing</th>
+                                    <th>Wali Kelas</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -1235,7 +1235,7 @@
                         Riwayat Pengajuan Status
                     </h2>
                     <p class="text-sm text-slate-500">
-                        Daftar pengajuan Day Off, Izin, Sakit, Dispensasi atau Lupa Absen.
+                        Daftar pengajuan Izin, Sakit, Dispensasi atau Lupa Absen.
                     </p>
                 </div>
                 <div id="status-history-list" class="space-y-3"></div>
@@ -1264,6 +1264,7 @@
                             <option value="">Pilih Status</option>
                             <option value="Izin">Izin</option>
                             <option value="Sakit">Sakit</option>
+                            <option value="Dispen">Dispensasi</option>
                             <option value="Lupa Absen">Lupa Absen</option>
                         </select>
                     </div>

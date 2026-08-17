@@ -477,7 +477,7 @@ async function getRekapBulanan({
                 siswaItem => {
                     const harian = [];
                     let totalHadir = 0;
-                    let totalDayOff = 0;
+                    let totalDispen = 0;
                     let totalIzin = 0;
                     let totalSakit = 0;
                     let totalPending = 0;
@@ -715,14 +715,14 @@ async function getRekapBulanan({
                                     totalSakit++;
                                     break;
                                 // =====================================
-                                // DAY OFF
+                                // DISPEN
                                 // =====================================
-                                case "day off":
+                                case "dispen":
                                     kode =
                                         "D";
                                     label =
-                                        "Day Off";
-                                    totalDayOff++;
+                                        "Dispen";
+                                    totalDispen++;
                                     break;
                                 // =====================================
                                 // STATUS TIDAK DIKENAL
@@ -822,7 +822,7 @@ async function getRekapBulanan({
                             siswaItem.lokasi_id,
                         harian,
                         totalHadir,
-                        totalDayOff,
+                        totalDispen,
                         totalIzin,
                         totalSakit,
                         totalPending,
@@ -1163,7 +1163,7 @@ const RekapBulananService = {
                 </th>
                 ${tanggalHeader}
                 <th>Hadir</th>
-                <th>Day Off</th>
+                <th>Dispen</th>
                 <th>Izin</th>
                 <th>Sakit</th>
                 <th>Pending</th>
@@ -1200,7 +1200,7 @@ const RekapBulananService = {
                             ${r.totalHadir || 0}
                         </td>
                         <td class="text-center font-bold text-amber-700">
-                            ${r.totalDayOff || 0}
+                            ${r.totalDispen || 0}
                         </td>
                         <td class="text-center font-bold text-indigo-700">
                             ${r.totalIzin || 0}
@@ -1408,7 +1408,7 @@ async function generateRekapPDF() {
                     h => h.kode || ""
                 ),
                 r.totalHadir || 0,
-                r.totalDayOff || 0,
+                r.totalDispen || 0,
                 r.totalIzin || 0,
                 r.totalSakit || 0,
                 r.totalPending || 0,
@@ -1591,7 +1591,7 @@ async function generateRekapPDF() {
                     "bold";
             }
             // =====================
-            // DAY OFF
+            // DISPEN
             // =====================
             else if (
                 kode === "D"
