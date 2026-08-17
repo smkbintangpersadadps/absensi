@@ -214,6 +214,24 @@ function buildMenu(user) {
             </a>
         `;
     }
+    else if (role === "konseling") {
+        menu.innerHTML = `
+            <a href="#"
+                data-page="page-kepsek-dashboard"
+                onclick="navigateTo('page-kepsek-dashboard'); return false;"
+                class="sidebar-link active">
+                <i class="fa-solid fa-school w-5"></i>
+                <span>Dashboard Kepsek</span>
+            </a>
+            <a href="#"
+                data-page="page-wali-rekap"
+                onclick="navigateTo('page-wali-rekap'); return false;"
+                class="sidebar-link">
+                <i class="fa-solid fa-table-list w-5"></i>
+                <span>Rekap Bulanan</span>
+            </a>
+        `;
+    }
     else {
         if (AppState.accessMode === "ortu") {
             menu.innerHTML = `

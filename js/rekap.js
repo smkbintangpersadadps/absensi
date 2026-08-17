@@ -963,7 +963,7 @@ const RekapBulananService = {
             tahunEl.value =
                 now.getFullYear();
         }
-        if (role === "kepsek") {
+        if (role === "kepsek" || role === "konseling") {
             if (modeEl) {
                 modeEl.value = "kepsek";
                 modeEl.closest("div")
@@ -1015,7 +1015,7 @@ const RekapBulananService = {
                 "rekap-kategori"
             )?.value || "ALL";
         if (
-            role === "kepsek" &&
+            (role === "kepsek" || role === "konseling") &&
             typeof renderRekapKategoriFilter === "function"
         ) {
             renderRekapKategoriFilter(
@@ -1060,7 +1060,7 @@ const RekapBulananService = {
                 document.getElementById("rekap-tahun")?.value
             ) || now.getFullYear();
         const mode =
-            role === "kepsek"
+            (role === "kepsek" || role === "konseling")
                 ? "kepsek"
                 : document.getElementById(
                     "rekap-mode"
