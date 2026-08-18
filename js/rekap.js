@@ -630,7 +630,7 @@ async function getRekapBulanan({
                             kode =
                                 "LI";
                             label =
-                                "Libur Industri";
+                                "Libur Sekolah";
                             totalLiburIndustri++;
                         }
                         // =================================================
