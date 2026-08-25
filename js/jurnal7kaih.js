@@ -945,7 +945,7 @@
 //     }
 // };
 
-const JURNAL_START_DATE = "2026-08-24";
+const JURNAL_START_DATE = "2026-08-26";
 const Jurnal7KaihService = {
     // =====================================================
     // DATA
