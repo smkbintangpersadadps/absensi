@@ -1204,6 +1204,7 @@ async function loadUserDashboardStats() {
         // =====================================================
         // HELPER
         // =====================================================
+        updateDashboardMenuJurnal7Kaih();
         const getTanggalWITA = (value) => {
             if (!value) return null;
             const date =

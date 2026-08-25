@@ -1,16 +1,13 @@
 // ===============================
 // NAVIGATION.JS (STABLE VERSION)
 // ===============================
-
 // Lifecycle hooks (aman)
 const PageLifecycle = {
     onEnter: {},
     onLeave: {}
 };
-
 // optional global cleanup handler
 let pageCleanup = null;
-
 // ===============================
 // NAVIGASI
 // ===============================
@@ -52,7 +49,6 @@ function navigateTo(pageId) {
     console.log("NAVIGATE TO:", pageId);
     console.log("TARGET:", document.getElementById(pageId));
 }
-
 // ===============================
 // PAGE LOADER (SAFE VERSION)
 // ===============================
@@ -85,7 +81,9 @@ function runPageLoader(pageId) {
         case "page-wali-history":
             HistoryService.init(true);
             break;
-        
+        case "page-wali-jurnal-7-kaih":
+            WaliJurnal7Kaih.init();
+            break;
         case "page-wali-approval":
             setApprovalMode?.(AppState.approvalMode || "wali");
             break;
@@ -110,8 +108,17 @@ function runPageLoader(pageId) {
         case "page-history":
             loadHistory(true);
             break;
+        case "page-jurnal-7-kaih":
+            Jurnal7KaihService.init();
+            break;
         case "page-kepsek-dashboard":
             KepsekDashboardService.init(true);
+            break;
+        case "page-kepsek-ketepatan-waktu":
+            KepsekKetepatanWaktu.init();
+            break;
+        case "page-kepsek-jurnal-7-kaih":
+            KepsekJurnal7Kaih.init();
             break;
         case "page-master-siswa":
             loadMasterSiswa();
@@ -125,9 +132,92 @@ function runPageLoader(pageId) {
         case "page-user-profile":
             loadProfile();
             break;
+        case "page-dashboard-osis":
+            OSISDashboardService.init();
+            break;
+        case "page-catat-pelanggaran":
+            OSISPelanggaranService.openForm();
+            break;
+        case "page-riwayat-pelanggaran":
+            OSISRiwayatPelanggaranService.init();
+            break;
+        // case "page-rekap-pelanggaran":
+        //     OSISRekapPelanggaranService.init();
+        //     break;
+        case "page-bk-monitoring-pelanggaran":
+            BKMonitoringPelanggaranService.init();
+            break;
+        case "page-bk-riwayat-penanganan":
+            BKRiwayatPenangananService.init();
+            break;
     }
 }
-
+// ===============================
+// HIDE DASHBOARD MENU 7 KAIH
+// ===============================
+function updateJurnal7KaihDashboardMenu() {
+    const user = AppState.currentUser;
+    if (!user) {
+        return;
+    }
+    const kategori =
+        String(user.kategori || "")
+            .trim()
+            .toUpperCase();
+    const isKelasX =
+        kategori.startsWith("X ");
+    const button =
+        document.getElementById(
+            "dashboard-menu-jurnal-7-kaih"
+        );
+    if (!button) {
+        return;
+    }
+    button.classList.toggle(
+        "hidden",
+        !isKelasX
+    );
+}
+// ===============================
+// HIDE DASHBOARD MENU 7 KAIH
+// ===============================
+function updateDashboardMenuJurnal7Kaih() {
+    const menu =
+        document.getElementById(
+            "dashboard-menu-jurnal-7-kaih"
+        );
+    if (!menu) {
+        return;
+    }
+    const user =
+        AppState.currentUser;
+    if (!user) {
+        menu.classList.add("hidden");
+        return;
+    }
+    const kategori =
+        String(
+            user.kategori || ""
+        )
+        .trim()
+        .toUpperCase();
+    // Jurnal hanya untuk kelas X
+    const jurnalWajib =
+        kategori.startsWith("X ");
+    console.log(
+        "Kategori siswa:",
+        kategori
+    );
+    console.log(
+        "Jurnal wajib:",
+        jurnalWajib
+    );
+    if (jurnalWajib) {
+        menu.classList.remove("hidden");
+    } else {
+        menu.classList.add("hidden");
+    }
+}
 // ===============================
 // MENU BUILDER (ROLE BASED)
 // ===============================
@@ -173,6 +263,13 @@ function buildMenu(user) {
                 <i class="fa-solid fa-clock-rotate-left w-5"></i>
                 <span>Monitoring Harian</span>
             </a>
+            <a href="#"
+                data-page="page-wali-jurnal-7-kaih"
+                onclick="navigateTo('page-wali-jurnal-7-kaih'); return false;"
+                class="sidebar-link">
+                <i class="fas fa-book-open w-5"></i>
+                <span>Jurnal 7 Kaih</span>
+            </a>
         `;
     }
     else if (role === "kepsek") {
@@ -190,6 +287,20 @@ function buildMenu(user) {
                 class="sidebar-link">
                 <i class="fa-solid fa-table-list w-5"></i>
                 <span>Rekap Bulanan</span>
+            </a>
+            <a href="#"
+                data-page="page-kepsek-ketepatan-waktu"
+                onclick="navigateTo('page-kepsek-ketepatan-waktu'); return false;"
+                class="sidebar-link">
+                <i class="fa-solid fa-clock w-5"></i>
+                <span>Ketepatan Waktu</span>
+            </a>
+            <a href="#"
+                data-page="page-kepsek-jurnal-7-kaih"
+                onclick="navigateTo('page-kepsek-jurnal-7-kaih'); return false;"
+                class="sidebar-link">
+                <i class="fas fa-book-open w-5"></i>
+                <span>Jurnal 7 KAIH</span>
             </a>
             <a href="#"
                 data-page="page-master-siswa"
@@ -230,27 +341,112 @@ function buildMenu(user) {
                 <i class="fa-solid fa-table-list w-5"></i>
                 <span>Rekap Bulanan</span>
             </a>
+            <a href="#"
+                data-page="page-bk-monitoring-pelanggaran"
+                onclick="navigateTo('page-bk-monitoring-pelanggaran'); return false;"
+                class="sidebar-link">
+                <i class="fa-solid fa-user-shield w-5"></i>
+                <span>Monitoring Pelanggaran</span>
+            </a>
+            <a href="#"
+                data-page="page-bk-riwayat-penanganan"
+                onclick="navigateTo('page-bk-riwayat-penanganan'); return false;"
+                class="sidebar-link">
+                <i class="fa-solid fa-clock-rotate-left w-5"></i>
+                <span>Monitoring Pelanggaran</span>
+            </a>
+        `;
+    }
+    else if (role === "osis"){
+        menu.innerHTML = `
+            <a href="#"
+                data-page="page-dashboard-osis"
+                onclick="navigateTo('page-dashboard-osis'); return false;"
+                class="sidebar-link active">
+                <i class="fa-solid fa-school w-5"></i>
+                <span>Dashboard Osis</span>
+            </a>
         `;
     }
     else {
         if (AppState.accessMode === "ortu") {
             menu.innerHTML = `
-                <a href="#" onclick="navigateTo('page-user-dashboard')">Dashboard</a>
-                <a href="#" onclick="navigateTo('page-history')">Riwayat</a>
+                <a
+                    href="#"
+                    onclick="navigateTo('page-user-dashboard')"
+                >
+                    Dashboard
+                </a>
+                <a
+                    href="#"
+                    onclick="navigateTo('page-history')"
+                >
+                    Riwayat
+                </a>
             `;
         } else {
+            const user =
+                AppState.currentUser;
+            const kategori =
+                String(user?.kategori || "")
+                    .trim()
+                    .toUpperCase();
+            const isKelasX =
+                kategori.startsWith("X ");
             menu.innerHTML = `
-                <a href="#" onclick="navigateTo('page-user-dashboard')">Dashboard</a>
-                <a href="#" onclick="navigateTo('page-user-absen')">Absen</a>
-                <a href="#" onclick="navigateTo('page-user-status')">Konfirmasi Kehadiran</a>
-                <a href="#" onclick="navigateTo('page-user-status-history')">Riwayat Status</a>
-                <a href="#" onclick="navigateTo('page-history')">Riwayat</a>
-                <a href="#" onclick="navigateTo('page-user-profile')">Profil</a>
+                <a
+                    href="#"
+                    onclick="navigateTo('page-user-dashboard')"
+                >
+                    Dashboard
+                </a>
+                <a
+                    href="#"
+                    onclick="navigateTo('page-user-absen')"
+                >
+                    Absen
+                </a>
+                <a
+                    href="#"
+                    onclick="navigateTo('page-user-status')"
+                >
+                    Konfirmasi Kehadiran
+                </a>
+                <a
+                    href="#"
+                    onclick="navigateTo('page-user-status-history')"
+                >
+                    Riwayat Status
+                </a>
+                <a
+                    href="#"
+                    onclick="navigateTo('page-history')"
+                >
+                    Riwayat
+                </a>
+                ${
+                    isKelasX
+                        ? `
+                            <a
+                                href="#"
+                                id="menu-jurnal-7-kaih"
+                                onclick="navigateTo('page-jurnal-7-kaih')"
+                            >
+                                Jurnal 7-KAIH
+                            </a>
+                        `
+                        : ""
+                }
+                <a
+                    href="#"
+                    onclick="navigateTo('page-user-profile')"
+                >
+                    Profil
+                </a>
             `;
         }
     }
 }
-
 // =========================================================
 // ACTIVE PAGE - MOBILE BOTTOM NAV
 // =========================================================
@@ -498,6 +694,50 @@ function buildMobileBottomMenu(user) {
                     Libur
                 </span>
             </button>
+        `;
+    } 
+    else if (role === "osis") {
+        menu.innerHTML = `
+                <button
+                    type="button"
+                    data-page="page-dashboard-osis"
+                    onclick="navigateTo('page-dashboard-osis')"
+                    class="bottom-nav flex flex-col items-center text-xs text-gray-500 transition">
+                    <i class="fa-solid fa-house text-lg"></i>
+                    <span>
+                        Home
+                    </span>
+                </button>
+                <button
+                    type="button"
+                    data-page="page-osis-history"
+                    onclick="navigateTo('page-osis-history')"
+                    class="bottom-nav flex flex-col items-center text-xs text-gray-500 transition">
+                    <i class="fa-solid fa-house text-lg"></i>
+                    <span>
+                        Riwayat
+                    </span>
+                </button>
+                <button
+                    type="button"
+                    data-page="page-catat-pelanggaran"
+                    onclick="OSISPelanggaranService.openForm()"
+                    class="bottom-nav flex flex-col items-center text-xs text-gray-500 transition">
+                    <i class="fa-solid fa-plus-circle mb-2 text-lg"></i>
+                    <span>
+                        Tambah
+                    </span>
+                </button>
+                <button
+                    type="button"
+                    data-page="page-osis-rekap"
+                    onclick="navigateTo('page-osis-rekap')"
+                    class="bottom-nav flex flex-col items-center text-xs text-gray-500 transition">
+                    <i class="fa-solid fa-chart-column text-lg"></i>
+                    <span>
+                        Rekap
+                    </span>
+                </button>
         `;
     }
     // =====================================================

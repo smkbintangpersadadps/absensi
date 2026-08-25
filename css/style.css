@@ -1472,3 +1472,261 @@ button:disabled {
 .swal2-container {
     z-index: 99999 !important;
 }
+
+/* =========================================
+   DATATABLES - KETEPATAN WAKTU
+   ========================================= */
+
+#kepsek-ketepatan-monthly-student-table_wrapper {
+    width: 100%;
+}
+
+/* Top controls */
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-layout-row:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Length menu */
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-length {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-length select {
+    min-width: 70px;
+    height: 36px;
+    padding: 0 2rem 0 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.625rem;
+    background-color: #fff;
+    color: #334155;
+    font-size: 0.75rem;
+    outline: none;
+    cursor: pointer;
+}
+
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-length select:focus {
+    border-color: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
+}
+
+/* Search */
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-search input {
+    width: 220px;
+    height: 36px;
+    padding: 0 0.875rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.625rem;
+    background-color: #fff;
+    color: #334155;
+    font-size: 0.75rem;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-search input::placeholder {
+    color: #94a3b8;
+}
+
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-search input:focus {
+    border-color: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
+}
+
+/* Bottom controls */
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-layout-row:last-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f5f9;
+    flex-wrap: wrap;
+}
+
+/* Info */
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-info {
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+/* Pagination container */
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-paging {
+    display: flex;
+    align-items: center;
+}
+
+/* Pagination buttons */
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-paging .dt-paging-button {
+    min-width: 34px;
+    height: 34px;
+    margin-left: 0.25rem;
+    padding: 0 0.625rem;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 0.625rem !important;
+
+    background: #fff !important;
+    color: #64748b !important;
+
+    font-size: 0.75rem;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Hover */
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-paging .dt-paging-button:hover:not(.disabled):not(.current) {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+}
+
+/* Active page */
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-paging .dt-paging-button.current {
+    background: #0f172a !important;
+    border-color: #0f172a !important;
+    color: #fff !important;
+}
+
+/* Disabled */
+#kepsek-ketepatan-monthly-student-table_wrapper .dt-paging .dt-paging-button.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Table header */
+#kepsek-ketepatan-monthly-student-table thead th {
+    white-space: nowrap;
+}
+
+/* Sorting icon spacing */
+#kepsek-ketepatan-monthly-student-table thead th.dt-orderable-asc,
+#kepsek-ketepatan-monthly-student-table thead th.dt-orderable-desc {
+    cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+
+    #kepsek-ketepatan-monthly-student-table_wrapper .dt-layout-row:first-child,
+    #kepsek-ketepatan-monthly-student-table_wrapper .dt-layout-row:last-child {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    #kepsek-ketepatan-monthly-student-table_wrapper .dt-length,
+    #kepsek-ketepatan-monthly-student-table_wrapper .dt-search {
+        width: 100%;
+    }
+
+    #kepsek-ketepatan-monthly-student-table_wrapper .dt-search {
+        justify-content: space-between;
+    }
+
+    #kepsek-ketepatan-monthly-student-table_wrapper .dt-search input {
+        width: 100%;
+        max-width: 220px;
+    }
+
+    #kepsek-ketepatan-monthly-student-table_wrapper .dt-paging {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* =========================================
+   LEBAR KOLOM REKAP SISWA
+   ========================================= */
+
+/* No */
+#kepsek-ketepatan-monthly-student-table th:nth-child(1),
+#kepsek-ketepatan-monthly-student-table td:nth-child(1) {
+    width: 50px;
+    min-width: 50px;
+    max-width: 50px;
+    white-space: nowrap;
+}
+
+/* Siswa */
+#kepsek-ketepatan-monthly-student-table th:nth-child(2),
+#kepsek-ketepatan-monthly-student-table td:nth-child(2) {
+    min-width: 220px;
+    width: auto;
+}
+
+/* Kelas */
+#kepsek-ketepatan-monthly-student-table th:nth-child(3),
+#kepsek-ketepatan-monthly-student-table td:nth-child(3) {
+    width: 80px;
+    min-width: 80px;
+    max-width: 100px;
+    white-space: nowrap;
+}
+
+/* Hari Aktif */
+#kepsek-ketepatan-monthly-student-table th:nth-child(4),
+#kepsek-ketepatan-monthly-student-table td:nth-child(4) {
+    width: 90px;
+    min-width: 90px;
+    max-width: 90px;
+    white-space: nowrap;
+}
+
+/* Tepat */
+#kepsek-ketepatan-monthly-student-table th:nth-child(5),
+#kepsek-ketepatan-monthly-student-table td:nth-child(5) {
+    width: 75px;
+    min-width: 75px;
+    max-width: 75px;
+    white-space: nowrap;
+}
+
+/* Terlambat */
+#kepsek-ketepatan-monthly-student-table th:nth-child(6),
+#kepsek-ketepatan-monthly-student-table td:nth-child(6) {
+    width: 90px;
+    min-width: 90px;
+    max-width: 90px;
+    white-space: nowrap;
+}
+
+/* Belum */
+#kepsek-ketepatan-monthly-student-table th:nth-child(7),
+#kepsek-ketepatan-monthly-student-table td:nth-child(7) {
+    width: 75px;
+    min-width: 75px;
+    max-width: 75px;
+    white-space: nowrap;
+}
+
+/* Persentase */
+#kepsek-ketepatan-monthly-student-table th:nth-child(8),
+#kepsek-ketepatan-monthly-student-table td:nth-child(8) {
+    width: 100px;
+    min-width: 100px;
+    max-width: 100px;
+    white-space: nowrap;
+}

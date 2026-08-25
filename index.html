@@ -606,6 +606,148 @@
                     </div>
                 </div>
             </section>
+            <!-- WALI JURNAL 7 KAIH -->
+            <section id="page-wali-jurnal-7-kaih" class="hidden-page">
+                <div class="max-w-6xl mx-auto space-y-5">
+                    <div class="bg-white rounded-2xl shadow-sm border p-5">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
+                                <i class="fas fa-book-open text-indigo-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800">Monitoring Jurnal 7 KAIH</h2>
+                                <p id="wali-jurnal-kelas" class="text-sm text-slate-500 mt-1">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div class="bg-white rounded-2xl border shadow-sm p-4">
+                            <p class="text-xs text-slate-500">Jumlah Siswa</p>
+                            <p id="wali-jurnal-total-siswa" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+                        </div>
+                        <div class="bg-white rounded-2xl border shadow-sm p-4">
+                            <p class="text-xs text-slate-500">Sudah Mengisi</p>
+                            <p id="wali-jurnal-sudah" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+                        </div>
+                        <div class="bg-white rounded-2xl border shadow-sm p-4">
+                            <p class="text-xs text-slate-500">Belum Mengisi</p>
+                            <p id="wali-jurnal-belum" class="text-2xl font-bold text-red-600 mt-1">0</p>
+                        </div>
+                        <div class="bg-white rounded-2xl border shadow-sm p-4">
+                            <p class="text-xs text-slate-500">Kepatuhan</p>
+                            <p id="wali-jurnal-persentase" class="text-2xl font-bold text-indigo-600 mt-1">0%</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl border shadow-sm p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-bold text-slate-800">Kalender Jurnal</h3>
+                                <p id="wali-jurnal-calendar-title" class="text-xs text-slate-500 mt-1">-</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="WaliJurnal7Kaih.previousMonth()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                                    <i class="fas fa-chevron-left text-sm"></i>
+                                </button>
+                                <button type="button" onclick="WaliJurnal7Kaih.nextMonth()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                                    <i class="fas fa-chevron-right text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="wali-jurnal-calendar" class="grid grid-cols-7 gap-2"></div>
+                        <div class="flex flex-wrap gap-4 mt-5 text-xs text-slate-500">
+                            <div class="flex items-center gap-1"><span>🟢</span> ≥ 90%</div>
+                            <div class="flex items-center gap-1"><span>🟡</span> 70–89%</div>
+                            <div class="flex items-center gap-1"><span>🔴</span> &lt; 70%</div>
+                            <div class="flex items-center gap-1"><span>⚪</span> Belum ada data</div>
+                            <div class="flex items-center gap-1"><span>−</span> Minggu</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl border shadow-sm p-5">
+                        <div class="flex items-center justify-between gap-3 mb-4">
+                            <div>
+                                <h3 class="font-bold text-slate-800">Perlu Perhatian</h3>
+                                <p class="text-xs text-slate-500 mt-1">Siswa yang belum mengisi jurnal hari ini</p>
+                            </div>
+                            <span id="wali-jurnal-warning-count" class="text-xs font-bold text-red-600 bg-red-50 px-3 py-1 rounded-full">0 siswa</span>
+                        </div>
+                        <div id="wali-jurnal-warning-list" class="space-y-3"></div>
+                    </div>
+                    <div class="bg-white rounded-2xl border shadow-sm p-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                            <div>
+                                <h3 class="font-bold text-slate-800">Daftar Siswa</h3>
+                                <p class="text-xs text-slate-500 mt-1">Monitoring pengisian Jurnal 7 KAIH</p>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" onclick="WaliJurnal7Kaih.setFilter('all')" data-wali-filter="all" class="wali-jurnal-filter px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white">Semua</button>
+                                <button type="button" onclick="WaliJurnal7Kaih.setFilter('done')" data-wali-filter="done" class="wali-jurnal-filter px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600">Sudah</button>
+                                <button type="button" onclick="WaliJurnal7Kaih.setFilter('missing')" data-wali-filter="missing" class="wali-jurnal-filter px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600">Belum</button>
+                            </div>
+                        </div>
+                        <div id="wali-jurnal-student-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                    </div>
+                </div>
+            </section>
+            <div id="modal-wali-jurnal-tanggal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 px-4 py-5">
+                <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden max-h-[85vh] flex flex-col">
+                    <div class="relative px-5 py-4 border-b text-center shrink-0">
+                        <button type="button" onclick="WaliJurnal7Kaih.closeDateModal()" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <h3 class="font-bold text-slate-800">Jurnal 7 KAIH</h3>
+                        <p id="wali-jurnal-modal-date" class="text-xs text-slate-500 mt-1">-</p>
+                    </div>
+                    <div class="px-5 py-4 overflow-y-auto">
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                                <p class="text-xs text-emerald-600">Sudah</p>
+                                <p id="wali-date-done" class="text-xl font-bold text-emerald-700">0</p>
+                            </div>
+                            <div class="bg-red-50 rounded-xl p-3 text-center">
+                                <p class="text-xs text-red-600">Belum</p>
+                                <p id="wali-date-missing" class="text-xl font-bold text-red-700">0</p>
+                            </div>
+                        </div>
+                        <div id="wali-jurnal-date-list" class="space-y-2"></div>
+                    </div>
+                    <div class="px-5 py-4 border-t bg-slate-50">
+                        <button type="button" onclick="WaliJurnal7Kaih.closeDateModal()" class="w-full rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3">Tutup</button>
+                    </div>
+                </div>
+            </div>
+            <div id="modal-wali-jurnal-detail" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 px-4 py-5">
+                <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden max-h-[85vh] flex flex-col">
+                    <div class="relative px-5 py-4 border-b text-center shrink-0">
+                        <button type="button" onclick="WaliJurnal7Kaih.closeDetailModal()" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <h3 class="font-bold text-slate-800">Detail Jurnal</h3>
+                        <p id="wali-detail-nama" class="text-sm font-semibold text-indigo-600 mt-1">-</p>
+                        <p id="wali-detail-tanggal" class="text-xs text-slate-500 mt-1">-</p>
+                    </div>
+                    <div class="px-5 py-4 overflow-y-auto space-y-4">
+                        <div class="flex justify-between gap-3"><span>🌅 Bangun</span><b id="wali-detail-bangun">-</b></div>
+                        <div class="flex justify-between gap-3"><span>🙏 Ibadah</span><b id="wali-detail-ibadah">-</b></div>
+                        <div class="flex justify-between gap-3"><span>🏃 Olahraga</span><b id="wali-detail-olahraga">-</b></div>
+                        <div class="border-t pt-3">
+                            <p class="font-semibold text-slate-700 mb-2">🍎 Makan</p>
+                            <div id="wali-detail-makan" class="bg-slate-50 rounded-xl p-3 text-sm text-slate-600">-</div>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-700 mb-2">📚 Gemar</p>
+                            <div id="wali-detail-gemar" class="bg-slate-50 rounded-xl p-3 text-sm text-slate-600">-</div>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-700 mb-2">🤝 Bermasyarakat</p>
+                            <div id="wali-detail-bermasyarakat" class="bg-slate-50 rounded-xl p-3 text-sm text-slate-600">-</div>
+                        </div>
+                        <div class="border-t pt-3 flex justify-between gap-3"><span>🌙 Tidur</span><b id="wali-detail-tidur">-</b></div>
+                    </div>
+                    <div class="px-5 py-4 border-t bg-slate-50">
+                        <button type="button" onclick="WaliJurnal7Kaih.closeDetailModal()" class="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3">Tutup</button>
+                    </div>
+                </div>
+            </div>
 
             <!--KEPSEK Dashboard-->
             <section id="page-kepsek-dashboard" class="hidden-page p-4 space-y-4">
@@ -1036,6 +1178,582 @@
                     </div>
                 </div>
             </section>
+            <!-- KEPSEK JURNAL 7 KAIH -->
+            <section id="page-kepsek-jurnal-7-kaih" class="hidden-page">
+                <div class="max-w-7xl mx-auto space-y-5">
+                    <div class="bg-white rounded-2xl shadow-sm border p-5">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
+                                <i class="fas fa-book-open text-indigo-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800">Monitoring Jurnal 7 KAIH</h2>
+                                <p class="text-sm text-slate-500 mt-1">Monitoring seluruh siswa kelas X</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl border shadow-sm p-2">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="KepsekJurnal7Kaih.setViewMode('daily')" data-kepsek-view-mode="daily" class="kepsek-jurnal-view-mode px-4 py-3 rounded-xl text-sm font-semibold bg-indigo-600 text-white flex items-center justify-center gap-2">
+                                <i class="fas fa-calendar-day"></i>
+                                <span>Harian</span>
+                            </button>
+                            <button type="button" onclick="KepsekJurnal7Kaih.setViewMode('monthly')" data-kepsek-view-mode="monthly" class="kepsek-jurnal-view-mode px-4 py-3 rounded-xl text-sm font-semibold bg-slate-100 text-slate-600 flex items-center justify-center gap-2">
+                                <i class="fas fa-chart-column"></i>
+                                <span>Bulanan</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="kepsek-jurnal-daily-view" class="space-y-5">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <p class="text-xs text-slate-500">Jumlah Siswa</p>
+                                <p id="kepsek-jurnal-total-siswa" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+                            </div>
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <p class="text-xs text-slate-500">Sudah Mengisi</p>
+                                <p id="kepsek-jurnal-sudah" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+                            </div>
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <p class="text-xs text-slate-500">Belum Mengisi</p>
+                                <p id="kepsek-jurnal-belum" class="text-2xl font-bold text-red-600 mt-1">0</p>
+                            </div>
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <p class="text-xs text-slate-500">Kepatuhan</p>
+                                <p id="kepsek-jurnal-persentase" class="text-2xl font-bold text-indigo-600 mt-1">0%</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                                <div>
+                                    <h3 class="font-bold text-slate-800">Monitoring Per Kelas</h3>
+                                    <p class="text-xs text-slate-500 mt-1">Persentase pengisian jurnal hari ini setiap kelas X</p>
+                                </div>
+                            </div>
+                            <div id="kepsek-jurnal-class-summary" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+                        </div>
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 class="font-bold text-slate-800">Kalender Jurnal</h3>
+                                    <p id="kepsek-jurnal-calendar-title" class="text-xs text-slate-500 mt-1">-</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="KepsekJurnal7Kaih.previousMonth()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                                        <i class="fas fa-chevron-left text-sm"></i>
+                                    </button>
+                                    <button type="button" onclick="KepsekJurnal7Kaih.nextMonth()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                                        <i class="fas fa-chevron-right text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="kepsek-jurnal-calendar" class="grid grid-cols-7 gap-2"></div>
+                            <div class="flex flex-wrap gap-4 mt-5 text-xs text-slate-500">
+                                <div class="flex items-center gap-1"><span>🟢</span> ≥ 90%</div>
+                                <div class="flex items-center gap-1"><span>🟡</span> 70–89%</div>
+                                <div class="flex items-center gap-1"><span>🔴</span> &lt; 70%</div>
+                                <div class="flex items-center gap-1"><span>⚪</span> Belum ada data</div>
+                                <div class="flex items-center gap-1"><span>−</span> Minggu</div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                                <div>
+                                    <h3 class="font-bold text-slate-800">Daftar Siswa Kelas X</h3>
+                                    <p class="text-xs text-slate-500 mt-1">Monitoring pengisian jurnal hari ini</p>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" onclick="KepsekJurnal7Kaih.setFilter('all')" data-kepsek-filter="all" class="kepsek-jurnal-filter px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white">Semua</button>
+                                    <button type="button" onclick="KepsekJurnal7Kaih.setFilter('done')" data-kepsek-filter="done" class="kepsek-jurnal-filter px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600">Sudah</button>
+                                    <button type="button" onclick="KepsekJurnal7Kaih.setFilter('missing')" data-kepsek-filter="missing" class="kepsek-jurnal-filter px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600">Belum</button>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <select id="kepsek-jurnal-filter-kelas" onchange="KepsekJurnal7Kaih.setClassFilter(this.value)" class="w-full md:w-auto border rounded-xl px-4 py-2 text-sm text-slate-700 bg-white">
+                                    <option value="all">Semua Kelas</option>
+                                </select>
+                            </div>
+                            <div id="kepsek-jurnal-student-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+                        </div>
+                    </div>
+                    <div id="kepsek-jurnal-monthly-view" class="hidden space-y-5">
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <h3 class="font-bold text-slate-800">Rekap Jurnal Bulanan</h3>
+                                    <p id="kepsek-jurnal-monthly-title" class="text-xs text-slate-500 mt-1">-</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="KepsekJurnal7Kaih.previousMonth()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                                        <i class="fas fa-chevron-left text-sm"></i>
+                                    </button>
+                                    <button type="button" onclick="KepsekJurnal7Kaih.nextMonth()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                                        <i class="fas fa-chevron-right text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <p class="text-xs text-slate-500">Jumlah Siswa</p>
+                                <p id="kepsek-jurnal-monthly-total-siswa" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+                            </div>
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <p class="text-xs text-slate-500">Sudah Mengisi</p>
+                                <p id="kepsek-jurnal-monthly-sudah" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+                            </div>
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <p class="text-xs text-slate-500">Belum Mengisi</p>
+                                <p id="kepsek-jurnal-monthly-belum" class="text-2xl font-bold text-red-600 mt-1">0</p>
+                            </div>
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <p class="text-xs text-slate-500">Kepatuhan Bulanan</p>
+                                <p id="kepsek-jurnal-monthly-persentase" class="text-2xl font-bold text-indigo-600 mt-1">0%</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="mb-4">
+                                <h3 class="font-bold text-slate-800">Monitoring Bulanan Per Kelas</h3>
+                                <p class="text-xs text-slate-500 mt-1">Persentase kepatuhan jurnal selama satu bulan pada setiap kelas X</p>
+                            </div>
+                            <div id="kepsek-jurnal-monthly-class-summary" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+                        </div>
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="mb-4">
+                                <h3 class="font-bold text-slate-800">Rekap Siswa Bulanan</h3>
+                                <p class="text-xs text-slate-500 mt-1">Jumlah hari mengisi, belum mengisi, dan persentase kepatuhan setiap siswa</p>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table id="kepsek-jurnal-monthly-table" class="w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b bg-slate-50">
+                                            <th class="text-left px-4 py-3 font-semibold text-slate-600">No</th>
+                                            <th class="text-left px-4 py-3 font-semibold text-slate-600">Nama Siswa</th>
+                                            <th class="text-left px-4 py-3 font-semibold text-slate-600">Kelas</th>
+                                            <th class="text-center px-4 py-3 font-semibold text-slate-600">Hari Aktif</th>
+                                            <th class="text-center px-4 py-3 font-semibold text-emerald-600">Sudah</th>
+                                            <th class="text-center px-4 py-3 font-semibold text-red-600">Belum</th>
+                                            <th class="text-center px-4 py-3 font-semibold text-indigo-600">Kepatuhan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="kepsek-jurnal-monthly-student-list">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- KEPSEK KETEPATAN WAKTU -->
+            <section id="page-kepsek-ketepatan-waktu" class="hidden-page">
+                <div class="max-w-7xl mx-auto space-y-5">
+                    <!-- Header -->
+                    <div class="bg-white rounded-2xl shadow-sm border p-5">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800">
+                                    Ketepatan Waktu Kehadiran
+                                </h2>
+                                <p class="text-sm text-slate-500 mt-1">
+                                    Monitoring ketepatan waktu hadir siswa di sekolah
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    data-kepsek-ketepatan-mode="X"
+                                    class="px-4 py-2 rounded-xl text-sm font-semibold bg-indigo-600 text-white">
+                                    Kelas X
+                                </button>
+                                <button
+                                    type="button"
+                                    data-kepsek-ketepatan-mode="XI"
+                                    class="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 text-slate-600">
+                                    Kelas XI
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- View Mode -->
+                    <div class="bg-white rounded-2xl shadow-sm border p-2">
+                        <div class="flex gap-2">
+                            <button
+                                type="button"
+                                data-kepsek-ketepatan-view-mode="daily"
+                                class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white">
+                                <i class="fas fa-calendar-day mr-1"></i>
+                                Harian
+                            </button>
+                            <button
+                                type="button"
+                                data-kepsek-ketepatan-view-mode="monthly"
+                                class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 text-slate-600">
+                                <i class="fas fa-calendar-alt mr-1"></i>
+                                Bulanan
+                            </button>
+                        </div>
+                    </div>
+                    <!-- DAILY VIEW -->
+                    <div id="kepsek-ketepatan-daily-view" class="space-y-5">
+                        <!-- Summary -->
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs text-slate-500">
+                                            Total Siswa
+                                        </p>
+                                        <p
+                                            id="kepsek-ketepatan-total-siswa"
+                                            class="text-2xl font-bold text-slate-800 mt-1">
+                                            0
+                                        </p>
+                                    </div>
+                                    <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+                                        <i class="fas fa-users text-indigo-600"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs text-slate-500">
+                                            Tepat Waktu
+                                        </p>
+                                        <p
+                                            id="kepsek-ketepatan-tepat"
+                                            class="text-2xl font-bold text-emerald-600 mt-1">
+                                            0
+                                        </p>
+                                    </div>
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                                        <i class="fas fa-check-circle text-emerald-600"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs text-slate-500">
+                                            Terlambat
+                                        </p>
+                                        <p
+                                            id="kepsek-ketepatan-terlambat"
+                                            class="text-2xl font-bold text-red-600 mt-1">
+                                            0
+                                        </p>
+                                    </div>
+                                    <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+                                        <i class="fas fa-clock text-red-600"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs text-slate-500">
+                                            Belum Absen
+                                        </p>
+                                        <p
+                                            id="kepsek-ketepatan-belum"
+                                            class="text-2xl font-bold text-orange-600 mt-1">
+                                            0
+                                        </p>
+                                    </div>
+                                    <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+                                        <i class="fas fa-user-clock text-orange-600"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Percentage -->
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-700">
+                                        Persentase Ketepatan Waktu
+                                    </p>
+                                    <p class="text-xs text-slate-500 mt-1">
+                                        Berdasarkan siswa yang melakukan absensi masuk
+                                    </p>
+                                </div>
+                                <span
+                                    id="kepsek-ketepatan-persentase"
+                                    class="text-xl font-bold text-indigo-600">
+                                    0%
+                                </span>
+                            </div>
+                            <div class="mt-4 h-3 bg-slate-100 rounded-full overflow-hidden">
+                                <div
+                                    id="kepsek-ketepatan-progress"
+                                    class="h-full bg-indigo-500 rounded-full transition-all"
+                                    style="width:0%">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Class Filter -->
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                <div>
+                                    <h3 class="font-bold text-slate-800">
+                                        Ringkasan Kelas
+                                    </h3>
+                                    <p class="text-xs text-slate-500 mt-1">
+                                        Ketepatan waktu berdasarkan kelas
+                                    </p>
+                                </div>
+                                <select
+                                    id="kepsek-ketepatan-filter-kelas"
+                                    class="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500">
+                                    <option value="all">
+                                        Semua Kelas
+                                    </option>
+                                </select>
+                            </div>
+                            <div
+                                id="kepsek-ketepatan-class-summary"
+                                class="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                            </div>
+                        </div>
+                        <!-- Calendar -->
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="flex items-center justify-between gap-3">
+                                <button
+                                    type="button"
+                                    onclick="KepsekKetepatanWaktu.previousMonth()"
+                                    class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                                    <i class="fas fa-chevron-left text-slate-600"></i>
+                                </button>
+                                <h3
+                                    id="kepsek-ketepatan-calendar-title"
+                                    class="font-bold text-slate-800">
+                                    Agustus 2026
+                                </h3>
+                                <button
+                                    type="button"
+                                    onclick="KepsekKetepatanWaktu.nextMonth()"
+                                    class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                                    <i class="fas fa-chevron-right text-slate-600"></i>
+                                </button>
+                            </div>
+                            <div
+                                id="kepsek-ketepatan-calendar"
+                                class="grid grid-cols-7 gap-2 mt-5">
+                            </div>
+                        </div>
+                        <!-- Student List -->
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                <div>
+                                    <h3 class="font-bold text-slate-800">
+                                        Daftar Siswa
+                                    </h3>
+                                    <p class="text-xs text-slate-500 mt-1">
+                                        Status kehadiran hari ini
+                                    </p>
+                                </div>
+                                <div class="flex gap-2 overflow-x-auto">
+                                    <button
+                                        type="button"
+                                        data-kepsek-ketepatan-filter="all"
+                                        class="px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white whitespace-nowrap">
+                                        Semua
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-kepsek-ketepatan-filter="tepat"
+                                        class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 whitespace-nowrap">
+                                        Tepat Waktu
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-kepsek-ketepatan-filter="terlambat"
+                                        class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 whitespace-nowrap">
+                                        Terlambat
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-kepsek-ketepatan-filter="belum"
+                                        class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 whitespace-nowrap">
+                                        Belum Absen
+                                    </button>
+                                </div>
+                            </div>
+                            <div
+                                id="kepsek-ketepatan-student-list"
+                                class="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-5">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- MONTHLY VIEW -->
+                    <div
+                        id="kepsek-ketepatan-monthly-view"
+                        class="hidden space-y-5">
+                        <!-- Monthly Header -->
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="flex items-center justify-between gap-3">
+                                <button
+                                    type="button"
+                                    onclick="KepsekKetepatanWaktu.previousMonth()"
+                                    class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                                    <i class="fas fa-chevron-left text-slate-600"></i>
+                                </button>
+                                <div class="text-center">
+                                    <h3
+                                        id="kepsek-ketepatan-monthly-title"
+                                        class="font-bold text-slate-800">
+                                        Agustus 2026
+                                    </h3>
+                                    <p class="text-xs text-slate-500 mt-1">
+                                        Rekap ketepatan waktu
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onclick="KepsekKetepatanWaktu.nextMonth()"
+                                    class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                                    <i class="fas fa-chevron-right text-slate-600"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Monthly Summary -->
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <p class="text-xs text-slate-500">
+                                    Total Siswa
+                                </p>
+                                <p
+                                    id="kepsek-ketepatan-monthly-total-siswa"
+                                    class="text-2xl font-bold text-slate-800 mt-1">
+                                    0
+                                </p>
+                            </div>
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <p class="text-xs text-slate-500">
+                                    Tepat Waktu
+                                </p>
+                                <p
+                                    id="kepsek-ketepatan-monthly-tepat"
+                                    class="text-2xl font-bold text-emerald-600 mt-1">
+                                    0
+                                </p>
+                            </div>
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <p class="text-xs text-slate-500">
+                                    Terlambat
+                                </p>
+                                <p
+                                    id="kepsek-ketepatan-monthly-terlambat"
+                                    class="text-2xl font-bold text-red-600 mt-1">
+                                    0
+                                </p>
+                            </div>
+                            <div class="bg-white rounded-2xl border shadow-sm p-4">
+                                <p class="text-xs text-slate-500">
+                                    Belum Absen
+                                </p>
+                                <p
+                                    id="kepsek-ketepatan-monthly-belum"
+                                    class="text-2xl font-bold text-orange-600 mt-1">
+                                    0
+                                </p>
+                            </div>
+                        </div>
+                        <!-- Monthly Percentage -->
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="font-semibold text-slate-700">
+                                        Persentase Ketepatan Waktu
+                                    </p>
+                                    <p
+                                        id="kepsek-ketepatan-monthly-hari-aktif"
+                                        class="text-xs text-slate-500 mt-1">
+                                        0 hari aktif
+                                    </p>
+                                </div>
+                                <span
+                                    id="kepsek-ketepatan-monthly-persentase"
+                                    class="text-xl font-bold text-indigo-600">
+                                    0%
+                                </span>
+                            </div>
+                            <div class="mt-4 h-3 bg-slate-100 rounded-full overflow-hidden">
+                                <div
+                                    id="kepsek-ketepatan-monthly-progress"
+                                    class="h-full bg-indigo-500 rounded-full transition-all"
+                                    style="width:0%">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Monthly Class Summary -->
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div>
+                                <h3 class="font-bold text-slate-800">
+                                    Rekap Per Kelas
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Statistik ketepatan waktu setiap kelas
+                                </p>
+                            </div>
+                            <div
+                                id="kepsek-ketepatan-monthly-class-summary"
+                                class="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                            </div>
+                        </div>
+                        <!-- Monthly Students -->
+                        <div class="bg-white rounded-2xl border shadow-sm p-5">
+                            <div class="mb-4">
+                                <h3 class="font-bold text-slate-800">
+                                    Rekap Per Siswa
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Rekap kehadiran siswa selama bulan berjalan
+                                </p>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table id="kepsek-ketepatan-monthly-student-table" class="w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b bg-slate-50">
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500">
+                                                No
+                                            </th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500">
+                                                Siswa
+                                            </th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500">
+                                                Kelas
+                                            </th>
+                                            <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500">
+                                                Hari Aktif
+                                            </th>
+                                            <th class="px-4 py-3 text-center text-xs font-semibold text-emerald-600">
+                                                Tepat
+                                            </th>
+                                            <th class="px-4 py-3 text-center text-xs font-semibold text-red-600">
+                                                Terlambat
+                                            </th>
+                                            <th class="px-4 py-3 text-center text-xs font-semibold text-orange-500">
+                                                Belum
+                                            </th>
+                                            <th class="px-4 py-3 text-center text-xs font-semibold text-blue-600">
+                                                Persentase
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="kepsek-ketepatan-monthly-student-list">
+                                        <tr>
+                                            <td colspan="8" class="text-center py-8 text-slate-400">
+                                                Belum ada data.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
             
             <!-- SISWA DASHBOARD -->
             <section id="page-user-dashboard" class="hidden-page p-4 space-y-4">
@@ -1151,6 +1869,19 @@
                             </div>
                             <span class="text-xs mt-2">
                                 Riwayat
+                            </span>
+                        </button>
+                        <!-- JURNAL 7 KAIH -->
+                        <button
+                            id="dashboard-menu-jurnal-7-kaih"
+                            onclick="navigateTo('page-jurnal-7-kaih')"
+                            class="flex flex-col items-center"
+                        >
+                            <div class="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center">
+                                <i class="fa-solid fa-calendar-check text-green-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs mt-2 text-center">
+                                Jurnal 7 KAIH
                             </span>
                         </button>
                         <!-- PROFIL -->
@@ -1519,6 +2250,971 @@
                     </button>
                 </div>
             </section>
+            <!-- =====================================================
+                PAGE : DASHBOARD OSIS
+            ===================================================== -->
+            <section id="page-dashboard-osis" class="hidden-page">
+                <!-- Header -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Dashboard OSIS</h1>
+                            <p class="text-sm text-gray-500 mt-1">Monitoring dan pencatatan pelanggaran siswa</p>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="OSISPelanggaranService.openForm()"
+                            class="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-sm">
+                            <i class="fa-solid fa-plus"></i>
+                            <span class="hidden sm:inline">Tambah Pelanggaran</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Sapaan -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                            <i class="fa-solid fa-users text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Selamat datang</p>
+                            <h2 id="osis-dashboard-nama" class="text-lg font-bold text-gray-800">OSIS</h2>
+                            <p id="osis-dashboard-tanggal" class="text-sm text-gray-500">-</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Statistik -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <!-- Total Pelanggaran -->
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Pelanggaran Hari Ini</p>
+                                <h3 id="osis-total-pelanggaran" class="text-3xl font-bold text-gray-800 mt-2">0</h3>
+                            </div>
+                            <div class="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Total Poin -->
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Total Poin</p>
+                                <h3 id="osis-total-poin" class="text-3xl font-bold text-gray-800 mt-2">0</h3>
+                            </div>
+                            <div class="w-11 h-11 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Terlambat -->
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Terlambat</p>
+                                <h3 id="osis-total-terlambat" class="text-3xl font-bold text-gray-800 mt-2">0</h3>
+                            </div>
+                            <div class="w-11 h-11 rounded-xl bg-yellow-100 text-yellow-600 flex items-center justify-center">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Perlu Penanganan -->
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Perlu Penanganan</p>
+                                <h3 id="osis-total-penanganan" class="text-3xl font-bold text-gray-800 mt-2">0</h3>
+                            </div>
+                            <div class="w-11 h-11 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Aksi Cepat -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
+                    <h2 class="font-bold text-gray-800 mb-4">Aksi Cepat</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <button
+                            type="button"
+                            onclick="OSISPelanggaranService.openForm()"
+                            class="p-4 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-left">
+                            <i class="fa-solid fa-plus-circle text-xl mb-2"></i>
+                            <div class="font-semibold">Catat Pelanggaran</div>
+                            <div class="text-xs mt-1 text-blue-600">Tambahkan pelanggaran siswa</div>
+                        </button>
+                        <button
+                            type="button"
+                            onclick="navigateTo('page-riwayat-pelanggaran')"
+                            class="p-4 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 text-left">
+                            <i class="fa-solid fa-clock-rotate-left text-xl mb-2"></i>
+                            <div class="font-semibold">Riwayat</div>
+                            <div class="text-xs mt-1 text-gray-500">Lihat riwayat pelanggaran</div>
+                        </button>
+                        <button
+                            type="button"
+                            onclick="navigateTo('page-rekap-pelanggaran')"
+                            class="p-4 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 text-left">
+                            <i class="fa-solid fa-chart-column text-xl mb-2"></i>
+                            <div class="font-semibold">Rekap</div>
+                            <div class="text-xs mt-1 text-green-600">Lihat rekapitulasi</div>
+                        </button>
+                    </div>
+                </div>
+                <!-- Pelanggaran Hari Ini -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+                        <div>
+                            <h2 class="font-bold text-gray-800">Pelanggaran Hari Ini</h2>
+                            <p class="text-xs text-gray-500 mt-1">Daftar pelanggaran yang dicatat hari ini</p>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="navigateTo('page-riwayat-pelanggaran')"
+                            class="text-sm text-blue-600 hover:text-blue-700 font-semibold">
+                            Lihat Semua
+                        </button>
+                    </div>
+                    <div id="osis-dashboard-loading" class="p-8 text-center hidden">
+                        <i class="fa-solid fa-spinner fa-spin text-blue-600 text-xl"></i>
+                        <p class="text-sm text-gray-500 mt-2">Memuat data...</p>
+                    </div>
+                    <div id="osis-dashboard-empty" class="hidden p-10 text-center">
+                        <div class="w-14 h-14 mx-auto rounded-full bg-gray-100 text-gray-400 flex items-center justify-center">
+                            <i class="fa-solid fa-clipboard-check text-xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-700 mt-4">Belum ada pelanggaran</h3>
+                        <p class="text-sm text-gray-500 mt-1">Belum ada pelanggaran yang dicatat hari ini.</p>
+                    </div>
+                    <div id="osis-dashboard-list" class="divide-y divide-gray-100"></div>
+                </div>
+            </section>
+            <!-- =========================================================
+                PAGE RIWAYAT OSIS
+            ========================================================= -->
+            <section id="page-riwayat-pelanggaran" class="hidden-page">
+                <div class="mb-6">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Riwayat Pelanggaran</h1>
+                            <p class="text-sm text-gray-500 mt-1">Daftar pelanggaran siswa yang telah dicatat</p>
+                        </div>
+                        <button type="button" onclick="OSISPelanggaranService.openForm()" class="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-sm">
+                            <i class="fa-solid fa-plus"></i>
+                            <span class="hidden sm:inline">Tambah</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Tanggal</label>
+                            <input id="riwayat-pelanggaran-tanggal" type="date" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Kelas</label>
+                            <select id="riwayat-pelanggaran-kategori" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Semua Kelas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Status</label>
+                            <select id="riwayat-pelanggaran-status" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Semua Status</option>
+                                <option value="Dicatat">Dicatat</option>
+                                <option value="Perlu Penanganan">Perlu Penanganan</option>
+                                <option value="Selesai">Selesai</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Cari</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <input id="riwayat-pelanggaran-search" type="search" placeholder="Nama siswa..." class="w-full rounded-xl border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+                        <div>
+                            <h2 class="font-bold text-gray-800">Daftar Pelanggaran</h2>
+                            <p class="text-xs text-gray-500 mt-1">Menampilkan <span id="osis-riwayat-count">0</span> data</p>
+                        </div>
+                        <button type="button" onclick="OSISRiwayatPelanggaranService.load()" class="w-9 h-9 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200">
+                            <i class="fa-solid fa-rotate"></i>
+                        </button>
+                    </div>
+                    <div id="osis-riwayat-empty" class="hidden p-10 text-center">
+                        <div class="w-14 h-14 mx-auto rounded-full bg-gray-100 text-gray-400 flex items-center justify-center">
+                            <i class="fa-solid fa-clipboard-check text-xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-700 mt-4">Belum ada pelanggaran</h3>
+                        <p class="text-sm text-gray-500 mt-1">Tidak ada data yang sesuai dengan filter.</p>
+                    </div>
+                    <div id="osis-riwayat-list" class="divide-y divide-gray-100"></div>
+                </div>
+            </section>
+            <!-- =========================================================
+                PAGE DASHBOARD GURU BK
+            ========================================================= -->
+            <section id="page-bk-monitoring-pelanggaran" class="hidden-page">
+                <div class="p-4 md:p-6 space-y-5">
+                    <!-- HEADER -->
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">Monitoring Pelanggaran</h2>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Monitoring dan penanganan pelanggaran siswa
+                        </p>
+                    </div>
+                    <!-- SUMMARY -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs text-gray-500">Perlu Penanganan</div>
+                                    <div id="bk-monitoring-count-perlu" class="text-2xl font-bold text-red-600 mt-1">0</div>
+                                </div>
+                                <div class="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs text-gray-500">Dalam Penanganan</div>
+                                    <div id="bk-monitoring-count-proses" class="text-2xl font-bold text-yellow-600 mt-1">0</div>
+                                </div>
+                                <div class="w-11 h-11 rounded-xl bg-yellow-100 text-yellow-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-user-shield"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs text-gray-500">Selesai</div>
+                                    <div id="bk-monitoring-count-selesai" class="text-2xl font-bold text-green-600 mt-1">0</div>
+                                </div>
+                                <div class="w-11 h-11 rounded-xl bg-green-100 text-green-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- FILTER -->
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">
+                                    Tanggal
+                                </label>
+                                <input
+                                    id="bk-monitoring-tanggal"
+                                    type="date"
+                                    class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">
+                                    Kelas
+                                </label>
+                                <select
+                                    id="bk-monitoring-kategori"
+                                    class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Semua Kelas</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">
+                                    Status
+                                </label>
+                                <select
+                                    id="bk-monitoring-status"
+                                    class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Semua Status</option>
+                                    <option value="Perlu Penanganan">Perlu Penanganan</option>
+                                    <option value="Dalam Penanganan">Dalam Penanganan</option>
+                                    <option value="Selesai">Selesai</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">
+                                    Cari
+                                </label>
+                                <div class="relative">
+                                    <input
+                                        id="bk-monitoring-search"
+                                        type="text"
+                                        placeholder="Nama / username..."
+                                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- LIST -->
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                        <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Daftar Pelanggaran</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">
+                                    <span id="bk-monitoring-count-list">0</span> data
+                                </p>
+                            </div>
+                            <button
+                                id="btn-bk-monitoring-refresh"
+                                type="button"
+                                class="w-9 h-9 rounded-xl hover:bg-gray-100 text-gray-500 flex items-center justify-center"
+                                title="Refresh"
+                            >
+                                <i class="fa-solid fa-rotate"></i>
+                            </button>
+                        </div>
+                        <div id="bk-monitoring-list">
+                            <div class="p-8 text-center">
+                                <i class="fa-solid fa-spinner fa-spin text-blue-600 text-xl"></i>
+                                <p class="text-sm text-gray-500 mt-2">
+                                    Memuat data...
+                                </p>
+                            </div>
+                        </div>
+                        <div id="bk-monitoring-empty" class="hidden p-10 text-center">
+                            <div class="w-14 h-14 mx-auto rounded-full bg-gray-100 text-gray-400 flex items-center justify-center">
+                                <i class="fa-solid fa-clipboard-check text-xl"></i>
+                            </div>
+                            <p class="text-sm font-medium text-gray-600 mt-3">
+                                Tidak ada data pelanggaran
+                            </p>
+                            <p class="text-xs text-gray-400 mt-1">
+                                Belum ada pelanggaran yang sesuai dengan filter.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- =========================================================
+                RIWAYAT PENANGANAN BK
+            ========================================================= -->
+            <section
+                id="page-bk-riwayat-penanganan"
+                class="hidden-page">
+                <div class="max-w-5xl mx-auto p-4">
+                    <div class="flex items-center gap-3 mb-5">
+                        <button
+                            onclick="navigateTo('page-bk-monitoring-pelanggaran')"
+                            class="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-600">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <div>
+                            <h1 class="text-lg font-bold text-gray-800">
+                                Riwayat Penanganan
+                            </h1>
+                            <p class="text-xs text-gray-500">
+                                Riwayat seluruh aktivitas penanganan pelanggaran
+                            </p>
+                        </div>
+                    </div>
+                    <!-- FILTER -->
+                    <div class="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">
+                                    Cari Siswa
+                                </label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-sm"></i>
+                                    <input
+                                        type="text"
+                                        id="bk-riwayat-search"
+                                        placeholder="Nama siswa / username..."
+                                        class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">
+                                    Kelas
+                                </label>
+                                <select
+                                    id="bk-riwayat-kelas"
+                                    class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm">
+                                    <option value="">
+                                        Semua Kelas
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">
+                                    Guru
+                                </label>
+                                <select
+                                    id="bk-riwayat-guru"
+                                    class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm">
+                                    <option value="">
+                                        Semua Guru
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">
+                                    Aktivitas
+                                </label>
+                                <select
+                                    id="bk-riwayat-status"
+                                    class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm">
+                                    <option value="">
+                                        Semua Aktivitas
+                                    </option>
+                                    <option value="Dalam Penanganan">
+                                        Dalam Penanganan
+                                    </option>
+                                    <option value="Selesai">
+                                        Selesai
+                                    </option>
+                                    <option value="Perlu Penanganan">
+                                        Perlu Penanganan
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- SUMMARY -->
+                    <div class="bg-white rounded-2xl border border-gray-100 px-4 py-3 mb-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-500">
+                                Total Aktivitas
+                            </span>
+                            <span
+                                id="bk-riwayat-count"
+                                class="text-sm font-bold text-indigo-600">
+                                0
+                            </span>
+                        </div>
+                    </div>
+                    <!-- LIST -->
+                    <div
+                        id="bk-riwayat-list"
+                        class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                    </div>
+                    <!-- EMPTY -->
+                    <div
+                        id="bk-riwayat-empty"
+                        class="hidden bg-white rounded-2xl border border-gray-100 p-10 text-center">
+                        <div class="w-14 h-14 mx-auto rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                            <i class="fa-solid fa-clock-rotate-left text-xl"></i>
+                        </div>
+                        <p class="text-sm font-medium text-gray-600 mt-3">
+                            Belum ada riwayat penanganan
+                        </p>
+                        <p class="text-xs text-gray-400 mt-1">
+                            Aktivitas penanganan akan muncul di sini.
+                        </p>
+                    </div>
+                </div>
+            </section>
+            <!-- =========================================================
+                PAGE JURNAL 7 KAIH
+            ========================================================= -->
+            <section
+                id="page-jurnal-7-kaih"
+                class="hidden-page"
+            >
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <!-- =================================================
+                        DASHBOARD
+                    ================================================== -->
+                    <div id="jurnal-dashboard">
+                        <!-- HEADER -->
+                        <div class="bg-white rounded-2xl shadow-sm border p-5">
+                            <div class="flex items-start gap-4">
+                                <div
+                                    class="w-12 h-12 rounded-xl bg-indigo-100
+                                        flex items-center justify-center shrink-0"
+                                >
+                                    <i
+                                        class="fas fa-book-open
+                                            text-indigo-600 text-xl"
+                                    ></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h2
+                                        class="text-xl font-bold text-slate-800"
+                                    >
+                                        Jurnal 7 KAIH
+                                    </h2>
+                                    <p
+                                        class="text-sm text-slate-500 mt-1"
+                                    >
+                                        Catat kebiasaan baikmu setiap hari.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- =================================================
+                            STATISTIK
+                        ================================================== -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- TOTAL -->
+                            <div
+                                class="bg-white rounded-2xl shadow-sm
+                                    border p-5"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-10 h-10 rounded-xl
+                                            bg-indigo-100
+                                            flex items-center justify-center"
+                                    >
+                                        <i
+                                            class="fas fa-calendar-check
+                                                text-indigo-600"
+                                        ></i>
+                                    </div>
+                                    <div>
+                                        <p
+                                            class="text-xs text-slate-500"
+                                        >
+                                            Jurnal Terisi
+                                        </p>
+                                        <p
+                                            id="jurnal-total"
+                                            class="text-2xl font-bold
+                                                text-slate-800"
+                                        >
+                                            0
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- STREAK -->
+                            <div
+                                class="bg-white rounded-2xl shadow-sm
+                                    border p-5"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-10 h-10 rounded-xl
+                                            bg-orange-100
+                                            flex items-center justify-center"
+                                    >
+                                        <span class="text-xl">
+                                            🔥
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p
+                                            class="text-xs text-slate-500"
+                                        >
+                                            Streak
+                                        </p>
+                                        <p
+                                            id="jurnal-streak"
+                                            class="text-2xl font-bold
+                                                text-slate-800"
+                                        >
+                                            0 hari
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- =================================================
+                            STATUS HARI INI
+                        ================================================== -->
+                        <div
+                            id="jurnal-status-hari-ini"
+                            class="bg-white rounded-2xl
+                                shadow-sm border p-5"
+                        >
+                            <!-- DIISI JAVASCRIPT -->
+                        </div>
+                        <!-- =================================================
+                            KALENDER
+                        ================================================== -->
+                        <!-- KALENDER JURNAL -->
+                        <div
+                            class="bg-white rounded-2xl shadow-sm border p-5"
+                        >
+                            <!-- HEADER -->
+                            <div class="flex items-center justify-between mb-4">
+                                <!-- TOMBOL BULAN SEBELUMNYA -->
+                                <button
+                                    type="button"
+                                    onclick="Jurnal7KaihService.previousMonth()"
+                                    class="
+                                        w-9 h-9
+                                        rounded-xl
+                                        bg-slate-100
+                                        hover:bg-slate-200
+                                        text-slate-600
+                                        flex
+                                        items-center
+                                        justify-center
+                                        transition
+                                    "
+                                    aria-label="Bulan sebelumnya"
+                                >
+                                    <i class="fas fa-chevron-left text-sm"></i>
+                                </button>
+                                <!-- JUDUL -->
+                                <div class="text-center">
+                                    <h3
+                                        class="font-bold text-slate-800"
+                                    >
+                                        Kalender Jurnal
+                                    </h3>
+                                    <p
+                                        id="jurnal-calendar-title"
+                                        class="text-xs text-slate-500 mt-1"
+                                    >
+                                        -
+                                    </p>
+                                </div>
+                                <!-- TOMBOL BULAN BERIKUTNYA -->
+                                <button
+                                    type="button"
+                                    onclick="Jurnal7KaihService.nextMonth()"
+                                    class="
+                                        w-9 h-9
+                                        rounded-xl
+                                        bg-slate-100
+                                        hover:bg-slate-200
+                                        text-slate-600
+                                        flex
+                                        items-center
+                                        justify-center
+                                        transition
+                                    "
+                                    aria-label="Bulan berikutnya"
+                                >
+                                    <i class="fas fa-chevron-right text-sm"></i>
+                                </button>
+                            </div>
+                            <!-- KALENDER -->
+                            <div
+                                id="jurnal-calendar"
+                                class="
+                                    grid
+                                    grid-cols-7
+                                    gap-2
+                                "
+                            >
+                                <!-- JAVASCRIPT -->
+                            </div>
+                            <!-- LEGEND -->
+                            <div
+                                class="
+                                    flex
+                                    flex-wrap
+                                    gap-x-4
+                                    gap-y-2
+                                    mt-5
+                                    text-xs
+                                    text-slate-500
+                                "
+                            >
+                                <div class="flex items-center gap-1">
+                                    <span>🟢</span>
+                                    <span>Sudah diisi</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span>🟡</span>
+                                    <span>Hari ini</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span>⚪</span>
+                                    <span>Belum diisi</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span>🔵</span>
+                                    <span>Minggu / Libur</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- =================================================
+                            RIWAYAT
+                        ================================================== -->
+                        <div
+                            class="bg-white rounded-2xl shadow-sm border p-5"
+                        >
+                            <div
+                                class="flex items-center
+                                    justify-between mb-4"
+                            >
+                                <div>
+                                    <h3
+                                        class="font-bold text-slate-800"
+                                    >
+                                        Riwayat Jurnal
+                                    </h3>
+                                    <p
+                                        class="text-xs text-slate-500 mt-1"
+                                    >
+                                        Jurnal yang sudah kamu isi
+                                    </p>
+                                </div>
+                            </div>
+                            <div
+                                id="jurnal-history"
+                                class="space-y-3"
+                            >
+                                <!-- JAVASCRIPT -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- =================================================
+                        FORM JURNAL
+                    ================================================== -->
+                    <div
+                        id="jurnal-form-container"
+                        class="hidden"
+                    >
+                        <!-- HEADER -->
+                        <div
+                            class="bg-white rounded-2xl shadow-sm
+                                border p-5 mb-6"
+                        >
+                            <div class="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onclick="Jurnal7KaihService.closeForm()"
+                                    class="w-10 h-10 rounded-xl
+                                        bg-slate-100
+                                        hover:bg-slate-200
+                                        flex items-center justify-center"
+                                >
+                                    <i class="fas fa-arrow-left"></i>
+                                </button>
+                                <div>
+                                    <h2
+                                        class="text-xl font-bold
+                                            text-slate-800"
+                                    >
+                                        Isi Jurnal 7 KAIH
+                                    </h2>
+                                    <p
+                                        class="text-sm text-slate-500 mt-1"
+                                    >
+                                        Isi kegiatan positif yang kamu lakukan.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- FORM -->
+                        <form
+                            id="form-jurnal-7-kaih"
+                            novalidate
+                            class="bg-white rounded-2xl shadow-sm
+                                border p-5 space-y-6"
+                        >
+                            <!-- TANGGAL -->
+                            <div>
+                                <label
+                                    for="jurnal-tanggal"
+                                    class="block text-sm font-semibold
+                                        text-slate-700 mb-2"
+                                >
+                                    Tanggal Jurnal
+                                </label>
+                                <input
+                                    type="date"
+                                    id="jurnal-tanggal"
+                                    name="tanggal"
+                                    class="w-full border rounded-xl
+                                        px-4 py-3"
+                                    required
+                                >
+                                <p
+                                    class="text-xs text-slate-500 mt-2"
+                                >
+                                    Jurnal dapat diisi untuk hari ini
+                                    atau hari sebelumnya.
+                                </p>
+                            </div>
+                            <!-- BANGUN -->
+                            <div>
+                                <label
+                                    for="jurnal-bangun"
+                                    class="block text-sm font-semibold
+                                        text-slate-700 mb-2"
+                                >
+                                    1. Bangun 🌅
+                                </label>
+                                <input
+                                    type="time"
+                                    id="jurnal-bangun"
+                                    name="bangun"
+                                    class="w-full border rounded-xl
+                                        px-4 py-3"
+                                    required
+                                >
+                                <p
+                                    class="text-xs text-slate-500 mt-2"
+                                >
+                                    Jam berapa kamu bangun pagi?
+                                </p>
+                            </div>
+                            <!-- IBADAH -->
+                            <div>
+                                <label
+                                    for="jurnal-ibadah"
+                                    class="block text-sm font-semibold
+                                        text-slate-700 mb-2"
+                                >
+                                    2. Ibadah 🙏
+                                </label>
+                                <input
+                                    type="number"
+                                    id="jurnal-ibadah"
+                                    name="ibadah"
+                                    min="0"
+                                    step="1"
+                                    class="w-full border rounded-xl
+                                        px-4 py-3"
+                                    placeholder="Contoh: 5"
+                                    required
+                                >
+                                <p
+                                    class="text-xs text-slate-500 mt-2"
+                                >
+                                    Berapa kali kamu beribadah
+                                    dalam satu hari?
+                                </p>
+                            </div>
+                            <!-- OLAHRAGA -->
+                            <div>
+                                <label
+                                    for="jurnal-olahraga"
+                                    class="block text-sm font-semibold
+                                        text-slate-700 mb-2"
+                                >
+                                    3. Olahraga 🏃
+                                </label>
+                                <div class="relative">
+                                    <input
+                                        type="number"
+                                        id="jurnal-olahraga"
+                                        name="olahraga"
+                                        min="0"
+                                        step="1"
+                                        class="w-full border rounded-xl
+                                            px-4 py-3 pr-20"
+                                        placeholder="Contoh: 30"
+                                        required
+                                    >
+                                    <span
+                                        class="absolute right-4 top-1/2
+                                            -translate-y-1/2
+                                            text-sm text-slate-500"
+                                    >
+                                        menit
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- MAKAN -->
+                            <div>
+                                <label
+                                    for="jurnal-makan"
+                                    class="block text-sm font-semibold
+                                        text-slate-700 mb-2"
+                                >
+                                    4. Makan 🍎
+                                </label>
+                                <textarea
+                                    id="jurnal-makan"
+                                    name="makan"
+                                    rows="3"
+                                    maxlength="1000"
+                                    class="w-full border rounded-xl
+                                        px-4 py-3 resize-none"
+                                    placeholder="Tuliskan makanan dan minuman sehat yang kamu konsumsi..."
+                                    required
+                                ></textarea>
+                            </div>
+                            <!-- GEMAR -->
+                            <div>
+                                <label
+                                    for="jurnal-gemar"
+                                    class="block text-sm font-semibold
+                                        text-slate-700 mb-2"
+                                >
+                                    5. Gemar 📚
+                                </label>
+                                <textarea
+                                    id="jurnal-gemar"
+                                    name="gemar"
+                                    rows="4"
+                                    maxlength="2000"
+                                    class="w-full border rounded-xl
+                                        px-4 py-3 resize-none"
+                                    placeholder="Tuliskan pelajaran yang kamu pelajari dan manfaat yang kamu dapatkan..."
+                                    required
+                                ></textarea>
+                            </div>
+                            <!-- BERMASYARAKAT -->
+                            <div>
+                                <label
+                                    for="jurnal-bermasyarakat"
+                                    class="block text-sm font-semibold
+                                        text-slate-700 mb-2"
+                                >
+                                    6. Bermasyarakat 🤝
+                                </label>
+                                <textarea
+                                    id="jurnal-bermasyarakat"
+                                    name="bermasyarakat"
+                                    rows="4"
+                                    maxlength="2000"
+                                    class="w-full border rounded-xl
+                                        px-4 py-3 resize-none"
+                                    placeholder="Tuliskan kegiatan bermasyarakat yang kamu lakukan..."
+                                    required
+                                ></textarea>
+                            </div>
+                            <!-- TIDUR -->
+                            <div>
+                                <label
+                                    for="jurnal-tidur"
+                                    class="block text-sm font-semibold
+                                        text-slate-700 mb-2"
+                                >
+                                    7. Tidur 🌙
+                                </label>
+                                <input
+                                    type="time"
+                                    id="jurnal-tidur"
+                                    name="tidur"
+                                    class="w-full border rounded-xl
+                                        px-4 py-3"
+                                    required
+                                >
+                            </div>
+                            <!-- BUTTON -->
+                            <button
+                                type="submit"
+                                id="btn-review-jurnal"
+                                class="w-full bg-indigo-600
+                                    hover:bg-indigo-700
+                                    text-white font-semibold
+                                    rounded-xl px-5 py-3 transition"
+                            >
+                                <i class="fas fa-eye mr-2"></i>
+                                Review Jurnal
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODAL CHANGE PASSWORD -->
             <div id="modal-change-password" class="fixed inset-0 z-50 hidden-page">
                 <!-- Background -->
                 <div
@@ -2005,7 +3701,1059 @@
                     </div>
                 </div>
             </div>
+            <!-- =====================================================
+                MODAL REVIEW JURNAL 7 KAIH
+            ===================================================== -->
+            <div
+                id="modal-review-jurnal"
+                class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 px-4 py-4"
+            >
+                <div
+                    class="
+                        w-full
+                        max-w-sm
+                        bg-white
+                        rounded-2xl
+                        shadow-xl
+                        overflow-hidden
+                        flex
+                        flex-col
+                        max-h-[calc(100vh-2rem)]
+                    "
+                >
+                    <!-- =================================================
+                        HEADER
+                    ================================================== -->
+                    <div
+                        class="
+                            relative
+                            px-4
+                            py-3
+                            border-b
+                            text-center
+                            shrink-0
+                        "
+                    >
+                        <!-- CLOSE -->
+                        <button
+                            type="button"
+                            onclick="Jurnal7KaihService.closeReview()"
+                            class="
+                                absolute
+                                top-3
+                                right-3
+                                w-9
+                                h-9
+                                rounded-full
+                                flex
+                                items-center
+                                justify-center
+                                bg-rose-50
+                                text-rose-500
+                                border
+                                border-rose-100
+                                hover:bg-rose-500
+                                hover:text-white
+                                hover:border-rose-500
+                                transition-all
+                                duration-200
+                                shadow-sm
+                            "
+                            aria-label="Tutup review"
+                        >
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                        <!-- ICON -->
+                        <div
+                            class="
+                                w-10
+                                h-10
+                                mx-auto
+                                mb-1.5
+                                rounded-xl
+                                bg-indigo-100
+                                flex
+                                items-center
+                                justify-center
+                            "
+                        >
+                            <i
+                                class="fas fa-book-open text-indigo-600"
+                            ></i>
+                        </div>
+                        <h3
+                            class="
+                                text-base
+                                font-bold
+                                text-slate-800
+                            "
+                        >
+                            Review Jurnal 7 KAIH
+                        </h3>
+                        <p
+                            id="review-tanggal"
+                            class="
+                                text-xs
+                                text-slate-500
+                                mt-0.5
+                            "
+                        >
+                            -
+                        </p>
+                    </div>
+                    <!-- =================================================
+                        CONTENT
+                    ================================================== -->
+                    <div
+                        class="
+                            px-4
+                            py-4
+                            space-y-3
+                            overflow-y-auto
+                            min-h-0
+                        "
+                    >
+                        <!-- BANGUN -->
+                        <div
+                            class="
+                                flex
+                                items-center
+                                justify-between
+                                gap-3
+                            "
+                        >
+                            <div
+                                class="
+                                    flex
+                                    items-center
+                                    gap-2.5
+                                    min-w-0
+                                "
+                            >
+                                <span class="text-lg">
+                                    🌅
+                                </span>
+                                <span
+                                    class="
+                                        text-sm
+                                        font-medium
+                                        text-slate-700
+                                    "
+                                >
+                                    Bangun
+                                </span>
+                            </div>
+                            <span
+                                id="review-bangun"
+                                class="
+                                    text-sm
+                                    font-semibold
+                                    text-slate-800
+                                    text-right
+                                    shrink-0
+                                "
+                            >
+                                -
+                            </span>
+                        </div>
+                        <!-- IBADAH -->
+                        <div
+                            class="
+                                flex
+                                items-center
+                                justify-between
+                                gap-3
+                            "
+                        >
+                            <div
+                                class="
+                                    flex
+                                    items-center
+                                    gap-2.5
+                                    min-w-0
+                                "
+                            >
+                                <span class="text-lg">
+                                    🙏
+                                </span>
+                                <span
+                                    class="
+                                        text-sm
+                                        font-medium
+                                        text-slate-700
+                                    "
+                                >
+                                    Ibadah
+                                </span>
+                            </div>
+                            <span
+                                id="review-ibadah"
+                                class="
+                                    text-sm
+                                    font-semibold
+                                    text-slate-800
+                                    text-right
+                                    shrink-0
+                                "
+                            >
+                                -
+                            </span>
+                        </div>
+                        <!-- OLAHRAGA -->
+                        <div
+                            class="
+                                flex
+                                items-center
+                                justify-between
+                                gap-3
+                            "
+                        >
+                            <div
+                                class="
+                                    flex
+                                    items-center
+                                    gap-2.5
+                                "
+                            >
+                                <span class="text-lg">
+                                    🏃
+                                </span>
+                                <span
+                                    class="
+                                        text-sm
+                                        font-medium
+                                        text-slate-700
+                                    "
+                                >
+                                    Olahraga
+                                </span>
+                            </div>
+                            <span
+                                id="review-olahraga"
+                                class="
+                                    text-sm
+                                    font-semibold
+                                    text-slate-800
+                                    text-right
+                                    shrink-0
+                                "
+                            >
+                                -
+                            </span>
+                        </div>
+                        <!-- PEMBATAS -->
+                        <div class="border-t pt-3"></div>
+                        <!-- MAKAN -->
+                        <div>
+                            <div
+                                class="
+                                    flex
+                                    items-center
+                                    gap-2.5
+                                    mb-1.5
+                                "
+                            >
+                                <span class="text-lg">
+                                    🍎
+                                </span>
+                                <span
+                                    class="
+                                        text-sm
+                                        font-medium
+                                        text-slate-700
+                                    "
+                                >
+                                    Makan
+                                </span>
+                            </div>
+                            <div
+                                id="review-makan"
+                                class="
+                                    text-xs
+                                    text-slate-600
+                                    bg-slate-50
+                                    border
+                                    border-slate-100
+                                    rounded-xl
+                                    px-3
+                                    py-2.5
+                                    leading-relaxed
+                                    whitespace-pre-line
+                                "
+                            >
+                                -
+                            </div>
+                        </div>
+                        <!-- GEMAR -->
+                        <div>
+                            <div
+                                class="
+                                    flex
+                                    items-center
+                                    gap-2.5
+                                    mb-1.5
+                                "
+                            >
+                                <span class="text-lg">
+                                    📚
+                                </span>
+                                <span
+                                    class="
+                                        text-sm
+                                        font-medium
+                                        text-slate-700
+                                    "
+                                >
+                                    Gemar
+                                </span>
+                            </div>
+                            <div
+                                id="review-gemar"
+                                class="
+                                    text-xs
+                                    text-slate-600
+                                    bg-slate-50
+                                    border
+                                    border-slate-100
+                                    rounded-xl
+                                    px-3
+                                    py-2.5
+                                    leading-relaxed
+                                    whitespace-pre-line
+                                "
+                            >
+                                -
+                            </div>
+                        </div>
+                        <!-- BERMASYARAKAT -->
+                        <div>
+                            <div
+                                class="
+                                    flex
+                                    items-center
+                                    gap-2.5
+                                    mb-1.5
+                                "
+                            >
+                                <span class="text-lg">
+                                    🤝
+                                </span>
+                                <span
+                                    class="
+                                        text-sm
+                                        font-medium
+                                        text-slate-700
+                                    "
+                                >
+                                    Bermasyarakat
+                                </span>
+                            </div>
+                            <div
+                                id="review-bermasyarakat"
+                                class="
+                                    text-xs
+                                    text-slate-600
+                                    bg-slate-50
+                                    border
+                                    border-slate-100
+                                    rounded-xl
+                                    px-3
+                                    py-2.5
+                                    leading-relaxed
+                                    whitespace-pre-line
+                                "
+                            >
+                                -
+                            </div>
+                        </div>
+                        <!-- PEMBATAS -->
+                        <div class="border-t pt-3"></div>
+                        <!-- TIDUR -->
+                        <div
+                            class="
+                                flex
+                                items-center
+                                justify-between
+                                gap-3
+                            "
+                        >
+                            <div
+                                class="
+                                    flex
+                                    items-center
+                                    gap-2.5
+                                "
+                            >
+                                <span class="text-lg">
+                                    🌙
+                                </span>
+                                <span
+                                    class="
+                                        text-sm
+                                        font-medium
+                                        text-slate-700
+                                    "
+                                >
+                                    Tidur
+                                </span>
+                            </div>
+                            <span
+                                id="review-tidur"
+                                class="
+                                    text-sm
+                                    font-semibold
+                                    text-slate-800
+                                "
+                            >
+                                -
+                            </span>
+                        </div>
+                    </div>
+                    <!-- =================================================
+                        FOOTER
+                    ================================================== -->
+                    <div
+                        class="
+                            px-4
+                            py-3
+                            border-t
+                            bg-slate-50
+                            shrink-0
+                            space-y-2
+                        "
+                    >
+                        <!-- SIMPAN -->
+                        <button
+                            type="button"
+                            id="btn-simpan-review-jurnal"
+                            onclick="Jurnal7KaihService.submit()"
+                            class="
+                                w-full
+                                bg-indigo-600
+                                hover:bg-indigo-700
+                                text-white
+                                text-sm
+                                font-semibold
+                                rounded-xl
+                                px-4
+                                py-2.5
+                                transition
+                            "
+                        >
+                            <i class="fas fa-save mr-2"></i>
+                            Simpan Jurnal
+                        </button>
 
+
+                        <!-- KEMBALI EDIT -->
+                        <button
+                            type="button"
+                            onclick="Jurnal7KaihService.closeReview()"
+                            class="
+                                w-full
+                                bg-slate-100
+                                hover:bg-slate-200
+                                text-slate-700
+                                text-sm
+                                font-semibold
+                                border
+                                border-slate-200
+                                rounded-xl
+                                px-4
+                                py-2.5
+                                transition-all
+                                duration-200
+                            "
+                        >
+                            <i class="fas fa-edit mr-2"></i>
+                            Kembali Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        <!-- MODAL DETAIL JURNAL 7 KAIH -->
+        <div
+            id="modal-detail-jurnal"
+            class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 px-4 py-4"
+        >
+            <div
+                class="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden max-h-[80vh] flex flex-col"
+            >
+                <!-- HEADER -->
+                <div class="px-4 py-3 border-b flex items-center justify-between shrink-0">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">
+                            Detail Jurnal
+                        </h3>
+                        <p
+                            id="detail-jurnal-tanggal"
+                            class="text-xs text-slate-500 mt-0.5"
+                        >
+                            -
+                        </p>
+                    </div>
+                    <!-- TOMBOL X -->
+                    <button
+                        type="button"
+                        onclick="Jurnal7KaihService.closeDetail()"
+                        class="
+                                top-3
+                                right-3
+                                w-9
+                                h-9
+                                rounded-full
+                                flex
+                                items-center
+                                justify-center
+                                bg-rose-50
+                                text-rose-500
+                                border
+                                border-rose-100
+                                hover:bg-rose-500
+                                hover:text-white
+                                hover:border-rose-500
+                                transition-all
+                                duration-200
+                                shadow-sm"
+                        aria-label="Tutup"
+                    >
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <!-- CONTENT -->
+                <div class="px-4 py-4 overflow-y-auto space-y-3">
+                    <!-- BANGUN -->
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <span>🌅</span>
+                            <span class="text-sm text-slate-600">
+                                Bangun
+                            </span>
+                        </div>
+                        <span
+                            id="detail-jurnal-bangun"
+                            class="text-sm font-semibold text-slate-800"
+                        >
+                            -
+                        </span>
+                    </div>
+                    <!-- IBADAH -->
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <span>🙏</span>
+                            <span class="text-sm text-slate-600">
+                                Ibadah
+                            </span>
+                        </div>
+                        <span
+                            id="detail-jurnal-ibadah"
+                            class="text-sm font-semibold text-slate-800"
+                        >
+                            -
+                        </span>
+                    </div>
+                    <!-- OLAHRAGA -->
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <span>🏃</span>
+                            <span class="text-sm text-slate-600">
+                                Olahraga
+                            </span>
+                        </div>
+                        <span
+                            id="detail-jurnal-olahraga"
+                            class="text-sm font-semibold text-slate-800"
+                        >
+                            -
+                        </span>
+                    </div>
+                    <!-- MAKAN -->
+                    <div class="border-t pt-3">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span>🍎</span>
+                            <span class="text-sm font-medium text-slate-700">
+                                Makan
+                            </span>
+                        </div>
+                        <div
+                            id="detail-jurnal-makan"
+                            class="text-sm text-slate-600 bg-slate-50 rounded-xl p-3 leading-relaxed break-words"
+                        >
+                            -
+                        </div>
+                    </div>
+                    <!-- GEMAR -->
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span>📚</span>
+                            <span class="text-sm font-medium text-slate-700">
+                                Gemar
+                            </span>
+                        </div>
+                        <div
+                            id="detail-jurnal-gemar"
+                            class="text-sm text-slate-600 bg-slate-50 rounded-xl p-3 leading-relaxed break-words"
+                        >
+                            -
+                        </div>
+                    </div>
+                    <!-- BERMASYARAKAT -->
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span>🤝</span>
+                            <span class="text-sm font-medium text-slate-700">
+                                Bermasyarakat
+                            </span>
+                        </div>
+                        <div
+                            id="detail-jurnal-bermasyarakat"
+                            class="text-sm text-slate-600 bg-slate-50 rounded-xl p-3 leading-relaxed break-words"
+                        >
+                            -
+                        </div>
+                    </div>
+                    <!-- TIDUR -->
+                    <div class="border-t pt-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span>🌙</span>
+                            <span class="text-sm text-slate-600">
+                                Tidur
+                            </span>
+                        </div>
+                        <span
+                            id="detail-jurnal-tidur"
+                            class="text-sm font-semibold text-slate-800"
+                        >
+                            -
+                        </span>
+                    </div>
+                </div>
+                <!-- FOOTER -->
+                <div class="px-4 py-3 border-t bg-slate-50 shrink-0">
+                    <button
+                        type="button"
+                        onclick="Jurnal7KaihService.closeDetail()"
+                        class="w-full
+                                bg-indigo-600
+                                hover:bg-indigo-700
+                                text-white
+                                text-sm
+                                font-semibold
+                                rounded-xl
+                                px-4
+                                py-2.5
+                                transition"
+                    >
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="modal-pelanggaran-osis" class="fixed inset-0 z-50 hidden bg-black/50 p-4 overflow-y-auto">
+            <div class="min-h-full flex items-center justify-center">
+                <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl">
+                    <div class="flex items-center justify-between p-5 border-b">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">
+                                Tambah Pelanggaran Siswa
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-1">
+                                Catat pelanggaran siswa saat piket OSIS
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="OSISPelanggaranService.closeForm()"
+                            class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <form id="form-pelanggaran-osis" class="p-5 space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                Tanggal
+                            </label>
+                            <input
+                                type="date"
+                                id="pelanggaran-tanggal"
+                                class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                Siswa
+                            </label>
+                            <select
+                                id="pelanggaran-siswa"
+                                placeholder="Cari nama atau username siswa..."
+                                required>
+                                <option value="">
+                                    Pilih siswa
+                                </option>
+                            </select>
+                        </div>
+                        <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">
+                            Jenis Pelanggaran
+                        </label>
+                        <div class="relative">
+                            <select
+                                id="pelanggaran-jenis"
+                                class="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm
+                                    focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                                    appearance-none cursor-pointer"
+                                required>
+                                <option value="">
+                                    Pilih jenis pelanggaran
+                                </option>
+                            </select>
+                            <!-- Icon dropdown -->
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
+                                <i class="fa-solid fa-chevron-down text-slate-400 text-sm"></i>
+                            </div>
+                        </div>
+                        <!-- Preview jenis yang dipilih -->
+                        <div
+                            id="pelanggaran-jenis-preview"
+                            class="hidden mt-2 rounded-xl bg-indigo-50 border border-indigo-100 p-3">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <div
+                                        id="pelanggaran-jenis-nama"
+                                        class="font-semibold text-indigo-800 text-sm truncate">
+                                    </div>
+                                    <div
+                                        id="pelanggaran-jenis-kode"
+                                        class="text-xs text-indigo-500 mt-1">
+                                    </div>
+                                </div>
+                                <div
+                                    id="pelanggaran-jenis-poin"
+                                    class="flex-shrink-0 px-3 py-1.5 rounded-lg
+                                        bg-indigo-100 text-indigo-700
+                                        text-xs font-bold">
+                                </div>
+                            </div>
+                            <!-- <div
+                                id="pelanggaran-jenis-status"
+                                class="hidden mt-2 pt-2 border-t border-indigo-100
+                                    text-xs font-semibold text-red-600">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                                Pelanggaran memerlukan penanganan
+                            </div> -->
+                        </div>
+                    </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                Alasan / Keterangan
+                            </label>
+                            <textarea
+                                id="pelanggaran-keterangan"
+                                rows="1"
+                                class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="Tuliskan alasan atau keterangan pelanggaran..."></textarea>
+                        </div>
+                        <div id="pelanggaran-warning" class="hidden rounded-xl bg-red-50 border border-red-200 p-4">
+                            <div class="flex gap-3">
+                                <div class="text-red-600">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-red-700 text-sm">
+                                        Perlu Penanganan Lebih Lanjut
+                                    </div>
+                                    <!-- <div id="pelanggaran-warning-text" class="text-xs text-red-600 mt-1">
+                                        Pelanggaran ini perlu ditindaklanjuti oleh pihak sekolah.
+                                    </div> -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 pt-2">
+                            <button
+                                type="button"
+                                onclick="OSISPelanggaranService.closeForm()"
+                                class="flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+                                Batal
+                            </button>
+                            <button
+                                type="submit"
+                                id="btn-simpan-pelanggaran"
+                                class="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                                <i class="fa-solid fa-save mr-1"></i>
+                                Simpan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- MODAL DETAIL GURU BK -->
+        <div id="modal-bk-detail-pelanggaran" class="fixed inset-0 z-[9999] hidden">
+            <div id="modal-bk-detail-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+            <div class="relative z-10 min-h-full flex items-center justify-center p-4">
+                <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">
+                                Detail Pelanggaran
+                            </h3>
+                            <p class="text-xs text-gray-500 mt-0.5">
+                                Monitoring penanganan siswa
+                            </p>
+                        </div>
+                        <button
+                            id="btn-close-bk-detail"
+                            type="button"
+                            class="w-9 h-9 rounded-xl hover:bg-gray-100 text-gray-500 flex items-center justify-center"
+                        >
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+                    <div
+                        id="modal-bk-detail-content"
+                        class="p-5 max-h-[75vh] overflow-y-auto"
+                    ></div>
+                </div>
+            </div>
+        </div>
+        <!-- MODAL DETAIL PELANGGARAN -->
+        <div id="modal-detail-pelanggaran" class="fixed inset-0 z-[9999] hidden">
+            <div id="modal-detail-pelanggaran-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+            <div class="relative z-10 min-h-full flex items-center justify-center p-4">
+                <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Detail Pelanggaran</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Informasi pencatatan pelanggaran siswa</p>
+                        </div>
+                        <button id="btn-close-detail-pelanggaran" type="button" class="w-9 h-9 rounded-xl hover:bg-gray-100 text-gray-500 flex items-center justify-center transition">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+                    <div id="modal-detail-pelanggaran-content" class="p-5 max-h-[70vh] overflow-y-auto"></div>
+                    <div class="px-5 py-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+                        <button id="btn-close-detail-pelanggaran-bottom" type="button" class="px-4 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-semibold transition">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- MODAL KEPSEK JURNAL 7 KAIH -->
+        <div id="modal-kepsek-jurnal-tanggal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 px-4 py-5">
+                <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden max-h-[85vh] flex flex-col">
+                    <div class="relative px-5 py-4 border-b text-center shrink-0">
+                        <button type="button" onclick="KepsekJurnal7Kaih.closeDateModal()" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <h3 class="font-bold text-slate-800">Jurnal 7 KAIH</h3>
+                        <p id="kepsek-jurnal-modal-date" class="text-xs text-slate-500 mt-1">-</p>
+                    </div>
+                    <div class="px-5 py-4 overflow-y-auto">
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                                <p class="text-xs text-emerald-600">Sudah</p>
+                                <p id="kepsek-date-done" class="text-xl font-bold text-emerald-700">0</p>
+                            </div>
+                            <div class="bg-red-50 rounded-xl p-3 text-center">
+                                <p class="text-xs text-red-600">Belum</p>
+                                <p id="kepsek-date-missing" class="text-xl font-bold text-red-700">0</p>
+                            </div>
+                        </div>
+                        <div id="kepsek-jurnal-date-list" class="space-y-2"></div>
+                    </div>
+                    <div class="px-5 py-4 border-t bg-slate-50">
+                        <button type="button" onclick="KepsekJurnal7Kaih.closeDateModal()" class="w-full rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="modal-kepsek-jurnal-detail" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 px-4 py-5">
+                <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden max-h-[85vh] flex flex-col">
+                    <div class="relative px-5 py-4 border-b text-center shrink-0">
+                        <button type="button" onclick="KepsekJurnal7Kaih.closeDetailModal()" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <h3 class="font-bold text-slate-800">Detail Jurnal</h3>
+                        <p id="kepsek-detail-nama" class="text-sm font-semibold text-indigo-600 mt-1">-</p>
+                        <p id="kepsek-detail-kategori" class="text-xs text-slate-500 mt-1">-</p>
+                        <p id="kepsek-detail-tanggal" class="text-xs text-slate-500 mt-1">-</p>
+                    </div>
+                    <div class="px-5 py-4 overflow-y-auto space-y-4">
+                        <div class="flex justify-between gap-3">
+                            <span>🌅 Bangun</span>
+                            <b id="kepsek-detail-bangun">-</b>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                            <span>🙏 Ibadah</span>
+                            <b id="kepsek-detail-ibadah">-</b>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                            <span>🏃 Olahraga</span>
+                            <b id="kepsek-detail-olahraga">-</b>
+                        </div>
+                        <div class="border-t pt-3">
+                            <p class="font-semibold text-slate-700 mb-2">🍎 Makan</p>
+                            <div id="kepsek-detail-makan" class="bg-slate-50 rounded-xl p-3 text-sm text-slate-600">-</div>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-700 mb-2">📚 Gemar</p>
+                            <div id="kepsek-detail-gemar" class="bg-slate-50 rounded-xl p-3 text-sm text-slate-600">-</div>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-700 mb-2">🤝 Bermasyarakat</p>
+                            <div id="kepsek-detail-bermasyarakat" class="bg-slate-50 rounded-xl p-3 text-sm text-slate-600">-</div>
+                        </div>
+                        <div class="border-t pt-3 flex justify-between gap-3">
+                            <span>🌙 Tidur</span>
+                            <b id="kepsek-detail-tidur">-</b>
+                        </div>
+                    </div>
+                    <div class="px-5 py-4 border-t bg-slate-50">
+                        <button type="button" onclick="KepsekJurnal7Kaih.closeDetailModal()" class="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        <!-- MODAL DETAIL TANGGAL KEPSEK KETEPATAN WAKTU -->
+        <div id="modal-kepsek-absensi-tanggal"
+            class="hidden fixed inset-0 z-[9999] bg-black/50 items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+                <div class="flex items-center justify-between gap-3 p-5 border-b">
+                    <div>
+                        <h3 class="font-bold text-slate-800">
+                            Kehadiran Siswa
+                        </h3>
+                        <p id="kepsek-absensi-modal-date"
+                            class="text-sm text-slate-500 mt-1">
+                            -
+                        </p>
+                    </div>
+                    <button type="button"
+                        onclick="KepsekKetepatanWaktu.closeDateModal()"
+                        class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                        <i class="fas fa-times text-slate-500"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-3 gap-3 p-5 border-b">
+                    <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                        <p class="text-xs text-slate-500">Tepat</p>
+                        <p id="kepsek-absensi-date-tepat"
+                            class="text-xl font-bold text-emerald-600 mt-1">
+                            0
+                        </p>
+                    </div>
+                    <div class="bg-orange-50 rounded-xl p-3 text-center">
+                        <p class="text-xs text-slate-500">Terlambat</p>
+                        <p id="kepsek-absensi-date-terlambat"
+                            class="text-xl font-bold text-orange-600 mt-1">
+                            0
+                        </p>
+                    </div>
+                    <div class="bg-red-50 rounded-xl p-3 text-center">
+                        <p class="text-xs text-slate-500">Belum</p>
+                        <p id="kepsek-absensi-date-belum"
+                            class="text-xl font-bold text-red-600 mt-1">
+                            0
+                        </p>
+                    </div>
+                </div>
+                <div id="kepsek-absensi-date-list"
+                    class="p-5 space-y-2 max-h-[55vh] overflow-y-auto">
+                </div>
+            </div>
+        </div>
+        <!-- MODAL DETAIL SISWA KEPSEK KETEPATAN WAKTU -->
+        <div id="modal-kepsek-absensi-detail"
+            class="hidden fixed inset-0 z-[10000] bg-black/50 items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+                <div class="flex items-center justify-between gap-3 p-5 border-b">
+                    <div>
+                        <h3 class="font-bold text-slate-800">
+                            Detail Kehadiran
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">
+                            Informasi absensi siswa
+                        </p>
+                    </div>
+                    <button type="button"
+                        onclick="KepsekKetepatanWaktu.closeDetailModal()"
+                        class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                        <i class="fas fa-times text-slate-500"></i>
+                    </button>
+                </div>
+                <div class="p-5 space-y-4">
+                    <div>
+                        <p class="text-xs text-slate-400">Nama Siswa</p>
+                        <p id="kepsek-absensi-detail-nama"
+                            class="font-bold text-slate-800 mt-1">
+                            -
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-50 rounded-xl p-3">
+                            <p class="text-xs text-slate-400">Kelas</p>
+                            <p id="kepsek-absensi-detail-kategori"
+                                class="font-semibold text-slate-700 mt-1">
+                                -
+                            </p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-3">
+                            <p class="text-xs text-slate-400">Sesi</p>
+                            <p id="kepsek-absensi-detail-sesi"
+                                class="font-semibold text-slate-700 mt-1">
+                                -
+                            </p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-50 rounded-xl p-3">
+                            <p class="text-xs text-slate-400">Tanggal</p>
+                            <p id="kepsek-absensi-detail-tanggal"
+                                class="font-semibold text-slate-700 mt-1">
+                                -
+                            </p>
+                        </div>
+                        <div class="bg-indigo-50 rounded-xl p-3">
+                            <p class="text-xs text-slate-400">Waktu Absen</p>
+                            <p id="kepsek-absensi-detail-waktu"
+                                class="font-bold text-indigo-600 mt-1">
+                                -
+                            </p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-xs text-slate-400">
+                                    Batas Waktu
+                                </p>
+                                <p id="kepsek-absensi-detail-batas"
+                                    class="font-semibold text-slate-700 mt-1">
+                                    -
+                                </p>
+                            </div>
+                            <span id="kepsek-absensi-detail-status"
+                                class="px-3 py-1.5 rounded-full text-xs font-bold">
+                                -
+                            </span>
+                        </div>
+                    </div>
+                    <div id="kepsek-absensi-detail-terlambat-wrapper"
+                        class="hidden bg-orange-50 rounded-xl p-4">
+                        <p class="text-xs text-slate-500">
+                            Keterlambatan
+                        </p>
+                        <p id="kepsek-absensi-detail-terlambat"
+                            class="font-bold text-orange-600 mt-1">
+                            -
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- BOTTOM NAV -->
         <div id="mobile-bottom-menu"
             class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg flex justify-around py-2 md:hidden z-50">
@@ -2024,14 +4772,15 @@
         <!-- LOADING OVERLAY -->
     </div>
     
-<div id="loadingOverlay" class="loading-overlay">
-  <div class="loading-box">
-    <div class="spinner"></div>
-    <div class="loading-text">
-      Memeriksa data...
+    <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-box">
+        <div class="spinner"></div>
+        <div class="loading-text">
+        Memeriksa data...
+        </div>
     </div>
-  </div>
-</div>
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -2052,10 +4801,17 @@
     <script src="js/supabase-storage.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/navigation.js"></script>
+    <script src="js/walijurnal.js"></script>
     <script src="js/rekap.js"></script>
     <script src="js/history.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/dashboardkepsek.js"></script>
+    <script src="js/kepsekJurnal7kaih.js"></script>
+    <script src="js/kepsekKetepatan.js"></script>
+    <script src="js/jurnal7kaih.js"></script>
+    <script src="js/gurubk.js"></script>
+    
+    <script src="js/osis.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/absensi.js"></script>
     <script src="js/main.js"></script>

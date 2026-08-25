@@ -175,7 +175,8 @@ function setupUserInterface() {
         wali: "Wali / Pembimbing",
         siswa: "Siswa",
         kepsek: "Kepala Sekolah",
-        konseling: "Bimbingan Konseling"
+        konseling: "Bimbingan Konseling",
+        osis: "Osis"
     };
     const roleLabel = roleMap[user.role] || user.role;
     // ===============================
@@ -245,6 +246,10 @@ function setupUserInterface() {
         case "konseling":
             showLoader("Memuat dashboard kepala sekolah...");
             navigateTo("page-kepsek-dashboard");
+            break;
+        case "osis":
+            showLoader("Memuat dashboard Osis...");
+            navigateTo("page-dashboard-osis");
             break;
         default:
             showToast("Role tidak dikenali", true);

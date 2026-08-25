@@ -16,14 +16,7 @@ function showToast(message, isError = false) {
 // =====================================
 // HELPER SHOW LOADER
 // =====================================
-function showLoader(text = "Loading...") {
-  console.log(text);
-}
 
-// =====================================
-// HELPER HIDE LOADER
-// =====================================
-function hideLoader() {}
 
 
 // ===============================

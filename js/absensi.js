@@ -916,6 +916,7 @@ async function initAbsenForm() {
                         "#4F46E5"
                 });
             }
+            
             // =================================
             // STOP CAMERA
             // =================================
@@ -946,6 +947,157 @@ async function initAbsenForm() {
                 "page-user-dashboard"
             );
             return;
+        }
+        // =====================================
+        // CEK JURNAL 7 KAIH
+        // =====================================
+        const journalCheck =
+            await Jurnal7KaihService
+                .checkJournalBeforeAttendance();
+        console.log(
+            "Hasil pengecekan jurnal:",
+            journalCheck
+        );
+        if (!journalCheck.allowed) {
+            hideLoader();
+            // =================================
+            // ERROR USER
+            // =================================
+            if (
+                journalCheck.reason ===
+                "USER_NOT_FOUND"
+            ) {
+                await Swal.fire({
+                    icon:
+                        "error",
+                    title:
+                        "Data Siswa Tidak Ditemukan",
+                    text:
+                        "Silakan login kembali.",
+                    confirmButtonText:
+                        "OK",
+                    confirmButtonColor:
+                        "#4F46E5"
+                });
+                navigateTo(
+                    "page-user-dashboard"
+                );
+                return;
+            }
+            // =================================
+            // ERROR DATABASE
+            // =================================
+            if (
+                journalCheck.reason ===
+                "DATABASE_ERROR"
+            ) {
+                await Swal.fire({
+                    icon:
+                        "error",
+                    title:
+                        "Gagal Memeriksa Jurnal",
+                    text:
+                        journalCheck.message ||
+                        "Terjadi kesalahan saat memeriksa jurnal 7 KAIH.",
+                    confirmButtonText:
+                        "Coba Lagi",
+                    confirmButtonColor:
+                        "#4F46E5"
+                });
+                return;
+            }
+            // =================================
+            // JURNAL BELUM DIISI
+            // =================================
+            if (
+                journalCheck.reason ===
+                "JOURNAL_NOT_FOUND"
+            ) {
+                const result =
+                    await Swal.fire({
+                        icon:
+                            "warning",
+                        title:
+                            "Jurnal 7 KAIH Belum Diisi",
+                        html: `
+                            <div
+                                class="text-center
+                                    text-sm
+                                    text-slate-600
+                                    leading-relaxed"
+                            >
+                                <div
+                                    class="w-16 h-16
+                                        mx-auto
+                                        mb-4
+                                        rounded-2xl
+                                        bg-indigo-100
+                                        flex
+                                        items-center
+                                        justify-center"
+                                >
+                                    <i
+                                        class="fas fa-book-open
+                                            text-indigo-600
+                                            text-2xl"
+                                    ></i>
+                                </div>
+                                <p>
+                                    Sebelum melakukan absensi,
+                                    kamu harus mengisi
+                                    <strong>
+                                        Jurnal 7 KAIH
+                                    </strong>
+                                    terlebih dahulu.
+                                </p>
+                                <div
+                                    class="mt-4
+                                        bg-indigo-50
+                                        border
+                                        border-indigo-100
+                                        rounded-xl
+                                        p-3"
+                                >
+                                    <div
+                                        class="text-xs
+                                            text-slate-500
+                                            mb-1"
+                                    >
+                                        Jurnal yang harus diisi
+                                    </div>
+                                    <div
+                                        class="font-bold
+                                            text-indigo-700"
+                                    >
+                                        ${Jurnal7KaihService.formatDateLong(
+                                            journalCheck.journalDate
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonText:
+                            "Isi Jurnal Sekarang",
+                        confirmButtonColor:
+                            "#4F46E5",
+                        allowOutsideClick:
+                            false,
+                        customClass: {
+                            popup:
+                                "rounded-2xl",
+                            confirmButton:
+                                "rounded-xl px-5 py-2.5 font-semibold"
+                        }
+                    });
+                if (
+                    result.isConfirmed
+                ) {
+                    navigateTo(
+                        "page-jurnal-7-kaih"
+                    );
+                }
+                return;
+            }
         }
         // =====================================
         // TANGGAL HARI INI
