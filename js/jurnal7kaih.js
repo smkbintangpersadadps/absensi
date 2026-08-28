@@ -945,7 +945,7 @@
 //     }
 // };
 
-const JURNAL_START_DATE = "2026-08-26";
+const JURNAL_START_DATE = "2026-08-25";
 const Jurnal7KaihService = {
     // =====================================================
     // DATA
@@ -1228,6 +1228,20 @@ const Jurnal7KaihService = {
                             <i class="fas fa-eye mr-1"></i>
                             Lihat Jurnal
                         </button>
+                        <span>
+                            <button
+                            type="button"
+                            onclick="Jurnal7KaihService.openForm()"
+                            class="mt-4 bg-indigo-600
+                                hover:bg-indigo-700
+                                text-white
+                                font-semibold
+                                rounded-xl px-4 py-2.5"
+                                >
+                            <i class="fas fa-plus mr-2"></i>
+                            Isi Jurnal
+                            </button>
+                        </span>
                     </div>
                 </div>
             `;
@@ -2994,7 +3008,7 @@ getPreviousJournalDate(dateString) {
         );
     // Mundur satu hari
     date.setDate(
-        date.getDate() - 1
+        date.getDate() - 2
     );
     // Minggu tidak perlu jurnal
     // 0 = Minggu

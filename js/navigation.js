@@ -150,6 +150,12 @@ function runPageLoader(pageId) {
         case "page-bk-riwayat-penanganan":
             BKRiwayatPenangananService.init();
             break;
+        case "page-voting-osis":
+            VotingOsisService.init();
+            break;
+        case 'page-voting-osis-admin':
+            VotingOsisAdminService.init();
+            break;
     }
 }
 // ===============================
@@ -323,6 +329,13 @@ function buildMenu(user) {
                 <i class="fa-solid fa-calendar-xmark w-5"></i>
                 <span>Data Hari Libur</span>
             </a>
+            <a href="#"
+                data-page="page-voting-osis-admin"
+                onclick="navigateTo('page-voting-osis-admin'); return false;"
+                class="sidebar-link">
+                <i class="fa-solid fa-calendar-xmark w-5"></i>
+                <span>Pemilu Osis</span>
+            </a>
         `;
     }
     else if (role === "konseling") {
@@ -371,16 +384,12 @@ function buildMenu(user) {
     else {
         if (AppState.accessMode === "ortu") {
             menu.innerHTML = `
-                <a
-                    href="#"
-                    onclick="navigateTo('page-user-dashboard')"
-                >
+                <a href="#"
+                    onclick="navigateTo('page-user-dashboard')">
                     Dashboard
                 </a>
-                <a
-                    href="#"
-                    onclick="navigateTo('page-history')"
-                >
+                <a href="#"
+                    onclick="navigateTo('page-history')">
                     Riwayat
                 </a>
             `;
@@ -394,54 +403,44 @@ function buildMenu(user) {
             const isKelasX =
                 kategori.startsWith("X ");
             menu.innerHTML = `
-                <a
-                    href="#"
-                    onclick="navigateTo('page-user-dashboard')"
-                >
+                <a href="#"
+                    onclick="navigateTo('page-user-dashboard')">
                     Dashboard
                 </a>
-                <a
-                    href="#"
-                    onclick="navigateTo('page-user-absen')"
-                >
+                <a href="#"
+                    onclick="navigateTo('page-user-absen')">
                     Absen
                 </a>
-                <a
-                    href="#"
-                    onclick="navigateTo('page-user-status')"
-                >
+                <a href="#"
+                    onclick="navigateTo('page-user-status')">
                     Konfirmasi Kehadiran
                 </a>
-                <a
-                    href="#"
-                    onclick="navigateTo('page-user-status-history')"
-                >
+                <a href="#"
+                    onclick="navigateTo('page-user-status-history')">
                     Riwayat Status
                 </a>
-                <a
-                    href="#"
-                    onclick="navigateTo('page-history')"
-                >
+                <a href="#"
+                    onclick="navigateTo('page-history')">
                     Riwayat
                 </a>
                 ${
                     isKelasX
                         ? `
-                            <a
-                                href="#"
+                            <a href="#"
                                 id="menu-jurnal-7-kaih"
-                                onclick="navigateTo('page-jurnal-7-kaih')"
-                            >
+                                onclick="navigateTo('page-jurnal-7-kaih')">
                                 Jurnal 7-KAIH
                             </a>
                         `
                         : ""
                 }
-                <a
-                    href="#"
-                    onclick="navigateTo('page-user-profile')"
-                >
+                <a href="#"
+                    onclick="navigateTo('page-user-profile')">
                     Profil
+                </a>
+                <a href="#"
+                    onclick="navigateTo('page-voting-osis')">
+                    Pemilu Osis
                 </a>
             `;
         }

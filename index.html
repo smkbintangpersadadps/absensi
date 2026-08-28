@@ -1754,6 +1754,12 @@
                     </div>
                 </div>
             </section>
+            <!-- VOTING DASHBOARD -->
+            <section id="page-voting-osis-admin" class="hidden-page">
+                <div class="max-w-7xl mx-auto px-4 py-5">
+                    <div id="voting-osis-admin-container"></div>
+                </div>
+            </section>
             
             <!-- SISWA DASHBOARD -->
             <section id="page-user-dashboard" class="hidden-page p-4 space-y-4">
@@ -1893,6 +1899,17 @@
                             </div>
                             <span class="text-xs mt-2">
                                 Profil
+                            </span>
+                        </button>
+                        <!-- VOTING OSIS -->
+                        <button
+                            onclick="navigateTo('page-voting-osis')"
+                            class="flex flex-col items-center">
+                            <div class="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center">
+                                <i class="fa-solid fas fa-vote-yea text-purple-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs mt-2">
+                                Pemilu
                             </span>
                         </button>
                     </div>
@@ -3212,6 +3229,17 @@
                         </form>
                     </div>
                 </div>
+            </section>
+            <!-- VOTING KETUA OSIS -->
+            <section id="page-voting-osis" class="hidden-page">
+                <div class="max-w-7xl mx-auto px-4 py-5">
+                    <div class="mb-5">
+                        <h1 class="text-2xl font-bold text-slate-800">Voting Ketua OSIS</h1>
+                        <p class="text-sm text-slate-500 mt-1">Gunakan hak pilih Anda untuk menentukan Ketua OSIS.</p>
+                    </div>
+                    <div id="voting-osis-container"></div>
+                </div>
+                <div id="voting-osis-modal" class="hidden"></div>
             </section>
 
             <!-- MODAL CHANGE PASSWORD -->
@@ -4810,7 +4838,7 @@
     <script src="js/kepsekKetepatan.js"></script>
     <script src="js/jurnal7kaih.js"></script>
     <script src="js/gurubk.js"></script>
-    
+    <script src="js/votingosis.js"></script>
     <script src="js/osis.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/absensi.js"></script>
