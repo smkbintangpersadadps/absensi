@@ -3008,7 +3008,8 @@ getPreviousJournalDate(dateString) {
         );
     // Mundur satu hari
     date.setDate(
-        date.getDate() - 1
+        // 1 HARI JURNAL 7 KAIH
+        date.getDate() - 1  
     );
     // Minggu tidak perlu jurnal
     // 0 = Minggu

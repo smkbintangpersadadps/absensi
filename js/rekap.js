@@ -717,7 +717,7 @@ async function getRekapBulanan({
                                 // =====================================
                                 // DISPEN
                                 // =====================================
-                                case "dispen":
+                                case "dispensasi":
                                     kode =
                                         "D";
                                     label =
