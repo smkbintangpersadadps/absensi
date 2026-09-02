@@ -819,49 +819,84 @@ function setApprovalMode(mode) {
 }
 
 // ===============================
-// STATUS APPROVAL
+// PAGINATION RIWAYAT APPROVAL
+// ===============================
+async function changeApprovalHistoryPage(page) {
+    const total = AppState.approvalHistoryTotal || 0;
+    const perPage = AppState.approvalHistoryPerPage || 5;
+    const totalPages = Math.ceil(total / perPage);
+    if (page < 1 || page > totalPages) return;
+    AppState.approvalHistoryPage = page;
+    await loadStatusApproval(true);
+}
+
+// ===============================
+// SEARCHING
+// ===============================
+function searchApprovalHistory() {
+    const input = document.getElementById("approval-history-search");
+    AppState.approvalHistorySearch = input ? input.value.trim() : "";
+    AppState.approvalHistoryPage = 1;
+    loadStatusApproval(true);
+}
+
+// ===============================
+// LOAD STATUS APPROVAL
 // ===============================
 async function loadStatusApproval(useLoader = false) {
     try {
-        const user =
-            AppState.currentUser;
+        const user = AppState.currentUser;
+        const approvalView = AppState.approvalView || "approval";
+        const isHistory = approvalView === "history";
+        const searchContainer = document.getElementById("approval-history-search-container");
+        if (searchContainer) {
+            searchContainer.classList.toggle("hidden", !isHistory);
+        }
+        const currentPage = AppState.approvalHistoryPage || 1;
+        const perPage = AppState.approvalHistoryPerPage || 5;
         if (!user) return;
         if (useLoader) {
-            showLoader(
-                "Memuat data approval..."
-            );
+            showLoader(isHistory ? "Memuat riwayat approval..." : "Memuat data approval...");
         }
         let data = [];
+        let totalCount = 0;
         // =========================
         // MODE WALI
         // =========================
-        if (
-            AppState.approvalMode === "wali"
-        ) {
+        if (AppState.approvalMode === "wali") {
+            let query = window.supabaseClient
+                .from("status_harian")
+                .select("*", { count: "exact" })
+                .eq("kategori", user.kategori);
+
+            if (isHistory && AppState.approvalHistorySearch) {
+                query = query.ilike(
+                    "nama_lengkap",
+                    `%${AppState.approvalHistorySearch}%`
+                );
+            }
+            if (isHistory) {
+                const from = (currentPage - 1) * perPage;
+                const to = from + perPage - 1;
+                query = query
+                    .in("approval", ["Approved", "Rejected"])
+                    .order("approved_at", { ascending: true })
+                    .range(from, to);
+            } else {
+                query = query
+                    .eq("approval", "Pending")
+                    .order("tanggal", { ascending: false });
+            }
             const {
                 data: rows,
-                error
-            } = await window.supabaseClient
-                .from("status_harian")
-                .select("*")
-                .eq(
-                    "approval",
-                    "Pending"
-                )
-                .eq(
-                    "kategori",
-                    user.kategori
-                )
-                .order(
-                    "tanggal",
-                    {
-                        ascending: false
-                    }
-                );
+                error,
+                count
+            } = await query;
             if (error) {
                 throw error;
             }
             data = rows || [];
+            totalCount = count || 0;
         }
         // =========================
         // MODE PEMBIMBING
@@ -873,63 +908,148 @@ async function loadStatusApproval(useLoader = false) {
             } = await window.supabaseClient
                 .from("users")
                 .select("username")
-                .eq(
-                    "p_id",
-                    user.pId
-                );
+                .eq("p_id", user.pId);
             if (siswaError) {
                 throw siswaError;
             }
-            const usernames =
-                (siswa || [])
-                    .map(
-                        s => s.username
+            const usernames = (siswa || []).map(s => s.username);
+            if (usernames.length > 0) {
+                let query = window.supabaseClient
+                    .from("status_harian")
+                    .select("*", { count: "exact" })
+                    .in("username", usernames);
+                if (isHistory && AppState.approvalHistorySearch) {
+                    query = query.ilike(
+                        "nama_lengkap",
+                        `%${AppState.approvalHistorySearch}%`
                     );
-            if (
-                usernames.length > 0
-            ) {
+                }
+                if (isHistory) {
+                    const from = (currentPage - 1) * perPage;
+                    const to = from + perPage - 1;
+                    query = query
+                        .in("approval", ["Approved", "Rejected"])
+                        .order("approved_at", { ascending: false })
+                        .range(from, to);
+                } else {
+                    query = query
+                        .eq("approval", "Pending")
+                        .order("tanggal", { ascending: false });
+                }
                 const {
                     data: rows,
-                    error
-                } = await window.supabaseClient
-                    .from("status_harian")
-                    .select("*")
-                    .eq(
-                        "approval",
-                        "Pending"
-                    )
-                    .in(
-                        "username",
-                        usernames
-                    )
-                    .order(
-                        "tanggal",
-                        {
-                            ascending: false
-                        }
-                    );
+                    error,
+                    count
+                } = await query;
                 if (error) {
                     throw error;
                 }
                 data = rows || [];
+                totalCount = count || 0;
             }
         }
-        const list =
-            document.getElementById(
-                "approval-list"
-            );
+        // =========================
+        // SIMPAN TOTAL RIWAYAT
+        // =========================
+        if (isHistory) {
+            AppState.approvalHistoryTotal = totalCount;
+        } else {
+            AppState.approvalHistoryTotal = 0;
+        }
+        // =========================
+        // RENDER LIST
+        // =========================
+        const list = document.getElementById("approval-list");
         if (!list) return;
         if (!data.length) {
             list.innerHTML = `
                 <div class="bg-white rounded-2xl p-4 shadow text-center text-slate-500">
-                    Tidak ada pengajuan pending.
+                    <div class="flex flex-col items-center justify-center py-4">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                            <i class="fa-solid ${isHistory ? "fa-clock-rotate-left" : "fa-inbox"} text-slate-400 text-lg"></i>
+                        </div>
+                        <div class="font-medium text-slate-600">
+                            ${isHistory ? "Belum ada riwayat approval." : "Tidak ada pengajuan pending."}
+                        </div>
+                        <div class="text-xs text-slate-400 mt-1">
+                            ${isHistory ? "Belum ada pengajuan yang telah diproses." : "Tidak ada pengajuan yang menunggu persetujuan."}
+                        </div>
+                    </div>
                 </div>
             `;
             return;
         }
-        list.innerHTML =
-            data.map(item => `
+        // =========================
+        // AMBIL NAMA APPROVER
+        // =========================
+        const approvedUsernames = [
+            ...new Set(
+                data
+                    .map(item => item.approved_by)
+                    .filter(Boolean)
+            )
+        ];
+        let approverMap = new Map();
+        if (approvedUsernames.length > 0) {
+            const {
+                data: approvers,
+                error: approverError
+            } = await window.supabaseClient
+                .from("users")
+                .select("username, nama_lengkap")
+                .in("username", approvedUsernames);
+            if (approverError) {
+                console.error("Gagal mengambil data approver:", approverError);
+            } else {
+                (approvers || []).forEach(user => {
+                    approverMap.set(
+                        user.username,
+                        user.nama_lengkap
+                    );
+                });
+            }
+        }
+        // =========================
+        // RENDER LIST
+        // =========================
+        list.innerHTML = data.map(item => {
+            // =========================
+            // NAMA APPROVER
+            // =========================
+            const approvedByNama = item.approved_by
+                ? approverMap.get(item.approved_by) || item.approved_by
+                : "";
+            // =========================
+            // WAKTU PENGAJUAN
+            // =========================
+            const createdAt = item.created_at
+                ? new Date(item.created_at).toLocaleString("id-ID", {
+                    timeZone: "Asia/Makassar",
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false
+                })
+                : "-";
+            // =========================
+            // WAKTU PROSES
+            // =========================
+            const approvedAt = item.approved_at
+                ? new Date(item.approved_at).toLocaleString("id-ID", {
+                    timeZone: "Asia/Makassar",
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false
+                })
+                : "-";
+            return `
                 <div class="bg-white rounded-2xl p-4 shadow border border-slate-100">
+                    <!-- HEADER -->
                     <div class="flex items-start justify-between gap-3">
                         <div>
                             <div class="font-bold text-slate-800">
@@ -943,6 +1063,7 @@ async function loadStatusApproval(useLoader = false) {
                             ${item.status || "-"}
                         </span>
                     </div>
+                    <!-- KETERANGAN -->
                     ${
                         item.keterangan
                         ? `
@@ -957,10 +1078,13 @@ async function loadStatusApproval(useLoader = false) {
                                     bg-slate-50 border border-slate-200
                                     text-slate-500 text-sm">
                                 <i class="fa-regular fa-comment-dots"></i>
-                                <span>Tidak ada keterangan tambahan</span>
+                                <span>
+                                    Tidak ada keterangan tambahan
+                                </span>
                             </div>
                         `
                     }
+                    <!-- BUKTI PENGAJUAN -->
                     ${
                         item.foto_bukti
                         ? `
@@ -998,34 +1122,238 @@ async function loadStatusApproval(useLoader = false) {
                             </div>
                         `
                     }
-                    <div class="mt-4 flex gap-2">
-                        <button
-                            onclick="updateApproval('${item.id}','Approved')"
-                            class="flex-1 bg-green-600 text-white py-2 rounded-xl text-sm font-semibold">
-                            Setujui
-                        </button>
-                        <button
-                            onclick="updateApproval('${item.id}','Rejected')"
-                            class="flex-1 bg-red-600 text-white py-2 rounded-xl text-sm font-semibold">
-                            Tolak
-                        </button>
+                    <!-- STATUS APPROVAL -->
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-xs text-slate-500">
+                            Status Approval
+                        </span>
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold ${getApprovalBadgeClass(item.approval)}">
+                            ${item.approval || "Pending"}
+                        </span>
+                    </div>
+                    <!-- TOMBOL BATALKAN -->
+                    ${
+                        item.approval === "Pending"
+                        ? `
+                            <button
+                                onclick="cancelStatusRequest('${item.id}')"
+                                class="mt-3 w-full px-3 py-2 rounded-xl
+                                    border border-red-200
+                                    bg-red-50 text-red-600
+                                    text-sm font-medium">
+                                <i class="fa-solid fa-xmark mr-1"></i>
+                                Batalkan Pengajuan
+                            </button>
+                        `
+                        : ""
+                    }
+                    <!-- INFORMASI PROSES -->
+                    ${
+                        approvedByNama
+                        ? `
+                            <div class="mt-4 pt-3 border-t border-slate-100">
+                                <div class="flex flex-col sm:flex-row
+                                    sm:items-center sm:justify-between
+                                    gap-2 text-[11px]">
+                                    <!-- APPROVER -->
+                                    <div class="flex items-center gap-1.5 text-slate-500">
+                                        <i class="fa-solid fa-user-check"></i>
+                                        <span>
+                                            Diproses oleh:
+                                            <strong class="text-slate-700">
+                                                ${approvedByNama}
+                                            </strong>
+                                        </span>
+                                    </div>
+                                    <!-- WAKTU PROSES -->
+                                    <div class="flex items-center gap-1.5 text-slate-500">
+                                        <i class="fa-regular fa-clock"></i>
+                                        <span>
+                                            ${approvedAt}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                        : ""
+                    }
+                </div>
+            `;
+        }).join("");
+        // =========================
+        // PAGINATION RIWAYAT
+        // =========================
+        if (isHistory && totalCount > perPage) {
+            const totalPages = Math.ceil(totalCount / perPage);
+            const startItem = (currentPage - 1) * perPage + 1;
+            const endItem = Math.min(currentPage * perPage, totalCount);
+
+            let paginationHtml = `
+                <div class="bg-white rounded-2xl p-4 shadow border border-slate-100 overflow-hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div class="text-xs text-slate-500 text-center sm:text-left">
+                            Menampilkan
+                            <strong class="text-slate-700">${startItem}-${endItem}</strong>
+                            dari
+                            <strong class="text-slate-700">${totalCount}</strong>
+                            riwayat
+                        </div>
+
+                        <div class="flex items-center justify-center gap-1 max-w-full overflow-x-auto">
+                            <button
+                                onclick="changeApprovalHistoryPage(${currentPage - 1})"
+                                ${currentPage === 1 ? "disabled" : ""}
+                                class="flex-shrink-0 w-9 h-9 rounded-lg border text-sm font-medium transition ${currentPage === 1 ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-white text-slate-700 hover:bg-slate-50"}">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+            `;
+
+            // =========================
+            // FUNGSI TOMBOL HALAMAN
+            // =========================
+            const addPageButton = (page) => {
+                paginationHtml += `
+                    <button
+                        onclick="changeApprovalHistoryPage(${page})"
+                        class="flex-shrink-0 w-9 h-9 rounded-lg text-sm font-medium transition ${page === currentPage ? "bg-indigo-600 text-white" : "border bg-white text-slate-700 hover:bg-slate-50"}">
+                        ${page}
+                    </button>
+                `;
+            };
+
+            const addEllipsis = () => {
+                paginationHtml += `
+                    <span class="flex-shrink-0 w-7 h-9 flex items-center justify-center text-slate-400 text-sm">
+                        ...
+                    </span>
+                `;
+            };
+
+            // =========================
+            // JUMLAH NOMOR HALAMAN
+            // =========================
+            if (totalPages <= 7) {
+                // Jika halaman sedikit, tampilkan semua
+                for (let i = 1; i <= totalPages; i++) {
+                    addPageButton(i);
+                }
+            } else {
+                // Selalu tampilkan halaman pertama
+                addPageButton(1);
+
+                if (currentPage > 4) {
+                    addEllipsis();
+                }
+
+                // Halaman di sekitar halaman aktif
+                let startPage = Math.max(2, currentPage - 2);
+                let endPage = Math.min(totalPages - 1, currentPage + 2);
+
+                // Jika sedang di halaman awal
+                if (currentPage <= 4) {
+                    startPage = 2;
+                    endPage = 5;
+                }
+
+                // Jika sedang di halaman akhir
+                if (currentPage >= totalPages - 3) {
+                    startPage = totalPages - 4;
+                    endPage = totalPages - 1;
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    addPageButton(i);
+                }
+
+                if (currentPage < totalPages - 3) {
+                    addEllipsis();
+                }
+
+                // Selalu tampilkan halaman terakhir
+                addPageButton(totalPages);
+            }
+
+            paginationHtml += `
+                            <button
+                                onclick="changeApprovalHistoryPage(${currentPage + 1})"
+                                ${currentPage === totalPages ? "disabled" : ""}
+                                class="flex-shrink-0 w-9 h-9 rounded-lg border text-sm font-medium transition ${currentPage === totalPages ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-white text-slate-700 hover:bg-slate-50"}">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            `).join("");
+            `;
+
+            list.insertAdjacentHTML("beforeend", paginationHtml);
+        }
     }
     catch (error) {
-        console.error(
-            "Approval error:",
-            error
-        );
+        console.error("Approval error:", error);
         showToast(
-            "Gagal memuat approval",
+            isHistory
+                ? "Gagal memuat riwayat approval"
+                : "Gagal memuat approval",
             true
         );
     }
     finally {
-        hideLoader();
+        if (useLoader) {
+            hideLoader();
+        }
     }
+}
+
+// ===============================
+// APPROVAL VIEW
+// ===============================
+function setApprovalView(mode) {
+    AppState.approvalView = mode;
+    const btnApproval =
+        document.getElementById(
+            "btn-approval-view-approval"
+        );
+    const btnHistory =
+        document.getElementById(
+            "btn-approval-view-history"
+        );
+    if (mode === "approval") {
+        btnApproval?.classList.remove(
+            "bg-slate-100",
+            "text-slate-700"
+        );
+        btnApproval?.classList.add(
+            "bg-indigo-600",
+            "text-white"
+        );
+        btnHistory?.classList.remove(
+            "bg-indigo-600",
+            "text-white"
+        );
+        btnHistory?.classList.add(
+            "bg-slate-100",
+            "text-slate-700"
+        );
+    }
+    else {
+        btnHistory?.classList.remove(
+            "bg-slate-100",
+            "text-slate-700"
+        );
+        btnHistory?.classList.add(
+            "bg-indigo-600",
+            "text-white"
+        );
+        btnApproval?.classList.remove(
+            "bg-indigo-600",
+            "text-white"
+        );
+        btnApproval?.classList.add(
+            "bg-slate-100",
+            "text-slate-700"
+        );
+    }
+    loadStatusApproval(true);
 }
 
 // ===============================

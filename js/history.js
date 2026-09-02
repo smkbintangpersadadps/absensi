@@ -832,7 +832,7 @@ async function loadStatusHistory(useLoader = false) {
                                     Diproses oleh : ${approvedByNama}
                                 </span>
                                 <span class="font-medium text-slate-600">
-                                    Waktu Proses : ${createdAt}
+                                    Waktu Proses : ${approvedAt}
                                 </span>
                             </div>
                           `
