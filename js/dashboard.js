@@ -1135,15 +1135,18 @@ async function loadStatusApproval(useLoader = false) {
                     ${
                         item.approval === "Pending"
                         ? `
-                            <button
-                                onclick="cancelStatusRequest('${item.id}')"
-                                class="mt-3 w-full px-3 py-2 rounded-xl
-                                    border border-red-200
-                                    bg-red-50 text-red-600
-                                    text-sm font-medium">
-                                <i class="fa-solid fa-xmark mr-1"></i>
-                                Batalkan Pengajuan
-                            </button>
+                            <div class="mt-4 flex gap-2">
+                                <button
+                                    onclick="updateApproval('${item.id}','Approved')"
+                                    class="flex-1 bg-green-600 text-white py-2 rounded-xl text-sm font-semibold">
+                                    Setujui
+                                </button>
+                                <button
+                                    onclick="updateApproval('${item.id}','Rejected')"
+                                    class="flex-1 bg-red-600 text-white py-2 rounded-xl text-sm font-semibold">
+                                    Tolak
+                                </button>
+                            </div>
                         `
                         : ""
                     }
