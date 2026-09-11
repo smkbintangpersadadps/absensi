@@ -433,7 +433,7 @@ const OSISDashboardService = {
         const el = document.getElementById("osis-dashboard-nama");
         if (!el) return;
         const user = AppState.currentUser;
-        el.textContent = user?.nama_lengkap || user?.username || "OSIS";
+        el.textContent = user?.nama_lengkap || user?.nama || "OSIS";
     },
     async load() {
         const loading = document.getElementById("osis-dashboard-loading");

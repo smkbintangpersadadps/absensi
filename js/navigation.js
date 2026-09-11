@@ -359,14 +359,14 @@ function buildMenu(user) {
                 onclick="navigateTo('page-bk-monitoring-pelanggaran'); return false;"
                 class="sidebar-link">
                 <i class="fa-solid fa-user-shield w-5"></i>
-                <span>Monitoring Pelanggaran</span>
+                <span>Monitoring</span>
             </a>
             <a href="#"
                 data-page="page-bk-riwayat-penanganan"
                 onclick="navigateTo('page-bk-riwayat-penanganan'); return false;"
                 class="sidebar-link">
                 <i class="fa-solid fa-clock-rotate-left w-5"></i>
-                <span>Monitoring Pelanggaran</span>
+                <span>Riwayat</span>
             </a>
         `;
     }
@@ -735,6 +735,16 @@ function buildMobileBottomMenu(user) {
                     <i class="fa-solid fa-chart-column text-lg"></i>
                     <span>
                         Rekap
+                    </span>
+                </button>
+                <button
+                    type="button"
+                    data-page="page-user-profile"
+                    onclick="navigateTo('page-user-profile')"
+                    class="bottom-nav flex flex-col items-center text-xs text-gray-500 transition">
+                    <i class="fa-solid fa-user text-lg"></i>
+                    <span>
+                        Profil
                     </span>
                 </button>
         `;
