@@ -150,6 +150,9 @@ function runPageLoader(pageId) {
         case "page-bk-riwayat-penanganan":
             BKRiwayatPenangananService.init();
             break;
+        case "page-bk-rekap-pelanggaran":
+            BKRekapPelanggaranService.init();
+            break;
         case "page-voting-osis":
             VotingOsisService.init();
             break;
@@ -367,6 +370,13 @@ function buildMenu(user) {
                 class="sidebar-link">
                 <i class="fa-solid fa-clock-rotate-left w-5"></i>
                 <span>Riwayat</span>
+            </a>
+            <a href="#"
+                data-page="page-bk-rekap-pelanggaran"
+                onclick="navigateTo('page-bk-rekap-pelanggaran'); return false;"
+                class="sidebar-link">
+                <i class="fa-solid fa-chart-column w-5"></i>
+                <span>Rekap</span>
             </a>
         `;
     }

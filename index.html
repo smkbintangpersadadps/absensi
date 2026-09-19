@@ -3282,6 +3282,271 @@
                 <div id="voting-osis-modal" class="hidden"></div>
             </section>
 
+            <!-- REKAPITULASI PELANGGARAN -->
+            <section id="page-bk-rekap-pelanggaran" class="hidden-page">
+                <div class="max-w-7xl mx-auto px-4 py-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <button onclick="navigateTo('page-bk-monitoring-pelanggaran')" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <div>
+                                <h1 class="text-xl font-bold text-slate-800">Rekap Pelanggaran Siswa</h1>
+                                <p class="text-sm text-slate-500">Rekapitulasi pelanggaran berdasarkan siswa dan jenis pelanggaran</p>
+                            </div>
+                        </div>
+                        <button id="btn-bk-rekap-download-pdf" class="px-4 py-2.5 rounded-xl bg-red-600 text-white font-semibold text-sm hover:bg-red-700 transition">
+                            <i class="fas fa-file-pdf mr-2"></i>
+                            Download PDF
+                        </button>
+                    </div>
+
+                    <!-- FILTER -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Mulai</label>
+                                <input type="date" id="bk-rekap-tanggal-mulai" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Selesai</label>
+                                <input type="date" id="bk-rekap-tanggal-selesai" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Kelas</label>
+                                <select id="bk-rekap-kelas" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="">Semua Kelas</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Pelanggaran</label>
+                                <select id="bk-rekap-jenis" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="">Semua Jenis</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                                <select id="bk-rekap-status" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="">Semua Status</option>
+                                    <option value="Perlu Penanganan">Perlu Penanganan</option>
+                                    <option value="Dalam Penanganan">Dalam Penanganan</option>
+                                    <option value="Selesai">Selesai</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Cari Siswa</label>
+                                <input type="text" id="bk-rekap-search" placeholder="Nama / username..." class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end mt-3">
+                            <button id="btn-bk-rekap-reset" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition">
+                                <i class="fas fa-rotate-left mr-2"></i>
+                                Reset Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SUMMARY -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-500">Total Pelanggaran</p>
+                                    <p id="bk-rekap-total-pelanggaran" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+                                </div>
+                                <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+                                    <i class="fas fa-triangle-exclamation"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-500">Total Poin</p>
+                                    <p id="bk-rekap-total-poin" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+                                </div>
+                                <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-500">Perlu Penanganan</p>
+                                    <p id="bk-rekap-perlu-penanganan" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+                                </div>
+                                <div class="w-10 h-10 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-500">Selesai</p>
+                                    <p id="bk-rekap-selesai" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+                                </div>
+                                <div class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center">
+                                    <i class="fas fa-circle-check"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- REKAP KELAS -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm mb-4 overflow-hidden">
+                        <div class="px-4 py-3 border-b border-slate-200">
+                            <h2 class="font-bold text-slate-800">Rekap Per Kelas</h2>
+                            <p class="text-xs text-slate-500 mt-1">Jumlah pelanggaran berdasarkan kelas</p>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-3 py-3 text-left font-semibold text-slate-600">No</th>
+                                        <th class="px-3 py-3 text-left font-semibold text-slate-600">Kelas</th>
+                                        <th class="px-3 py-3 text-center font-semibold text-slate-600">Siswa</th>
+                                        <th class="px-3 py-3 text-center font-semibold text-slate-600">Pelanggaran</th>
+                                        <th class="px-3 py-3 text-center font-semibold text-slate-600">Poin</th>
+                                        <th class="px-3 py-3 text-center font-semibold text-yellow-600">Perlu</th>
+                                        <th class="px-3 py-3 text-center font-semibold text-blue-600">Dalam Penanganan</th>
+                                        <th class="px-3 py-3 text-center font-semibold text-green-600">Selesai</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bk-rekap-kelas-list">
+                                    <tr>
+                                        <td colspan="8" class="text-center py-8 text-slate-400">
+                                            Memuat data...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-200">
+                            <div id="bk-rekap-kelas-info" class="text-xs text-slate-500"></div>
+                            <div class="flex items-center gap-2">
+                                <select id="bk-rekap-kelas-per-page" class="rounded-lg border border-slate-300 text-xs px-2 py-1.5">
+                                    <option value="10">10</option>
+                                    <option value="20" selected>20</option>
+                                    <option value="50">50</option>
+                                </select>
+                                <button id="bk-rekap-kelas-prev" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs disabled:opacity-40">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <div id="bk-rekap-kelas-pages" class="flex items-center gap-1"></div>
+                                <button id="bk-rekap-kelas-next" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs disabled:opacity-40">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- REKAP JENIS -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm mb-4 overflow-hidden">
+                        <div class="px-4 py-3 border-b border-slate-200">
+                            <h2 class="font-bold text-slate-800">Rekap Per Jenis Pelanggaran</h2>
+                            <p class="text-xs text-slate-500 mt-1">Jumlah kejadian berdasarkan jenis pelanggaran</p>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-3 py-3 text-left font-semibold text-slate-600">No</th>
+                                        <th class="px-3 py-3 text-left font-semibold text-slate-600">Jenis Pelanggaran</th>
+                                        <th class="px-3 py-3 text-center font-semibold text-slate-600">Kode</th>
+                                        <th class="px-3 py-3 text-center font-semibold text-slate-600">Poin</th>
+                                        <th class="px-3 py-3 text-center font-semibold text-slate-600">Jumlah</th>
+                                        <th class="px-3 py-3 text-center font-semibold text-yellow-600">Perlu</th>
+                                        <th class="px-3 py-3 text-center font-semibold text-blue-600">Dalam Penanganan</th>
+                                        <th class="px-3 py-3 text-center font-semibold text-green-600">Selesai</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bk-rekap-jenis-list">
+                                    <tr>
+                                        <td colspan="8" class="text-center py-8 text-slate-400">
+                                            Memuat data...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-200">
+                            <div id="bk-rekap-jenis-info" class="text-xs text-slate-500"></div>
+                            <div class="flex items-center gap-2">
+                                <select id="bk-rekap-jenis-per-page" class="rounded-lg border border-slate-300 text-xs px-2 py-1.5">
+                                    <option value="10">10</option>
+                                    <option value="20" selected>20</option>
+                                    <option value="50">50</option>
+                                </select>
+                                <button id="bk-rekap-jenis-prev" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <div id="bk-rekap-jenis-pages" class="flex items-center gap-1"></div>
+                                <button id="bk-rekap-jenis-next" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- REKAP SISWA -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="px-4 py-3 border-b border-slate-200">
+                            <h2 class="font-bold text-slate-800">Rekap Pelanggaran Siswa</h2>
+                            <p class="text-xs text-slate-500 mt-1">
+                                Jumlah pelanggaran setiap siswa berdasarkan jenis pelanggaran
+                            </p>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm whitespace-nowrap">
+                                <thead class="bg-slate-50">
+                                    <tr id="bk-rekap-siswa-head">
+                                        <th class="px-3 py-3 text-center font-semibold text-slate-600">No</th>
+                                        <th class="px-3 py-3 text-left font-semibold text-slate-600">Nama Siswa</th>
+                                        <th class="px-3 py-3 text-left font-semibold text-slate-600">Kelas</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bk-rekap-siswa-list">
+                                    <tr>
+                                        <td colspan="20" class="text-center py-8 text-slate-400">
+                                            Memuat data...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-200">
+                            <div id="bk-rekap-siswa-info" class="text-xs text-slate-500"></div>
+                            <div class="flex items-center gap-2">
+                                <select id="bk-rekap-siswa-per-page" class="rounded-lg border border-slate-300 text-xs px-2 py-1.5">
+                                    <option value="10">10</option>
+                                    <option value="20" selected>20</option>
+                                    <option value="50">50</option>
+                                </select>
+                                <button id="bk-rekap-siswa-prev" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <div id="bk-rekap-siswa-pages" class="flex items-center gap-1"></div>
+                                <button id="bk-rekap-siswa-next" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- MODAL CHANGE PASSWORD -->
             <div id="modal-change-password" class="fixed inset-0 z-50 hidden-page">
                 <!-- Background -->

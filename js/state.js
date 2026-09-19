@@ -7,7 +7,7 @@ window.AppState = {
     historyMode: "wali",
     accessMode: "siswa",
     approvalMode: "wali", // 👈 tambah ini
-    approvalView = "approval",
+    approvalView: "approval",
     approvalHistoryPage: 1,
     approvalHistoryPerPage: 5,
     approvalHistoryTotal: 0,
