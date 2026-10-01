@@ -360,6 +360,82 @@
                             <h3 id="wali-status-khusus" class="text-2xl font-bold text-amber-600">0</h3>
                         </div>
                     </div>
+                    <div class="bg-white rounded-2xl p-4 shadow">
+                    <h3 class="font-bold text-slate-700 mb-4">
+                        Menu Utama
+                    </h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <!-- ABSENSI -->
+                        <!-- PENGAJUAN -->
+                        <button
+                            onclick="navigateTo('page-wali-approval')"
+                            class="flex flex-col items-center">
+                            <div class="w-14 h-14 rounded-2xl bg-yellow-100 flex items-center justify-center">
+                                <i class="fa-solid fa-clipboard-check text-yellow-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs mt-2 text-center">
+                                Approval
+                            </span>
+                        </button>
+                        <!-- STATUS -->
+                        <button
+                            onclick="navigateTo('page-wali-rekap')"
+                            class="flex flex-col items-center">
+                            <div class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center">
+                                <i class="fa-solid fa-table-list text-blue-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs mt-2">
+                                Rekap
+                            </span>
+                        </button>
+                        <!-- RIWAYAT -->
+                        <button
+                            onclick="navigateTo('page-wali-history')"
+                            class="flex flex-col items-center">
+                            <div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center">
+                                <i class="fa-solid fa-clock-rotate-left text-orange-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs mt-2">
+                                Riwayat
+                            </span>
+                        </button>
+                        <!-- JURNAL 7 KAIH -->
+                        <button
+                            id="dashboard-menu-jurnal-7-kaih"
+                            onclick="navigateTo('page-wali-jurnal-7-kaih')"
+                            class="flex flex-col items-center"
+                        >
+                            <div class="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center">
+                                <i class="fa-solid fa-calendar-check text-green-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs mt-2 text-center">
+                                Jurnal 7 KAIH
+                            </span>
+                        </button>
+                        <!-- PROFIL -->
+                        <button
+                            onclick="navigateTo('page-user-profile')"
+                            class="flex flex-col items-center">
+                            <div class="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center">
+                                <i class="fa-solid fa-user text-purple-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs mt-2">
+                                Profil
+                            </span>
+                        </button>
+                        <!-- VOTING OSIS -->
+                        <button
+                            onclick="navigateTo('page-voting-osis')"
+                            class="flex flex-col items-center">
+                            <div class="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center">
+                                <i class="fa-solid fas fa-vote-yea text-purple-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs mt-2">
+                                Pemilu
+                            </span>
+                        </button>
+                    </div>
+                </div>
                     <div class="grid md:grid-cols-4 gap-4">
                         <!-- BELUM HADIR -->
                         <div class="bg-white rounded-2xl p-4 shadow self-start">
@@ -1798,6 +1874,12 @@
             <section id="page-voting-osis-admin" class="hidden-page">
                 <div class="max-w-7xl mx-auto px-4 py-5">
                     <div id="voting-osis-admin-container"></div>
+                </div>
+            </section>
+            <!-- SETTING VOTING DASHBOARD -->
+            <section id="page-voting-osis-settings" class="hidden-page">
+                <div class="max-w-5xl mx-auto px-4 py-5">
+                    <div id="voting-osis-settings-container"></div>
                 </div>
             </section>
             
@@ -3277,7 +3359,10 @@
                         <h1 class="text-2xl font-bold text-slate-800">Voting Ketua OSIS</h1>
                         <p class="text-sm text-slate-500 mt-1">Gunakan hak pilih Anda untuk menentukan Ketua OSIS.</p>
                     </div>
+                    <div id="voting-osis-schedule-container"></div>
+                    <div id="voting-osis-result-container"></div>
                     <div id="voting-osis-container"></div>
+                    
                 </div>
                 <div id="voting-osis-modal" class="hidden"></div>
             </section>
@@ -5144,6 +5229,7 @@
     <script src="js/jurnal7kaih.js"></script>
     <script src="js/gurubk.js"></script>
     <script src="js/votingosis.js"></script>
+    <script src="js/votingsettings.js"></script>
     <script src="js/osis.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/absensi.js"></script>

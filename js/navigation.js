@@ -153,11 +153,14 @@ function runPageLoader(pageId) {
         case "page-bk-rekap-pelanggaran":
             BKRekapPelanggaranService.init();
             break;
-        case "page-voting-osis":
-            VotingOsisService.init();
+        case 'page-voting-osis-settings':
+            VotingOsisSettingsService.init();
             break;
         case 'page-voting-osis-admin':
             VotingOsisAdminService.init();
+            break;
+        case "page-voting-osis":
+            VotingOsisService.init();
             break;
     }
 }
@@ -333,10 +336,17 @@ function buildMenu(user) {
                 <span>Data Hari Libur</span>
             </a>
             <a href="#"
+                data-page="page-voting-osis-settings"
+                onclick="navigateTo('page-voting-osis-settings'); return false;"
+                class="sidebar-link">
+                <i class="fa-solid fa-gear w-5"></i>
+                <span>Setting Pemilu</span>
+            </a>
+            <a href="#"
                 data-page="page-voting-osis-admin"
                 onclick="navigateTo('page-voting-osis-admin'); return false;"
                 class="sidebar-link">
-                <i class="fa-solid fa-calendar-xmark w-5"></i>
+                <i class="fa-solid fa-pencil w-5"></i>
                 <span>Pemilu Osis</span>
             </a>
         `;
@@ -675,12 +685,12 @@ function buildMobileBottomMenu(user) {
             </button>
             <button
                 type="button"
-                data-page="page-master-siswa"
-                onclick="navigateTo('page-master-siswa')"
+                data-page="page-voting-osis"
+                onclick="navigateTo('page-voting-osis')"
                 class="bottom-nav flex flex-col items-center text-xs text-gray-500 transition">
-                <i class="fa-solid fa-user-graduate text-lg"></i>
+                <i class="fa-solid fa-vote-yea text-lg"></i>
                 <span>
-                    Siswa
+                    Pemilu
                 </span>
             </button>
             <button

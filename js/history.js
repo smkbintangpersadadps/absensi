@@ -1,67 +1,56 @@
 // ===============================
 // HISTORY + DASHBOARD STATS
 // ===============================
+// ===============================
+// HISTORY + DASHBOARD STATS
+// ===============================
 async function loadHistory(resetFilter = false) {
     showLoader("Memuat riwayat...");
     try {
         const user = AppState.currentUser;
         if (!user) return;
-        const role =
-            String(user.role || "")
-                .trim()
-                .toLowerCase();
+        const role = String(user.role || "").trim().toLowerCase();
         // ===============================
         // RESET FILTER
         // ===============================
         if (resetFilter) {
             initStudentHistoryFilter();
         }
-        const monthEl =
-            document.getElementById(
-                "student-history-month"
-            );
-        const yearEl =
-            document.getElementById(
-                "student-history-year"
-            );
-        const bulan =
-            Number(monthEl?.value);
-        const tahun =
-            Number(yearEl?.value);
+        const monthEl = document.getElementById("student-history-month");
+        const yearEl = document.getElementById("student-history-year");
+        const bulan = Number(monthEl?.value);
+        const tahun = Number(yearEl?.value);
+        if (!bulan || !tahun) {
+            throw new Error("Filter bulan atau tahun tidak valid");
+        }
         // ===============================
-        // RANGE TANGGAL
+        // RANGE TANGGAL WITA
         // ===============================
-        const lastDay = new Date(
-            tahun,
-            bulan,
-            0
-        ).getDate();
-        const startDate =
-            `${tahun}-${String(bulan).padStart(2,"0")}-01`;
-        const endDate =
-            `${tahun}-${String(bulan).padStart(2,"0")}-${String(lastDay).padStart(2,"0")}`;
+        const bulanStr = String(bulan).padStart(2, "0");
+        const lastDay = new Date(tahun, bulan, 0).getDate();
+        const lastDayStr = String(lastDay).padStart(2, "0");
+        const startDate = `${tahun}-${bulanStr}-01T00:00:00+08:00`;
+        const endDate = `${tahun}-${bulanStr}-${lastDayStr}T23:59:59.999+08:00`;
+        console.log("RIWAYAT ABSENSI RANGE:", {
+            startDate,
+            endDate
+        });
         // ===============================
         // RIWAYAT ABSENSI
         // ===============================
-        let query =
-            window.supabaseClient
-                .from("absensi")
-                .select("*")
-                .gte("waktu", startDate)
-                .lte("waktu", endDate)
-                .order("waktu", {
-                    ascending: false
-                });
-        // siswa hanya lihat miliknya
-        if (
-            role === "siswa" ||
-            role === "peserta"
-        ) {
-            query =
-                query.eq(
-                    "username",
-                    user.username
-                );
+        let query = window.supabaseClient
+            .from("absensi")
+            .select("*")
+            .gte("waktu", startDate)
+            .lte("waktu", endDate)
+            .order("waktu", {
+                ascending: false
+            });
+        // ===============================
+        // SISWA HANYA LIHAT MILIKNYA
+        // ===============================
+        if (role === "siswa" || role === "peserta") {
+            query = query.eq("username", user.username);
         }
         const {
             data: absensi,
@@ -70,127 +59,67 @@ async function loadHistory(resetFilter = false) {
         if (absenError) {
             throw absenError;
         }
+        console.log("DATA RIWAYAT ABSENSI:", absensi);
         // ===============================
         // FORMAT AGAR COCOK
         // DENGAN UI LAMA
         // ===============================
-        AppState.riwayat =
-            (absensi || []).map(row => {
-                const dt =
-                    new Date(row.waktu);
-                return {
-                    id:
-                        row.id,
-                    nama:
-                        row.nama_lengkap,
-                    kategori:
-                        row.kategori,
-                    tipe:
-                        row.tipe,
-                    timestamp:
-                        dt.toLocaleDateString(
-                            "id-ID"
-                        ) +
-                        " " +
-                        dt.toLocaleTimeString(
-                            "id-ID",
-                            {
-                                hour12: false
-                            }
-                        ),
-                    fotoUrl:
-                        row.foto_url,
-                    namaIndustri:
-                        row.nama_industri,
-                    maps:
-                        row.maps_url,
-                    lat:
-                        row.latitude,
-                    lng:
-                        row.longitude,
-                    jarak:
-                        Number(
-                            row.jarak || 0
-                        )
-                };
-            });
+        AppState.riwayat = (absensi || []).map(row => {
+            const dt = new Date(row.waktu);
+            return {
+                id: row.id,
+                nama: row.nama_lengkap,
+                kategori: row.kategori,
+                tipe: row.tipe,
+                timestamp: dt.toLocaleDateString("id-ID") + " " + dt.toLocaleTimeString("id-ID", {
+                    hour12: false
+                }),
+                fotoUrl: row.foto_url,
+                namaIndustri: row.nama_industri,
+                maps: row.maps_url,
+                lat: row.latitude,
+                lng: row.longitude,
+                jarak: Number(row.jarak || 0)
+            };
+        });
         // ===============================
         // KHUSUS SISWA
         // AMBIL STATUS HARIAN
         // ===============================
-        if (
-            role === "siswa" ||
-            role === "peserta"
-        ) {
+        if (role === "siswa" || role === "peserta") {
             const {
                 data: statusData,
                 error: statusError
             } = await window.supabaseClient
                 .from("status_harian")
                 .select("*")
-                .eq(
-                    "username",
-                    user.username
-                )
-                .gte(
-                    "tanggal",
-                    startDate
-                )
-                .lte(
-                    "tanggal",
-                    endDate
-                )
-                .order(
-                    "tanggal",
-                    {
-                        ascending: false
-                    }
-                );
+                .eq("username", user.username)
+                .gte("tanggal", `${tahun}-${bulanStr}-01`)
+                .lte("tanggal", `${tahun}-${bulanStr}-${lastDayStr}`)
+                .order("tanggal", {
+                    ascending: false
+                });
             if (statusError) {
                 throw statusError;
             }
-            const formattedStatus =
-                (statusData || []).map(
-                    row => ({
-                        id:
-                            row.id,
-                        tanggal:
-                            new Date(
-                                row.tanggal
-                            )
-                            .toLocaleDateString(
-                                "id-ID"
-                            ),
-                        status:
-                            row.status,
-                        approval:
-                            row.approval,
-                        keterangan:
-                            row.keterangan
-                    })
-                );
+            const formattedStatus = (statusData || []).map(row => ({
+                id: row.id,
+                tanggal: new Date(row.tanggal).toLocaleDateString("id-ID"),
+                status: row.status,
+                approval: row.approval,
+                keterangan: row.keterangan
+            }));
             renderStudentHistoryCards(
                 AppState.riwayat,
                 formattedStatus
             );
+        } else {
+            renderHistoryTable(AppState.riwayat);
         }
-        else {
-            renderHistoryTable(
-                AppState.riwayat
-            );
-        }
-    }
-    catch (error) {
-        console.error(
-            "Load history error:",
-            error
-        );
-        showToast(
-            "Gagal memuat riwayat",
-            true
-        );
-    }
-    finally {
+    } catch (error) {
+        console.error("Load history error:", error);
+        showToast("Gagal memuat riwayat", true);
+    } finally {
         hideLoader();
     }
 }
@@ -1671,10 +1600,15 @@ const HistoryService = {
         // =====================
         // ABSENSI
         // =====================
+        // const startDate =
+        //     `${selectedDate}T00:00:00+08:00`;
+        // const endDate =
+        //     `${selectedDate}T23:59:59.999+08:00`;
         const startDate =
-            `${selectedDate}T00:00:00+08:00`;
+            `${tahun}-${String(bulan).padStart(2,"0")}-01T00:00:00+08:00`;
+
         const endDate =
-            `${selectedDate}T23:59:59.999+08:00`;
+            `${tahun}-${String(bulan).padStart(2,"0")}-${String(lastDay).padStart(2,"0")}T23:59:59.999+08:00`;
         const {
             data: absensiData,
             error: absensiError
