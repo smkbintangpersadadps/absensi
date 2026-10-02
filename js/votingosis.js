@@ -12,6 +12,7 @@ const VotingOsisService = {
 		await this.refresh();
 	},
 	async refresh() {
+		showLoader("Memuat data pemilu...");
 		try {
 			await this.loadPemilu();
 			if (!this.pemilu) {
@@ -24,8 +25,11 @@ const VotingOsisService = {
 		} catch (error) {
 			console.error('VotingOsisService.refresh error:', error);
 			this.renderError(error.message || 'Gagal memuat data voting');
+		} finally {
+			hideLoader();
 		}
 	},
+	
 	async loadPemilu() {
 		try {
 			const { data, error } = await window.supabaseClient
@@ -377,6 +381,10 @@ const VotingOsisService = {
 							</div>
 						</div>
 					</div>
+					<button type="button" onclick="VotingOsisService.refresh()" class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0" title="Refresh">
+							↻
+						</button>
+					
 				</div>
 			</div>
 		`;
